@@ -1,99 +1,96 @@
 <?php require_once('../config.php') ?>
 <!DOCTYPE html>
-<html lang="en" class="" style="height: auto;">
- <?php require_once('inc/header.php') ?>
-<body class="hold-transition ">
+<html lang="en" style="height: auto;">
+<?php require_once('inc/header.php') ?>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSRC LitTrack</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- CDN jQuery -->
+    <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script> -->
+
+    <!-- Site Icon -->
+    <link rel="icon" href="images/LitTrack.png" type="image/png"/>
+
+    
   <script>
-    start_loader()
+        start_loader()
   </script>
-  <style>
-    html, body{
-      height:calc(100%) !important;
-      width:calc(100%) !important;
-    }
-    body{
-      background-image: url("<?php echo validate_image($_settings->info('cover')) ?>");
-      background-size:cover;
-      background-repeat:no-repeat;
-    }
-    .login-title{
-      text-shadow: 2px 2px black
-    }
-    #login{
-      flex-direction:column !important
-    }
-    #logo-img{
-        height:150px;
-        width:150px;
-        object-fit:scale-down;
-        object-position:center center;
-        border-radius:100%;
-    }
-    #login .col-7,#login .col-5{
-      width: 100% !important;
-      max-width:unset !important
-    }
-  </style>
-  <div class="h-100 d-flex align-items-center w-100" id="login">
-    <div class="col-7 h-100 d-flex align-items-center justify-content-center">
-      <div class="w-100">
-        <center><img src="<?= validate_image($_settings->info('logo')) ?>" alt="" id="logo-img"></center>
-        <h1 class="text-center py-5 login-title"><b><?php echo $_settings->info('name') ?> - Admin</b></h1>
-      </div>
-      
-    </div>
-    <div class="col-5 h-100 bg-gradient">
-      <div class="d-flex w-100 h-100 justify-content-center align-items-center">
-        <div class="card col-sm-12 col-md-6 col-lg-3 card-outline card-primary">
-          <div class="card-header">
-            <h4 class="text-purle text-center"><b>Login</b></h4>
-          </div>
-          <div class="card-body">
-            <form id="login-frm" action="" method="post">
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" autofocus name="username" placeholder="Username">
-                <div class="input-group-append">
-                  <div class="input-group-text">
-                    <span class="fas fa-user"></span>
-                  </div>
+    
+</head>
+
+<body class="d-flex align-items-center vh-100">
+    <div class="container-fluid position-absolute top-50 start-50 translate-middle">
+        <div class="row justify-content-center align-items-center">
+            <div class="ccol-sm-10 col-md-7 col-lg-5 col-xl-4">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4 class="text-danger" >Login - Admin</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="login-frm" action="" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Username" autofocus>
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                </div>
+                            </div>
+                            <div class="">
+                              <div class="col">
+                                  <div for="submitForm" class="justify-content-center d-md-flex mt-4 mb-2">
+                                      <div class="input-group">
+                                          <button type="submit" class="btn col-12 py-3 font-14" style="background-color: #810100; color: white;">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#fff" class="bi bi-arrow-right-circle-fill pe-1" viewBox="0 0 16 16">
+                                                  <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
+                                              </svg>
+                                              Sign In
+                                          </button>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row-4 text-center mt-3">
+                                  <span class="text-carbon-grey font-14"> 
+                                      <a href="<?php echo base_url ?>./choices.php" class="text-primary fw-semibold" style="text-decoration: underline;">Go to Back</a>
+                                  </span>
+                              </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-              </div>
-              <div class="input-group mb-3">
-                <input type="password" class="form-control" name="password" placeholder="Password">
-                <div class="input-group-append">
-                  <div class="input-group-text">
-                    <span class="fas fa-lock"></span>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-8">
-                  <a href="<?php echo base_url ?>">Go to Website</a>
-                </div>
-                <!-- /.col -->
-                <div class="col-4">
-                  <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-                </div>
-                <!-- /.col -->
-              </div>
-            </form>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-<!-- jQuery -->
-<script src="plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
+    <!-- jQuery -->
+    <script src="plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="dist/js/adminlte.min.js"></script>
 
-<script>
-  $(document).ready(function(){
-    end_loader();
-  })
-</script>
+    <script>
+        $(document).ready(function() {
+            end_loader();
+        });
+    </script>
 </body>
+
 </html>

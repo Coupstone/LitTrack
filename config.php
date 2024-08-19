@@ -48,5 +48,9 @@ function isMobileDevice(){
     //Otherwise return false..  
     return false;
 }
+// Check if the current URL is the root URL and redirect
+if ($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '/LitTrack/') {
+    redirect('choices.php');
+}
 ob_end_flush();
 ?>
