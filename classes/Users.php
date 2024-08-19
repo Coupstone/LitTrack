@@ -127,99 +127,56 @@ Class Users extends DBConnection {
 	public function save_student(){
 		extract($_POST);
 		$data = '';
-		if(isset($oldpassword)){
-			if(md5($oldpassword) != $this->settings->userdata('password')){
-				return json_encode(array("status"=>'failed',
-										 "msg"=>'Old Password is Incorrect'));
-			}
+		
+		// Check for required fields
+		if(empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
+			return json_encode(array("status" => "failed", "msg" => "Please fill in all required fields."));
 		}
-		$chk = $this->conn->query("SELECT * FROM `student_list` where email ='{$email}' ".($id>0? " and id!= '{$id}' " : ""))->num_rows;
+	
+		// Check if email is already in use
+		$chk = $this->conn->query("SELECT * FROM `student_list` WHERE email ='{$email}' ".($id > 0 ? " AND id != '{$id}' " : ""))->num_rows;
 		if($chk > 0){
-			return 3;
-			exit;
+			return json_encode(array("status" => "failed", "msg" => "Email is already in use."));
 		}
+	
+		// Prepare data for insertion or update
 		foreach($_POST as $k => $v){
-			if(!in_array($k,array('id','oldpassword','cpassword','password'))){
-				if(!empty($data)) $data .=" , ";
+			if(!in_array($k, array('id', 'oldpassword', 'cpassword', 'password'))){
+				if(!empty($data)) $data .= " , ";
 				$data .= " {$k} = '{$v}' ";
 			}
 		}
 		if(!empty($password)){
 			$password = md5($password);
-			if(!empty($data)) $data .=" , ";
+			if(!empty($data)) $data .= " , ";
 			$data .= " `password` = '{$password}' ";
 		}
-
+	
+		// Insert or update student record
 		if(empty($id)){
-			$qry = $this->conn->query("INSERT INTO student_list set {$data}");
+			$qry = $this->conn->query("INSERT INTO student_list SET {$data}");
 			if($qry){
 				$id = $this->conn->insert_id;
 				$this->settings->set_flashdata('success','Student User Details successfully saved.');
 				$resp['status'] = "success";
-			}else{
+			} else {
 				$resp['status'] = "failed";
 				$resp['msg'] = "An error occurred while saving the data. Error: ". $this->conn->error;
 			}
-
-		}else{
-			$qry = $this->conn->query("UPDATE student_list set $data where id = {$id}");
+		} else {
+			$qry = $this->conn->query("UPDATE student_list SET $data WHERE id = {$id}");
 			if($qry){
 				$this->settings->set_flashdata('success','Student User Details successfully updated.');
-				if($id == $this->settings->userdata('id')){
-					foreach($_POST as $k => $v){
-						if($k != 'id'){
-							if(!empty($data)) $data .=" , ";
-							$this->settings->set_userdata($k,$v);
-						}
-					}
-					
-				}
 				$resp['status'] = "success";
-			}else{
+			} else {
 				$resp['status'] = "failed";
 				$resp['msg'] = "An error occurred while saving the data. Error: ". $this->conn->error;
 			}
-			
 		}
-		
-		if(isset($_FILES['img']) && $_FILES['img']['tmp_name'] != ''){
-			$fname = 'uploads/student-'.$id.'.png';
-			$dir_path =base_app. $fname;
-			$upload = $_FILES['img']['tmp_name'];
-			$type = mime_content_type($upload);
-			$allowed = array('image/png','image/jpeg');
-			if(!in_array($type,$allowed)){
-				$resp['msg'].=" But Image failed to upload due to invalid file type.";
-			}else{
-				$new_height = 200; 
-				$new_width = 200; 
-		
-				list($width, $height) = getimagesize($upload);
-				$t_image = imagecreatetruecolor($new_width, $new_height);
-				imagealphablending( $t_image, false );
-				imagesavealpha( $t_image, true );
-				$gdImg = ($type == 'image/png')? imagecreatefrompng($upload) : imagecreatefromjpeg($upload);
-				imagecopyresampled($t_image, $gdImg, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
-				if($gdImg){
-						if(is_file($dir_path))
-						unlink($dir_path);
-						$uploaded_img = imagepng($t_image,$dir_path);
-						imagedestroy($gdImg);
-						imagedestroy($t_image);
-				}else{
-				$resp['msg'].=" But Image failed to upload due to unkown reason.";
-				}
-			}
-			if(isset($uploaded_img)){
-				$this->conn->query("UPDATE student_list set `avatar` = CONCAT('{$fname}','?v=',unix_timestamp(CURRENT_TIMESTAMP)) where id = '{$id}' ");
-				if($id == $this->settings->userdata('id')){
-						$this->settings->set_userdata('avatar',$fname);
-				}
-			}
-		}
-		
-		return  json_encode($resp);
+	
+		return json_encode($resp);
 	}
+	
 	public function delete_student(){
 		extract($_POST);
 		$avatar = $this->conn->query("SELECT avatar FROM student_list where id = '{$id}'")->fetch_array()['avatar'];

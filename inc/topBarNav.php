@@ -48,7 +48,7 @@
       <nav class="main-header navbar navbar-expand navbar-light border-0 navbar-light text-sm" id='top-Nav'>
         
         <div class="container">
-          <a href="./" class="navbar-brand">
+          <a href="./index.php" class="navbar-brand">
             <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Site Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
             <span><?= $_settings->info('short_name') ?></span>
           </a>
@@ -61,7 +61,7 @@
             <!-- Left navbar links -->
             <ul class="navbar-nav">
               <li class="nav-item">
-                <a href="./" class="nav-link <?= isset($page) && $page =='home' ? "active" : "" ?>">Home</a>
+                <a href="./index.php" class="nav-link <?= isset($page) && $page =='home' ? "active" : "" ?>">Home</a>
               </li>
               <li class="nav-item">
                 <a href="./?page=projects" class="nav-link <?= isset($page) && $page =='projects' ? "active" : "" ?>">Projects</a>

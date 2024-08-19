@@ -69,7 +69,7 @@ class Login extends DBConnection {
 	}
 	public function student_logout(){
 		if($this->settings->sess_des()){
-			redirect('./');
+			redirect('./choices.php');
 		}
 	}
 }
