@@ -19,7 +19,7 @@
     <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script> -->
 
     <!-- Site Icon -->
-    <link rel="icon" href="images/LitTrack.png" type="image/png"/>
+    <link rel="icon" href="uploads/LitTrack.png" type="image/png"/>
     
 </head>
 
@@ -69,7 +69,7 @@
           <div class="d-flex align-items-center justify-content-center">
             <!-- Logo and Title -->
             <div>
-                <img src="images/LitLogo.png" alt="PUP Logo" class="mb-4 img-fluid" style="max-width: 200px;">
+                <img src="uploads/LitLogo.png" alt="PUP Logo" class="mb-4 img-fluid" style="max-width: 200px;">
             </div>
           </div>
           <div class="text-carbon-grey justify-content-center">

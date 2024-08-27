@@ -1,159 +1,274 @@
 <style>
-  .user-img{
-        position: absolute;
-        height: 27px;
-        width: 27px;
-        object-fit: cover;
-        left: -7%;
-        top: -12%;
-  }
-  .btn-rounded{
-        border-radius: 50px;
-  }
+    /* Font Weights and Sidebar Styling */
+    body, p, a, span, li, h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+    }
+    .main-sidebar .nav-sidebar .nav-link p,
+    .main-sidebar .nav-sidebar .nav-header,
+    .main-sidebar .nav-sidebar .brand-text {
+        font-weight: 700;
+    }
+    .main-sidebar .os-content {
+        margin-top: 0;
+    }
+    .main-sidebar .nav-sidebar .nav-item:first-child {
+        margin-top: 0.5rem;
+    }
+    .brand-text {
+        margin-left: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .brand-text .littrack-text {
+        font-family: 'Georgia', serif;
+        font-size: 1.2rem;
+        background: linear-gradient(to bottom, #007bff, #4e4e4e, #b81d24);
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 800;
+        margin-top: -0.4rem;
+        line-height: 1;
+    }
+    .brand-link {
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease-in-out;
+    }
+    .sidebar-mini.sidebar-collapse .brand-link .brand-image {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    .sidebar-mini.sidebar-collapse .brand-link .brand-text {
+        display: none;
+    }
+    .nav-link.active {
+        background-color: #007bff;
+        color: white !important;
+    }
+    .nav-link.active i {
+        color: white !important;
+    }
+
+    /* Navbar and Sidebar Toggle Styling */
+    .navbar-nav {
+        position: relative;
+        z-index: 1030;
+        transition: none;
+    }
+    body.sidebar-collapsed .navbar-nav {
+        margin-left: 60px;
+    }
+    body.sidebar-expanded .navbar-nav {
+        margin-left: 250px;
+    }
+    .main-sidebar {
+        width: 250px;
+        transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+    body.sidebar-collapsed .main-sidebar {
+        width: 60px;
+        margin-left: 0;
+    }
+    body.sidebar-expanded .main-sidebar {
+        width: 250px;
+        margin-left: 0;
+    }
+    .main-sidebar .nav-link p {
+        display: inline;
+    }
+    body.sidebar-collapsed .main-sidebar .nav-link p {
+        display: none;
+    }
+    .main-sidebar .nav-link i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    body.sidebar-collapsed .main-sidebar .nav-link i {
+        margin-right: 0;
+        text-align: center;
+        width: 100%;
+    }
+    .brand-link {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        transition: padding 0.3s ease;
+        height: 3.5rem;
+        overflow: hidden;
+    }
+    .brand-link .brand-image {
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: width 0.3s ease, height 0.3s ease;
+        margin-right: 0.5rem;
+    }
+    .brand-link .brand-text {
+        font-size: 1rem;
+        transition: opacity 0.3s ease;
+        white-space: nowrap;
+    }
+    body.sidebar-collapsed .brand-link {
+        padding: 0.5rem;
+    }
+    body.sidebar-collapsed .brand-link .brand-image {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0;
+    }
+    body.sidebar-collapsed .brand-link .brand-text {
+        opacity: 0;
+        overflow: hidden;
+    }
+    body.sidebar-expanded .brand-link .brand-text {
+        opacity: 1;
+    }
 </style>
-<!-- Navbar -->
-      <style>
-        #login-nav{
-          position:fixed !important;
-          top: 0 !important;
-          z-index: 1037;
-          padding: 1em 1.5em !important;
-        }
-        #top-Nav{
-          top: 4em;
-        }
-        .text-sm .layout-navbar-fixed .wrapper .main-header ~ .content-wrapper, .layout-navbar-fixed .wrapper .main-header.text-sm ~ .content-wrapper {
-          margin-top: calc(3.6) !important;
-          padding-top: calc(5em) !important;
-      }
-      </style>
-      <nav class="bg-navy w-100 px-2 py-1 position-fixed top-0" id="login-nav">
-        <div class="d-flex justify-content-between w-100">
-          <div>
-            <span class="mr-2  text-white"><i class="fa fa-phone mr-1"></i> <?= $_settings->info('contact') ?></span>
-          </div>
-          <div>
-            <?php if($_settings->userdata('id') > 0): ?>
-              <span class="mx-2"><img src="<?= validate_image($_settings->userdata('avatar')) ?>" alt="User Avatar" id="student-img-avatar"></span>
-              <span class="mx-2">Howdy, <?= !empty($_settings->userdata('email')) ? $_settings->userdata('email') : $_settings->userdata('username') ?></span>
-              <span class="mx-1"><a href="<?= base_url.'classes/Login.php?f=student_logout' ?>"><i class="fa fa-power-off"></i></a></span>
-            <?php else: ?>
-              <a href="./register.php" class="mx-2 text-light me-2">Register</a>
-              <a href="./login.php" class="mx-2 text-light me-2">Student Login</a>
-              <a href="./admin" class="mx-2 text-light">Admin login</a>
-            <?php endif; ?>
-          </div>
+
+
+<body class="sidebar-expanded">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Hamburger Button -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="sidebar-toggle" role="button">
+                    <i class="fas fa-bars"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Sidebar -->
+    <nav class="main-sidebar sidebar-light-dark">
+        <div class="brand-link">
+            <!-- Brand Logo -->
+            <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
+            <span class="brand-text font-weight-light">
+                <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
+                <span class="littrack-text">LitTrack</span>
+            </span>
         </div>
-      </nav>
-      <nav class="main-header navbar navbar-expand navbar-light border-0 navbar-light text-sm" id='top-Nav'>
-        
-        <div class="container">
-          <a href="./index.php" class="navbar-brand">
-            <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Site Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-            <span><?= $_settings->info('short_name') ?></span>
-          </a>
 
-          <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
+        <div class="sidebar">
+            <!-- Sidebar Menu -->
+            <nav class="mt-4">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                    <!-- Home Link -->
+                    <li class="nav-item mt-4">
+                        <a href="./index.php" class="nav-link <?= isset($page) && $page == 'home' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-home"></i>
+                            <p>Home</p>
+                        </a>
+                    </li>
 
-          <div class="collapse navbar-collapse order-3" id="navbarCollapse">
-            <!-- Left navbar links -->
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a href="./index.php" class="nav-link <?= isset($page) && $page =='home' ? "active" : "" ?>">Home</a>
-              </li>
-              <li class="nav-item">
-                <a href="./?page=projects" class="nav-link <?= isset($page) && $page =='projects' ? "active" : "" ?>">Projects</a>
-              </li>
-              <li class="nav-item dropdown">
-                <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle  <?= isset($page) && $page =='projects_per_department' ? "active" : "" ?>">Department</a>
-                <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
-                  <?php 
-                    $departments = $conn->query("SELECT * FROM department_list where status = 1 order by `name` asc");
-                    $dI =  $departments->num_rows;
-                    while($row = $departments->fetch_assoc()):
-                      $dI--;
-                  ?>
-                  <li>
-                    <a href="./?page=projects_per_department&id=<?= $row['id'] ?>" class="dropdown-item"><?= ucwords($row['name']) ?></a>
-                    <?php if($dI != 0): ?>
-                    <li class="dropdown-divider"></li>
+                    <!-- Projects Link -->
+                    <li class="nav-item">
+                        <a href="./?page=projects" class="nav-link <?= isset($page) && $page == 'projects' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-project-diagram"></i>
+                            <p>Projects</p>
+                        </a>
+                    </li>
+
+                    <!-- Department Dropdown -->
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link <?= isset($page) && $page == 'projects_per_department' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>
+                                Department
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <?php 
+                            $departments = $conn->query("SELECT * FROM department_list WHERE status = 1 ORDER BY `name` ASC");
+                            while($row = $departments->fetch_assoc()): 
+                            ?>
+                            <li class="nav-item">
+                                <a href="./?page=projects_per_department&id=<?= $row['id'] ?>" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p><?= ucwords($row['name']) ?></p>
+                                </a>
+                            </li>
+                            <?php endwhile; ?>
+                        </ul>
+                    </li>
+
+                    <!-- Courses Dropdown -->
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link <?= isset($page) && $page == 'projects_per_curriculum' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>
+                                Courses
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <?php 
+                            $curriculums = $conn->query("SELECT * FROM curriculum_list WHERE status = 1 ORDER BY `name` ASC");
+                            while($row = $curriculums->fetch_assoc()): 
+                            ?>
+                            <li class="nav-item">
+                                <a href="./?page=projects_per_curriculum&id=<?= $row['id'] ?>" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p><?= ucwords($row['name']) ?></p>
+                                </a>
+                            </li>
+                            <?php endwhile; ?>
+                        </ul>
+                    </li>
+
+                    <!-- About Us Link -->
+                    <li class="nav-item">
+                        <a href="./?page=about" class="nav-link <?= isset($page) && $page == 'about' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-info-circle"></i>
+                            <p>About Us</p>
+                        </a>
+                    </li>
+
+                    <!-- Additional Links for Logged-in Users -->
+                    <?php if($_settings->userdata('id') > 0): ?>
+                    <li class="nav-item">
+                        <a href="./?page=profile" class="nav-link <?= isset($page) && $page == 'profile' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-user"></i>
+                            <p>Profile</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="./?page=submit-archive" class="nav-link <?= isset($page) && $page == 'submit-archive' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-upload"></i>
+                            <p>Submit Research</p>
+                        </a>
+                    </li>
                     <?php endif; ?>
-                  </li>
-                  <?php endwhile; ?>
                 </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle  <?= isset($page) && $page =='projects_per_curriculum' ? "active" : "" ?>">Courses</a>
-                <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
-                  <?php 
-                    $curriculums = $conn->query("SELECT * FROM curriculum_list where status = 1 order by `name` asc");
-                    $cI =  $curriculums->num_rows;
-                    while($row = $curriculums->fetch_assoc()):
-                      $cI--;
-                  ?>
-                  <li>
-                    <a href="./?page=projects_per_curriculum&id=<?= $row['id'] ?>" class="dropdown-item"><?= ucwords($row['name']) ?></a>
-                    <?php if($cI != 0): ?>
-                    <li class="dropdown-divider"></li>
-                    <?php endif; ?>
-                  </li>
-                  <?php endwhile; ?>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a href="./?page=about" class="nav-link <?= isset($page) && $page =='about' ? "active" : "" ?>">About Us</a>
-              </li>
-              <!-- <li class="nav-item">
-                <a href="#" class="nav-link">Contact</a>
-              </li> -->
-              <?php if($_settings->userdata('id') > 0): ?>
-              <li class="nav-item">
-                <a href="./?page=profile" class="nav-link <?= isset($page) && $page =='profile' ? "active" : "" ?>">Profile</a>
-              </li>
-              <li class="nav-item">
-                <a href="./?page=submit-archive" class="nav-link <?= isset($page) && $page =='submit-archive' ? "active" : "" ?>">Submit Thesis/Capstone</a>
-              </li>
-              <?php endif; ?>
-            </ul>
-
-            
-          </div>
-          <!-- Right navbar links -->
-          <div class="order-1 order-md-3 navbar-nav navbar-no-expand ml-auto">
-                <a href="javascript:void(0)" class="text-navy" id="search_icon"><i class="fa fa-search"></i></a>
-                <div class="position-relative">
-                  <div id="search-field" class="position-absolute">
-                    <input type="search" id="search-input" class="form-control rounded-0" required placeholder="Search..." value="<?= isset($_GET['q']) ? $_GET['q'] : '' ?>">
-                  </div>
+                <br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <div class="text-center mt-4">
+                  <a href="<?= base_url.'classes/Login.php?f=student_logout' ?>" class="btn btn-dark" style="color: white;"><i class="fa fa-power-off"></i></a>
                 </div>
-          </div>
+            </nav>
+            <!-- /.sidebar-menu -->
         </div>
-      </nav>
-      <!-- /.navbar -->
-      <script>
-        $(function(){
-          $('#search-form').submit(function(e){
-            e.preventDefault()
-            if($('[name="q"]').val().length == 0)
-            location.href = './';
-            else
-            location.href = './?'+$(this).serialize();
-          })
-          $('#search_icon').click(function(){
-              $('#search-field').addClass('show')
-              $('#search-input').focus();
-              
-          })
-          $('#search-input').focusout(function(e){
-            $('#search-field').removeClass('show')
-          })
-          $('#search-input').keydown(function(e){
-            if(e.which == 13){
-              location.href = "./?page=projects&q="+encodeURI($(this).val());
-            }
-          })
-          
-        })
-      </script>
+        <!-- /.sidebar -->
+    </nav>
+
+
+    <!-- JavaScript to Toggle Sidebar -->
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggleButton = document.getElementById('sidebar-toggle');
+    const body = document.body;
+
+    toggleButton.addEventListener('click', function () {
+        body.classList.toggle('sidebar-collapsed');
+        body.classList.toggle('sidebar-expanded');
+    });
+
+    // Ensure the sidebar and navbar are in sync on page load
+    if (!body.classList.contains('sidebar-expanded')) {
+        body.classList.add('sidebar-expanded');
+    }
+});
+    </script>
+</body>

@@ -1,4 +1,4 @@
-<style>
+<!-- <style>
     .car-cover{
         width:10em;
     }
@@ -41,4 +41,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
