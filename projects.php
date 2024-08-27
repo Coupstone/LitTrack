@@ -1,141 +1,66 @@
-<?php require_once('./config.php'); ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects</title>
-    <link rel="stylesheet" href="path/to/your/css/bootstrap.min.css">
-    <link rel="stylesheet" href="path/to/your/css/styles.css">
-    <style>
-        #header {
-            height: 70vh;
-            width: 100%;
-            position: relative;
-            top: -1em;
-        }
-        #header:before {
-            content: "";
-            position: absolute;
-            height: 100%;
-            width: 100%;
-            background-image: url(<?= validate_image($_settings->info("cover")) ?>);
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center center;
-        }
-        #header > div {
-            position: absolute;
-            height: 100%;
-            width: 100%;
-            z-index: 2;
-        }
-        #top-Nav a.nav-link.active {
-            color: #001f3f;
-            font-weight: 900;
-            position: relative;
-        }
-        #top-Nav a.nav-link.active:before {
-            content: "";
-            position: absolute;
-            border-bottom: 2px solid #001f3f;
-            width: 33.33%;
-            left: 33.33%;
-            bottom: 0;
-        }
-    </style>
-</head>
-<body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
-    <div class="wrapper">
-        <?php $page = isset($_GET['page']) ? $_GET['page'] : 'home'; ?>
-        <?php require_once('inc/topBarNav.php'); ?>
-        <?php if($_settings->chk_flashdata('success')): ?>
-            <script>
-                alert_toast("<?php echo $_settings->flashdata('success') ?>", 'success');
-            </script>
-        <?php endif; ?>
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper pt-5">
-            <?php if($page == "home" || $page == "about_us"): ?>
-                <div id="header" class="shadow mb-4">
-                    <div class="d-flex justify-content-center h-100 w-100 align-items-center flex-column px-3">
-                        <h1 class="w-100 text-center site-title"><?php echo $_settings->info('name') ?></h1>
-                        <a href="./?page=projects" class="btn btn-lg btn-light rounded-pill w-25" id="enrollment"><b>Explore Projects</b></a>
-                    </div>
-                </div>
-            <?php endif; ?>
-            <!-- Main content -->
-            <section class="content">
-                <div class="container">
-                    <?php
-                    if(!file_exists($page.".php") && !is_dir($page)){
-                        include '404.html';
-                    } else {
-                        if(is_dir($page))
-                            include $page.'/index.php';
-                        else
-                            include $page.'.php';
-                    }
+<div class="content py-2">
+    <div class="col-12">
+        <div class="card card-outline card-primary shadow rounded-0">
+            <div class="card-body rounded-0">
+                <h2>Archive List</h2>
+                <hr class="bg-navy">
+                <?php 
+                $limit = 10;
+                $page = isset($_GET['p'])? $_GET['p'] : 1; 
+                $offset = 10 * ($page - 1);
+                $paginate = " limit {$limit} offset {$offset}";
+                $isSearch = isset($_GET['q']) ? "&q={$_GET['q']}" : "";
+                $search = "";
+                if(isset($_GET['q'])){
+                    $keyword = $conn->real_escape_string($_GET['q']);
+                    $search = " and (title LIKE '%{$keyword}%' or abstract  LIKE '%{$keyword}%' or members LIKE '%{$keyword}%' or curriculum_id in (SELECT id from curriculum_list where name  LIKE '%{$keyword}%' or description  LIKE '%{$keyword}%') or curriculum_id in (SELECT id from curriculum_list where department_id in (SELECT id FROM department_list where name  LIKE '%{$keyword}%' or description  LIKE '%{$keyword}%'))) ";
+                }
+                $students = $conn->query("SELECT * FROM `student_list` where id in (SELECT student_id FROM archive_list where `status` = 1 {$search})");
+                $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC),'email','id');
+                $count_all = $conn->query("SELECT * FROM archive_list where `status` = 1 {$search}")->num_rows;    
+                $pages = ceil($count_all/$limit);
+                $archives = $conn->query("SELECT * FROM archive_list where `status` = 1 {$search} order by unix_timestamp(date_created) desc {$paginate}");    
+                ?>
+                <?php if(!empty($isSearch)): ?>
+                <h3 class="text-center"><b>Search Result for "<?= $keyword ?>" keyword</b></h3>
+                <?php endif ?>
+                <div class="list-group">
+                    <?php 
+                    while($row = $archives->fetch_assoc()):
+                        $row['abstract'] = strip_tags(html_entity_decode($row['abstract']));
                     ?>
-                </div>
-            </section>
-            <!-- /.content -->
-            <div class="modal fade" id="confirm_modal" role='dialog'>
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Confirmation</h5>
+                    <a href="./?page=view_archive&id=<?= $row['id'] ?>" class="text-decoration-none text-dark list-group-item list-group-item-action">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-5 col-sm-12 text-center">
+                                <img src="<?= validate_image($row['banner_path']) ?>" class="banner-img img-fluid bg-gradient-dark" alt="Banner Image">
+                            </div>
+                            <div class="col-lg-8 col-md-7 col-sm-12">
+                                <h3 class="text-navy"><b><?php echo $row['title'] ?></b></h3>
+                                <small class="text-muted">By <b class="text-info"><?= isset($student_arr[$row['student_id']]) ? $student_arr[$row['student_id']] : "N/A" ?></b></small>
+                                <p class="truncate-5"><?= $row['abstract'] ?></p>
+                            </div>
                         </div>
-                        <div class="modal-body">
-                            <div id="delete_content"></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id='confirm' onclick="">Continue</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
+                    </a>
+                    <?php endwhile; ?>
                 </div>
             </div>
-            <div class="modal fade" id="uni_modal" role='dialog'>
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title"></h5>
-                        </div>
-                        <div class="modal-body">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id='submit' onclick="$('#uni_modal form').submit()">Save</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="uni_modal_right" role='dialog'>
-                <div class="modal-dialog modal-full-height modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title"></h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span class="fa fa-arrow-right"></span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
+            <div class="card-footer clearfix rounded-0">
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-md-6"><span class="text-muted">Display Items: <?= $archives->num_rows ?></span></div>
+                        <div class="col-md-6">
+                            <ul class="pagination pagination-sm m-0 float-right">
+                                <li class="page-item"><a class="page-link" href="./?page=projects<?= $isSearch ?>&p=<?= $page - 1 ?>" <?= $page == 1 ? 'disabled' : '' ?>>«</a></li>
+                                <?php for($i = 1; $i<= $pages; $i++): ?>
+                                <li class="page-item"><a class="page-link <?= $page == $i ? 'active' : '' ?>" href="./?page=projects<?= $isSearch ?>&p=<?= $i ?>"><?= $i ?></a></li>
+                                <?php endfor; ?>
+                                <li class="page-item"><a class="page-link" href="./?page=projects<?= $isSearch ?>&p=<?= $page + 1 ?>" <?= $page == $pages ? 'disabled' : '' ?>>»</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal fade" id="viewer_modal" role='dialog'>
-                <div class="modal-dialog modal-md" role="document">
-                    <div class="modal-content">
-                        <button type="button" class="btn-close" data-dismiss="modal"><span class="fa fa-times"></span></button>
-                        <img src="" alt="">
-                    </div>
-                </div>
+
             </div>
         </div>
-        <!-- /.content-wrapper -->
-        <?php require_once('inc/footer.php'); ?>
     </div>
-</body>
-</html>
+</div>
