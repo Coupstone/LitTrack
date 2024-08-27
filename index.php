@@ -1,7 +1,7 @@
 <?php require_once('./config.php'); ?>
  <!DOCTYPE html>
 <html lang="en" class="" style="height: auto;">
-<style>
+<!-- <style>
   #header{
     height:70vh;
     width:calc(100%);
@@ -38,6 +38,7 @@
     left: 33.33%;
     bottom: 0;
   }
+</style> -->
 </style>
 <?php require_once('inc/header.php') ?>
   <body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
@@ -54,8 +55,13 @@
         <?php if($page == "home" || $page == "about_us"): ?>
           <div id="header" class="shadow mb-4">
               <div class="d-flex justify-content-center h-100 w-100 align-items-center flex-column px-3">
-                  <h1 class="w-100 text-center site-title"><?php echo $_settings->info('name') ?></h1>
-                  <a href="./?page=projects" class="btn btn-lg btn-light rounded-pill w-25" id="enrollment"><b>Explore Projects</b></a>
+                  <!-- <h1 class="w-100 text-center site-title"><?php echo $_settings->info('name') ?></h1> -->
+                  <a href="javascript:void(0)" class="text-navy" id="search_icon"><i class="fa fa-search"></i></a>
+                  <div class="position-relative">
+                      <div id="search-field" class="position-absolute">
+                          <input type="search" id="search-input" class="form-control rounded-0" required placeholder="Search..." value="<?= isset($_GET['q']) ? $_GET['q'] : '' ?>">
+                      </div>
+                  </div>
               </div>
           </div>
         <?php endif; ?>
@@ -130,6 +136,31 @@
     </div>
   </div>
       </div>
+      <script>
+        $(function(){
+          $('#search-form').submit(function(e){
+            e.preventDefault()
+            if($('[name="q"]').val().length == 0)
+            location.href = './';
+            else
+            location.href = './?'+$(this).serialize();
+          })
+          $('#search_icon').click(function(){
+              $('#search-field').addClass('show')
+              $('#search-input').focus();
+              
+          })
+          $('#search-input').focusout(function(e){
+            $('#search-field').removeClass('show')
+          })
+          $('#search-input').keydown(function(e){
+            if(e.which == 13){
+              location.href = "./?page=projects&q="+encodeURI($(this).val());
+            }
+          })
+          
+        })
+      </script>
       <!-- /.content-wrapper -->
       <?php require_once('inc/footer.php') ?>
   </body>
