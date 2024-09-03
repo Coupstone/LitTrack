@@ -1,5 +1,4 @@
 <style>
-    /* Font Weights and Sidebar Styling */
     body, p, a, span, li, h1, h2, h3, h4, h5, h6 {
         font-weight: 600;
     }
@@ -50,8 +49,6 @@
     .nav-link.active i {
         color: white !important;
     }
-
-    /* Navbar and Sidebar Toggle Styling */
     .navbar-nav {
         position: relative;
         z-index: 1030;
@@ -126,7 +123,7 @@
     }
 </style>
 
-
+<?php if (!isset($page) || $page !== 'view_archive'): ?>
 <body class="sidebar-expanded">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
@@ -139,6 +136,8 @@
             </li>
         </ul>
     </nav>
+
+
 
     <!-- Sidebar -->
     <nav class="main-sidebar sidebar-light-dark">
@@ -252,6 +251,8 @@
         </div>
         <!-- /.sidebar -->
     </nav>
+<?php endif; ?>
+
 
 
     <!-- JavaScript to Toggle Sidebar -->
@@ -264,8 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
         body.classList.toggle('sidebar-collapsed');
         body.classList.toggle('sidebar-expanded');
     });
-
-    // Ensure the sidebar and navbar are in sync on page load
+    
     if (!body.classList.contains('sidebar-expanded')) {
         body.classList.add('sidebar-expanded');
     }
