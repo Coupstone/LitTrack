@@ -23,125 +23,162 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 }
 ?>
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding: 0;
-    }
-    .content {
-        padding: 30px;
-        background-color: #ffffff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-    }
-    .card {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-       
-    }
-    .card-header {
-        background-color: #a8001d;
-        color: #ffffff;
-        padding: 20px;
 
-    }
-    .card-title {
-        font-size: 2rem;
-        margin: 0;
-        font-weight: bold;
-    }
-    .card-body {
-        padding: 20px;
-    }
-    .btn-flat {
-        border-radius: 0;
-        padding: 8px 16px;
-        font-size: 0.875rem;
-        font-weight: 600;
-    }
-    .btn-navy {
-        background-color: #a8001d; 
-        color: #ffffff;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .btn-navy:hover {
-        background-color: #80001a; 
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-    }
-    .btn-danger {
-        background-color: #dc3545;
-        color: #ffffff;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .btn-danger:hover {
-        background-color: #c82333;
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-    }
-    .text-info {
-        color: #17a2b8;
-    }
-    .text-navy {
-        color: #003366;
-    }
-    .border {
-        border: 2px solid #a8001d;
-    }
-    .bg-gradient-dark {
-        background: linear-gradient(135deg, #343a40 0%, #000000 100%);
-    }
-    .img-fluid {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .fieldset {
-        margin-bottom: 20px;
-        border: 1px solid #e1e1e1;
-        border-radius: 8px;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .legend {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #a8001d; 
-        border-bottom: 2px solid #80001a;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
-    }
-    .pl-4 {
-        padding-left: 1.5rem;
-    }
-    .text-center {
-        text-align: center;
-    }
-    .container-fluid {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    .doc-controls {
-        margin-top: 20px;
-        text-align: center;
-    }
-    .doc-controls button {
-        margin: 0 10px;
-        padding: 10px 20px;
-        font-size: 0.875rem;
-    }
-    .table-shadow {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+}
+.header {
+    display: none; 
+}
+
+.content {
+    padding: 30px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 1200px;
+    background-color: #ffffff; 
+    box-shadow: none; 
+}
+
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #ffffff; 
+    border: none; 
+    box-shadow: none; 
+}
+
+.card-header {
+    background-color: #a8001d;
+    color: #ffffff;
+    padding: 20px;
+    border-bottom: 1px solid #8c0000;
+}
+
+.card-title {
+    font-size: 1.75rem;
+    margin: 0;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 20px;
+    background-color: #ffffff; 
+}
+
+.btn-flat {
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-navy {
+    background-color: #a8001d; 
+    color: #ffffff;
+    border: none;
+}
+
+.btn-navy:hover {
+    background-color: #80001a; 
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.text-info {
+    color: #17a2b8;
+}
+
+.text-navy {
+    color: #003366;
+}
+
+.border {
+    border: 2px solid #a8001d;
+}
+
+.bg-gradient-dark {
+    background-color: #ffffff; 
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.fieldset {
+    margin-bottom: 20px;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #ffffff; 
+    box-shadow: none; 
+}
+
+.legend {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #a8001d; 
+    border-bottom: 2px solid #80001a;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.pl-4 {
+    padding-left: 1.5rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.container-fluid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.doc-controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.doc-controls button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 0.875rem;
+}
+
+.table-shadow {
+    border: 1px solid #e1e1e1;
+}
+
+iframe#document_field {
+    height: 1000px; 
+    background-color: #ffffff; 
+    border: none;
+}
 </style>
+
 <div class="content py-4">
     <div class="container-fluid">
-        <div class="card card-outline card-primary shadow rounded-0">
+        <div class="card card-outline card-primary rounded-0">
             <div class="card-header">
                 <h3 class="card-title">
                     Archive - <?= $archive_code ?? "" ?>
@@ -189,6 +226,7 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         </div>
     </div>
 </div>
+
 <script>
     $(function() {
         $('.delete-data').click(function() {
@@ -211,7 +249,7 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
             },
             success: function(resp) {
                 if (typeof resp === 'object' && resp.status === 'success') {
-                    location.replace("./");
+                    location.href = "./?page=archives";
                 } else {
                     alert_toast("An error occurred.", 'error');
                     end_loader();
@@ -221,12 +259,6 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 
     function downloadDocument() {
-        const url = "<?= base_url . ($document_path ?? "") ?>";
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = url.substring(url.lastIndexOf('/') + 1);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        window.open("<?= base_url . ($document_path ?? "") ?>", '_blank');
     }
 </script>
