@@ -23,10 +23,6 @@
                       <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                   </form>
                   <div class="mt-2">
-                      <select class="form-control" name="department" id="department" style="font-size: 0.9rem; padding: 4px; width: 150px; height: 30px;">
-                          <option value="any">Any Department</option>
-                          <!-- Add department options here -->
-                      </select>
                   </div>
               </div>
           </div>
@@ -161,4 +157,27 @@
       margin: 0;
     }
   }
+
+  #content {
+            transition: margin-left 0.3s;
+            margin-left: 250px; 
+        }
+  body.sidebar-collapsed #content {
+            margin-left: 60px;
+        }
+  .student-img {
+            object-fit: scale-down;
+            object-position: center center;
+            height: 200px;
+            width: 200px;
+        }
+        .card-tools .btn {
+            margin-left: 10px;
+        }
+        /* Ensure layout adapts well on smaller screens */
+        @media (max-width: 768px) {
+            body.sidebar-expanded #content {
+                margin-left: 80px; /* For smaller screens, default is collapsed */
+            }
+        }
 </style>
