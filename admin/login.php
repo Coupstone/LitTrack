@@ -9,7 +9,7 @@
     <title>PUPSRC LitTrack</title>
 
     <!-- Bootstrap CSS -->
-    <link href="styles/main.css" rel="stylesheet">
+    <link href="../styles/main.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
     <!-- Bootstrap JavaScript -->
@@ -17,24 +17,23 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <!-- Site Icon -->
-    <link rel="icon" href="images/LitTrack.png" type="image/png"/>
+    <link rel="icon" href="../images/LitTrack.png" type="image/png"/>
 
     <script>
-        start_loader()
+        start_loader();
     </script>
 </head>
 
-<body class="d-flex align-items-center vh-100">
+<body class="bg-image d-flex align-items-center vh-100">
     <div class="container-fluid position-absolute top-50 start-50 translate-middle">
         <div class="row justify-content-center align-items-center">
             <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
                 <div class="text-center login-form-gradient shadow-lg">
-                    <div class="align-items-center justify-content-center">
+                    <div class="d-flex align-items-center justify-content-center">
                         <img src="../uploads/LitLogo.png" alt="PUP Logo" class="mb-4 img-fluid" style="max-width: 200px;">
                     </div>
                     <div class="text-carbon-grey justify-content-center">
-                        <div class="align-items-center justify-content-center">
-                            <h4 class="fs-4 mb-0 fw-semibold">Login - Admin</h4>
+                        <div class="d-flex align-items-center justify-content-center">
                         </div>
                         <div class="mb-4 font-14">Sign in to your account to get started.</div>
                     </div>
@@ -55,6 +54,13 @@
                             <div class="invalid-feedback text-start font-13">
                                 Please enter your password.
                             </div>
+                            <div class="input-group mt-2 align-items-center">
+                                <div class="form-check ms-2">
+                                    <input class="form-check-input fs-5" type="checkbox" id="showPassword" onclick="togglePassword()">
+                                    <label class="form-check-label text-carbon-grey fw-medium pt-1 font-13" for="showPassword">Show</label>
+                                </div>
+                                <a href="#" class="text-carbon-grey ms-auto font-13" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
+                            </div>
                         </div>
                         <div class="justify-content-center d-md-flex mt-4 mb-2">
                             <div class="input-group">
@@ -72,17 +78,55 @@
         </div>
     </div>
 
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered px-3">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-carbon-grey fw-semibold" id="forgotPasswordModalLabel">Recover Your Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="forgotPasswordForm" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <p class="px-1 font-14">Please provide your registered email address for sending a reset link.</p>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control shadow-sm" name="email" id="forgotEmail" placeholder="Email Address" autocomplete="email" required>
+                            <label for="forgotEmail" class="text-muted font-13">Email Address<span style="color: red;"> *</span></label>
+                            <div class="valid-feedback font-13" id="email-valid">
+                                <!-- Display valid email message -->
+                            </div>
+                            <div class="invalid-feedback font-13" id="email-error">
+                                <!-- Display error messages -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn fw-medium btn-outline-carbon-grey text-capitalize py-2 px-4 my-3 font-14" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                        <button type="submit" class="btn fw-medium btn-mediumtext-capitalize py-2 px-4 font-14" style="background-color: #5875B5; color: white;">Send Link</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery -->
-    <script src="plugins/jquery/jquery.min.js"></script>
+    <script src="../plugins/jquery/jquery.min.js"></script>
     <!-- Bootstrap 4 -->
-    <!-- <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script> -->
+    <!-- <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script> -->
     <!-- AdminLTE App -->
-    <script src="dist/js/adminlte.min.js"></script>
+    <script src="../dist/js/adminlte.min.js"></script>
 
     <script>
         $(document).ready(function() {
             end_loader();
         });
+
+        // Toggle show password
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+        }
     </script>
 </body>
 
