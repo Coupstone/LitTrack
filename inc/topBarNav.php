@@ -143,7 +143,7 @@
     <nav class="main-sidebar sidebar-light-dark">
         <div class="brand-link">
             <!-- Brand Logo -->
-            <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
+            <img src="uploads/pupLogo.jfif" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
             <span class="brand-text font-weight-light">
                 <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
                 <span class="littrack-text">LitTrack</span>
@@ -162,16 +162,51 @@
                         </a>
                     </li>
 
-                    <!-- Projects Link -->
                     <li class="nav-item">
+                        <a href="./advance-search.php" class="nav-link mx-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                            <p class ="mx-2">Advanced Search</p>
+                        </a>
+                    </li>
+
+                    <?php if($_settings->userdata('id') > 0): ?>
+                    <li class="nav-item mt-1">
+                        <a href="./?page=profile" class="nav-link <?= isset($page) && $page == 'profile' ? 'active' : '' ?>">
+                            <i class="nav-icon fas fa-user"></i>
+                            <p>My Profile</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mx-1">
+                        <a href="./library.php" class="nav-link d-flex align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                        </svg>
+                            <p class ="mx-3">My Library</p>
+                        </a>
+                    </li>
+
+                    <!-- Projects Link -->
+                    <li class="nav-item mt-1">
                         <a href="./?page=projects" class="nav-link <?= isset($page) && $page == 'projects' ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-project-diagram"></i>
-                            <p>Projects</p>
+                            <p>Researches</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-1">
+                        <a href="./Litmaps.php" class="nav-link mx-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+                        </svg>
+                            <p class ="mx-2">Literature Mapping</p>
                         </a>
                     </li>
 
                     <!-- Department Dropdown -->
-                    <li class="nav-item has-treeview">
+                    <!-- <li class="nav-item has-treeview">
                         <a href="#" class="nav-link <?= isset($page) && $page == 'projects_per_department' ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-building"></i>
                             <p>
@@ -192,10 +227,10 @@
                             </li>
                             <?php endwhile; ?>
                         </ul>
-                    </li>
+                    </li> -->
 
                     <!-- Courses Dropdown -->
-                    <li class="nav-item has-treeview">
+                    <!-- <li class="nav-item has-treeview">
                         <a href="#" class="nav-link <?= isset($page) && $page == 'projects_per_curriculum' ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-book"></i>
                             <p>
@@ -216,28 +251,21 @@
                             </li>
                             <?php endwhile; ?>
                         </ul>
-                    </li>
+                    </li> -->
 
                     <!-- About Us Link -->
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a href="./?page=about" class="nav-link <?= isset($page) && $page == 'about' ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-info-circle"></i>
                             <p>About Us</p>
                         </a>
-                    </li>
+                    </li> -->
 
-                    <!-- Additional Links for Logged-in Users -->
-                    <?php if($_settings->userdata('id') > 0): ?>
-                    <li class="nav-item">
-                        <a href="./?page=profile" class="nav-link <?= isset($page) && $page == 'profile' ? 'active' : '' ?>">
-                            <i class="nav-icon fas fa-user"></i>
-                            <p>Profile</p>
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a href="./?page=submit-archive" class="nav-link <?= isset($page) && $page == 'submit-archive' ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-upload"></i>
-                            <p>Submit Research</p>
+                            <p>Upload Research</p>
                         </a>
                     </li>
                     <?php endif; ?>
