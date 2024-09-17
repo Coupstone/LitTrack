@@ -129,9 +129,9 @@
 <body>
     <div class="card card-outline card-primary">
         <div class="card-header">
-            <h3 class="card-title">List of Curriculum</h3>
+            <h3 class="card-title">List of Courses</h3>
             <div class="card-tools">
-                <a href="javascript:void(0)" id="create_new" class="btn btn-flat btn-sm btn-primary"><span class="fas fa-plus"></span> Add New Curriculum</a>
+                <a href="javascript:void(0)" id="create_new" class="btn btn-flat btn-sm btn-primary"><span class="fas fa-plus"></span> Add New Courses</a>
             </div>
         </div>
         <div class="card-body">

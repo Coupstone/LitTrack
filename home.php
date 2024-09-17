@@ -35,7 +35,7 @@
                     <h3 class="text-center">Welcome</h3>
                     <hr>
                     <div class="welcome-content">
-                        <?php include("welcome.html") ?>
+                    <?php include("welcome.html") ?>
                     </div>
                 </div>
             </div>

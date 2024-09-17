@@ -1,4 +1,10 @@
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Information Update</title>
+    <style>
         .img-avatar {
             width: 45px;
             height: 45px;
@@ -131,7 +137,7 @@
             <h5 class="card-title">System Information</h5>
         </div>
         <div class="card-body transparent">
-            <form action="" id="system-frm" method="POST" enctype="multipart/form-data">
+            <form action="update_system_info.php" id="system-frm" method="POST" enctype="multipart/form-data">
                 <div id="msg" class="form-group"></div>
                 <div class="form-group">
                     <label for="name" class="control-label">System Name</label>
@@ -143,17 +149,17 @@
                 </div>
                 <div class="form-group">
                     <label for="content[welcome]" class="control-label">Welcome Content</label>
-                    <textarea type="text" class="form-control form-control-sm summernote" name="content[welcome]" id="welcome"><?php echo is_file(base_app.'welcome.html') ? file_get_contents(base_app.'welcome.html') : '' ?></textarea>
+                    <textarea class="form-control form-control-sm summernote" name="content[welcome]" id="welcome"><?php echo is_file(base_app.'welcome.html') ? file_get_contents(base_app.'welcome.html') : '' ?></textarea>
                 </div>
                 <div class="form-group">
                     <label for="content[about_us]" class="control-label">About Us</label>
-                    <textarea type="text" class="form-control form-control-sm summernote" name="content[about_us]" id="about_us"><?php echo is_file(base_app.'about_us.html') ? file_get_contents(base_app.'about_us.html') : '' ?></textarea>
+                    <textarea class="form-control form-control-sm summernote" name="content[about_us]" id="about_us"><?php echo is_file(base_app.'about_us.html') ? file_get_contents(base_app.'about_us.html') : '' ?></textarea>
                 </div>
                 <div class="form-group">
                     <label for="logo" class="control-label">System Logo</label>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input rounded-circle" id="customFile" name="img" onchange="displayImg(this,$(this))">
-                        <label class="custom-file-label" for="customFile">Choose file</label>
+                        <input type="file" class="custom-file-input" id="logo" name="img" onchange="displayImg(this)">
+                        <label class="custom-file-label" for="logo">Choose file</label>
                     </div>
                 </div>
                 <div class="form-group d-flex justify-content-center">
@@ -162,30 +168,31 @@
                 <div class="form-group">
                     <label for="cover" class="control-label">Website Cover</label>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input rounded-circle" id="customFile" name="cover" onchange="displayImg2(this,$(this))">
-                        <label class="custom-file-label" for="customFile">Choose file</label>
+                        <input type="file" class="custom-file-input" id="cover" name="cover" onchange="displayImg2(this)">
+                        <label class="custom-file-label" for="cover">Choose file</label>
                     </div>
                 </div>
                 <div class="form-group d-flex justify-content-center">
                     <img src="<?php echo validate_image($_settings->info('cover')) ?>" alt="" id="cimg2" class="img-fluid img-thumbnail">
                 </div>
+                <div class="form-group d-flex justify-content-center">
+                    <button class="btn btn-sm btn-primary btn-rounded" type="submit">Update</button>
+                </div>
             </form>
         </div>
         <div class="card-footer">
-            <div class="col-md-12">
-                <button class="btn btn-sm btn-primary btn-rounded" form="system-frm">Update</button>
-            </div>
+            <!-- Footer content if needed -->
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote.min.js"></script>
 
 <script>
-    function displayImg(input,_this) {
+    function displayImg(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function (e) {
@@ -195,7 +202,7 @@
         }
     }
 
-    function displayImg2(input,_this) {
+    function displayImg2(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function (e) {
@@ -217,6 +224,9 @@
                 ['table', ['table']],
                 ['view', ['fullscreen', 'codeview', 'help']]
             ]
-        })
-    })
+        });
+    });
 </script>
+
+</body>
+</html>
