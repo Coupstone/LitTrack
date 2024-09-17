@@ -61,7 +61,7 @@
         <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
         <span class="littrack-text">LitTrack</span>
       </span>
-    </a>
+    </a>  
 
     <!-- Sidebar -->
     <div class="sidebar os-host os-theme-light os-host-overflow os-host-overflow-y os-host-resize-disabled os-host-transition os-host-scrollbar-horizontal-hidden">
@@ -116,18 +116,40 @@
                   <a href="<?php echo base_url ?>admin/?page=curriculum" class="nav-link nav-curriculum <?php echo ($page == 'curriculum') ? 'active' : '';?>">
                     <i class="nav-icon fas fa-map text-dark"></i>
                     <p class="text-dark">
-                      Literature Mapping
+                      Courses
                     </p>
                   </a>
                 </li>
-                <li class="nav-item dropdown">
+                <!-- <li class="nav-item dropdown">
                   <a href="<?php echo base_url ?>admin/?page=system_info" class="nav-link nav-system_info <?php echo ($page == 'system_info') ? 'active' : '';?>">
                     <i class="nav-icon fas fa-tools #007bfftext-dark"></i>
                     <p class="text-dark">
                       System Settings
                     </p>
                   </a>
-                </li>
+                </li> -->
+                <!-- Add Upload Research to the Sidebar -->
+                  <li class="nav-item">
+                    <a href="<?php echo base_url ?>/?page=submit-archive" class="nav-link nav-upload <?php echo ($page == 'submit-archive') ? 'active' : '';?>">
+                      <i class="nav-icon fas fa-upload text-dark"></i>
+                      <p class="text-dark">
+                        Upload Research
+                      </p>
+                    </a>
+                  </li>
+                  <script>
+                      document.querySelector('.nav-upload').addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const currentPage = window.location.href;
+
+                        // Check if the current page is already the upload research page
+                        if (!currentPage.includes('submit-archive')) {
+                          window.location.href = "<?php echo base_url ?>/?page=submit-archive";
+                        }
+                      });
+                          </script>
+
+
               </ul>
             </nav>
             <!-- /.sidebar-menu -->
