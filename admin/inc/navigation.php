@@ -61,7 +61,7 @@
         <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
         <span class="littrack-text">LitTrack</span>
       </span>
-    </a>
+    </a>  
 
     <!-- Sidebar -->
     <div class="sidebar os-host os-theme-light os-host-overflow os-host-overflow-y os-host-resize-disabled os-host-transition os-host-scrollbar-horizontal-hidden">
