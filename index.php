@@ -2,15 +2,15 @@
 <!DOCTYPE html>
 <html lang="en" class="" style="height: auto;">
 <?php require_once('inc/header.php') ?>
-  <body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
-    <div class="wrapper">
-     <?php $page = isset($_GET['page']) ? $_GET['page'] : 'home';  ?>
+<?php $page = isset($_GET['page']) ? $_GET['page'] : 'home';  ?>
      <?php require_once('inc/topBarNav.php') ?>
      <?php if($_settings->chk_flashdata('success')): ?>
       <script>
         alert_toast("<?php echo $_settings->flashdata('success') ?>",'success')
       </script>
-      <?php endif;?>    
+      <?php endif;?>  
+  <body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
+    <div class="wrapper">  
       
       <!-- Content Wrapper. Contains page content -->
       <div class="content-wrapper pt-5" style="background-color: white;">
@@ -141,43 +141,158 @@
 
 <!-- Additional CSS for Modal Responsiveness -->
 <style>
-  @media (max-width: 768px) {
+/* Modal Responsiveness */
+@media (max-width: 768px) {
     .modal-dialog {
-      max-width: 100%;
-      margin: 0;
+        max-width: 100%;
+        margin: 0;
     }
     .modal-content {
-      border-radius: 0;
+        border-radius: 0;
     }
     .modal-header, .modal-body, .modal-footer {
-      padding: 1rem;
+        padding: 1rem;
     }
     .modal-header .close {
-      padding: 0.5rem;
-      margin: 0;
+        padding: 0.5rem;
+        margin: 0;
     }
-  }
+}
 
-  #content {
-            transition: margin-left 0.3s;
-            margin-left: 250px; 
-        }
-  body.sidebar-collapsed #content {
-            margin-left: 60px;
-        }
-  .student-img {
-            object-fit: scale-down;
-            object-position: center center;
-            height: 200px;
-            width: 200px;
-        }
-        .card-tools .btn {
-            margin-left: 10px;
-        }
-        /* Ensure layout adapts well on smaller screens */
-        @media (max-width: 768px) {
-            body.sidebar-expanded #content {
-                margin-left: 80px; /* For smaller screens, default is collapsed */
-            }
-        }
+
+#content {
+    transition: margin-left 0.3s;
+    margin-left: 100px;
+}
+
+body.sidebar-collapsed #content {
+    margin-left: 60px;
+}
+
+
+.student-img {
+    object-fit: scale-down;
+    object-position: center center;
+    height: 200px;
+    width: 200px;
+}
+
+
+.card-tools .btn {
+    margin-left: 10px;
+}
+
+
+@media (max-width: 768px) {
+    body.sidebar-expanded #content {
+        margin-left: 80px;
+    }
+}
+
+
+.main-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    transition: width 0.3s ease-in-out;
+    background-color: white;
+    overflow-y: auto; 
+    overflow-x: hidden;
+    z-index: 1000;
+}
+
+
+.main-sidebar {
+    -ms-overflow-style: auto; 
+    scrollbar-width: auto; 
+}
+
+.main-sidebar::-webkit-scrollbar {
+    width: 6px; /* Adjust the width of the scrollbar (optional) */
+}
+
+.main-sidebar::-webkit-scrollbar-thumb {
+    background-color: #888; 
+    border-radius: 10px;
+}
+
+.main-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: #555; 
+}
+
+
+body.sidebar-collapsed .main-sidebar {
+    width: 70px;
+}
+
+
+.main-sidebar .nav-link p {
+    display: inline;
+}
+
+body.sidebar-collapsed .main-sidebar .nav-link p {
+    display: none;
+}
+
+
+.main-sidebar .nav-link i {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+body.sidebar-collapsed .main-sidebar .nav-link i {
+    text-align: center;
+    margin-right: 0;
+    width: 100%;
+}
+
+
+.content-wrapper {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease-in-out;
+    height: 100vh;
+    overflow-y: auto; 
+}
+
+body.sidebar-collapsed .content-wrapper {
+    margin-left: 60px;
+}
+
+
+.brand-link {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    transition: padding 0.3s ease;
+    height: 3.5rem;
+    overflow: hidden;
+}
+
+
+.brand-link .brand-image {
+    width: 2.5rem;
+    height: 2.5rem;
+    transition: width 0.3s ease, height 0.3s ease;
+    margin-right: 0.5rem;
+}
+
+body.sidebar-collapsed .brand-link .brand-image {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0;
+}
+
+
+.brand-link .brand-text {
+    font-size: 1rem;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+body.sidebar-collapsed .brand-link .brand-text {
+    opacity: 0;
+    overflow: hidden;
+}
 </style>

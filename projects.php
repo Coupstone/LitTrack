@@ -41,6 +41,14 @@
 <body>
 
 <div class="wrapper">
+            <div class="search-bar mt-4 w-100 d-flex flex-column align-items-end px-3">
+                    <form id="search-form" class="d-flex w-100 flex-column flex-md-row align-items-center justify-content-end" action="search_results.php" method="GET">
+                        <input type="search" id="search-input" class="form-control rounded-0 mb-2 mb-md-0" name="q" required placeholder="Search..." value="<?= isset($_GET['q']) ? $_GET['q'] : '' ?>" style="width: 100%; max-width: 400px;">
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
+                    </form>
+                    <div class="mt-2">
+                    </div>
+            </div>
     <!-- Page Content -->
     <div id="content" class="content py-2">
         <div class="container-fluid">

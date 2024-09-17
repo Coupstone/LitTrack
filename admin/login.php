@@ -59,7 +59,7 @@
                                     <input class="form-check-input fs-5" type="checkbox" id="showPassword" onclick="togglePassword()">
                                     <label class="form-check-label text-carbon-grey fw-medium pt-1 font-13" for="showPassword">Show</label>
                                 </div>
-                                <a href="#" class="text-carbon-grey ms-auto font-13" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
+                                <!-- <a href="#" class="text-carbon-grey ms-auto font-13" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a> -->
                             </div>
                         </div>
                         <div class="justify-content-center d-md-flex mt-4 mb-2">

@@ -1,3 +1,14 @@
+<?php
+require_once './config.php';
+
+if (isset($_settings) && method_exists($_settings, 'userdata')) {
+    $userId = $_settings->userdata('id');
+} else {
+    $userId = null; 
+}
+?>
+    <!-- Site Icon -->
+    <link rel="icon" href="uploads/LitTrack.png" type="image/png"/>
 <style>
     body, p, a, span, li, h1, h2, h3, h4, h5, h6 {
         font-weight: 600;
@@ -122,29 +133,14 @@
         opacity: 1;
     }
 </style>
-
 <?php if (!isset($page) || $page !== 'view_archive'): ?>
 <body class="sidebar-expanded">
-    <!-- Navbar -->
-    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <!-- Hamburger Button -->
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="#" id="sidebar-toggle" role="button">
-                    <i class="fas fa-bars"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-
-
-    <!-- Sidebar -->
-    <nav class="main-sidebar sidebar-light-dark">
-        <div class="brand-link">
+ <!-- Sidebar -->
+ <nav class="main-sidebar sidebar-light-dark">
+        <div class="brand-link" id="brand-toggle">
             <!-- Brand Logo -->
             <img src="uploads/pupLogo.jfif" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
-            <span class="brand-text font-weight-light">
+            <span class="brand-text font-weight-light mr-3">
                 <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
                 <span class="littrack-text">LitTrack</span>
             </span>
@@ -152,7 +148,7 @@
 
         <div class="sidebar">
             <!-- Sidebar Menu -->
-            <nav class="mt-4">
+            <nav class="">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <!-- Home Link -->
                     <li class="nav-item mt-4">
@@ -163,7 +159,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="./advance-search.php" class="nav-link mx-1">
+                        <a href="./advance-search.php" class="nav-link mx-1 <?= isset($page) && $page == 'advance-search' ? 'active' : '' ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                             </svg>
@@ -180,7 +176,7 @@
                     </li>
 
                     <li class="nav-item mx-1">
-                        <a href="./library.php" class="nav-link d-flex align-items-center">
+                        <a href="./library.php" class="nav-link d-flex align-items-center <?= isset($page) && $page == 'library' ? 'active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
                             <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
@@ -197,7 +193,7 @@
                     </li>
 
                     <li class="nav-item mt-1">
-                        <a href="./Litmaps.php" class="nav-link mx-1">
+                        <a href="./Litmaps.php" class="nav-link mx-1 <?= isset($page) && $page == 'Litmaps' ? 'active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
                                 <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
                         </svg>
@@ -285,18 +281,19 @@
 
     <!-- JavaScript to Toggle Sidebar -->
     <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const toggleButton = document.getElementById('sidebar-toggle');
-    const body = document.body;
+    document.addEventListener('DOMContentLoaded', function() {
+        const brandToggle = document.getElementById('brand-toggle');
+        const body = document.body;
 
-    toggleButton.addEventListener('click', function () {
-        body.classList.toggle('sidebar-collapsed');
-        body.classList.toggle('sidebar-expanded');
+        brandToggle.addEventListener('click', function() {
+            if (body.classList.contains('sidebar-expanded')) {
+                body.classList.remove('sidebar-expanded');
+                body.classList.add('sidebar-collapsed');
+            } else {
+                body.classList.remove('sidebar-collapsed');
+                body.classList.add('sidebar-expanded');
+            }
+        });
     });
-    
-    if (!body.classList.contains('sidebar-expanded')) {
-        body.classList.add('sidebar-expanded');
-    }
-});
-    </script>
+</script>
 </body>
