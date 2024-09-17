@@ -20,7 +20,6 @@ foreach($user->fetch_array() as $k => $v){
         /* Adjust content based on sidebar state */
         #content {
             transition: margin-left 0.3s;
-            margin-left: 250px; /* Default margin when sidebar is expanded */
         }
 
         /* Adjust margin when sidebar is collapsed */
@@ -66,27 +65,23 @@ foreach($user->fetch_array() as $k => $v){
             </div>
             <div class="card-body rounded-0">
                 <div class="container-fluid">
-                    <div class="col-md-12">
-                        <div class="row">
-                            <div class="col-lg-4 col-sm-12">
-                                <center>
-                                    <img src="<?= validate_image($avatar) ?>" alt="Student Image" class="img-fluid student-img bg-gradient-dark border">
-                                </center>
-                            </div>
-                            <div class="col-lg-8 col-sm-12">
-                                <dl>
-                                    <dt class="text-navy">Student Name:</dt>
-                                    <dd class="pl-4"><?= ucwords($fullname) ?></dd>
-                                    <dt class="text-navy">Gender:</dt>
-                                    <dd class="pl-4"><?= ucwords($gender) ?></dd>
-                                    <dt class="text-navy">Email:</dt>
-                                    <dd class="pl-4"><?= $email ?></dd>
-                                    <dt class="text-navy">Department:</dt>
-                                    <dd class="pl-4"><?= ucwords($department) ?></dd>
-                                    <dt class="text-navy">Curriculum:</dt>
-                                    <dd class="pl-4"><?= ucwords($curriculum) ?></dd>
-                                </dl>
-                            </div>
+                    <div class="row d-flex justify-content-center align-items-center"> 
+                        <div class="col-lg-4 col-sm-12 text-center">
+                            <img src="<?= validate_image($avatar) ?>" alt="Student Image" class="img-fluid student-img bg-gradient-dark border">
+                        </div>
+                        <div class="col-lg-8 col-sm-12">
+                            <dl>
+                                <dt class="text-navy">Student Name:</dt>
+                                <dd class="pl-4"><?= ucwords($fullname) ?></dd>
+                                <dt class="text-navy">Gender:</dt>
+                                <dd class="pl-4"><?= ucwords($gender) ?></dd>
+                                <dt class="text-navy">Email:</dt>
+                                <dd class="pl-4"><?= $email ?></dd>
+                                <dt class="text-navy">Department:</dt>
+                                <dd class="pl-4"><?= ucwords($department) ?></dd>
+                                <dt class="text-navy">Curriculum:</dt>
+                                <dd class="pl-4"><?= ucwords($curriculum) ?></dd>
+                            </dl>
                         </div>
                     </div>
                 </div>
