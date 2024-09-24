@@ -164,7 +164,7 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                             </button>
                             <div class="dropdown-menu" role="menu">
-                                <a class="dropdown-item" href="<?= base_url ?>/?page=view_archive&id=<?php echo $row['id'] ?>"><span class="fa fa-external-link-alt text-gray"></span> View</a>
+                                <a class="dropdown-item" href="<?= base_url ?>admin/?page=view_research&id=<?php echo $row['id'] ?>"><span class="fa fa-external-link-alt text-gray"></span> View</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item update_status" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>" data-status="<?php echo $row['status'] ?>"><span class="fa fa-check text-dark"></span> Update Status</a>
                                 <div class="dropdown-divider"></div>

@@ -82,15 +82,15 @@
               <ul class="nav nav-pills nav-sidebar flex-column text-sm nav-compact nav-flat nav-child-indent nav-collapse-hide-child" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item dropdown">
                   <a href="./" class="nav-link nav-home <?php echo ($page == 'index') ? 'active' : '';?>">
-                    <i class="nav-icon fas fa-list text-dark"></i>
+                    <i class="nav-icon fas fa-home"></i>
                     <p class="text-dark">
-                      Dashboard
+                      Home
                     </p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="<?php echo base_url ?>admin/?page=archives" class="nav-link nav-archives <?php echo ($page == 'archives') ? 'active' : '';?>">
-                    <i class="nav-icon fas fa-book text-dark"></i>
+                  <i class="nav-icon fas fa-project-diagram"></i>
                     <p class="text-dark">
                       Researches
                     </p>
@@ -130,7 +130,7 @@
                 </li> -->
                 <!-- Add Upload Research to the Sidebar -->
                   <li class="nav-item">
-                    <a href="<?php echo base_url ?>/?page=submit-archive" class="nav-link nav-upload <?php echo ($page == 'submit-archive') ? 'active' : '';?>">
+                    <a href="<?php echo base_url ?>/admin/?page=uploadresearch" class="nav-link nav-upload <?php echo ($page == 'uploadresearch') ? 'active' : '';?>">
                       <i class="nav-icon fas fa-upload text-dark"></i>
                       <p class="text-dark">
                         Upload Research
@@ -143,8 +143,8 @@
                         const currentPage = window.location.href;
 
                         // Check if the current page is already the upload research page
-                        if (!currentPage.includes('submit-archive')) {
-                          window.location.href = "<?php echo base_url ?>/?page=submit-archive";
+                        if (!currentPage.includes('uploadresearch')) {
+                          window.location.href = "<?php echo base_url ?>admin/?page=uploadresearch";
                         }
                       });
                           </script>
