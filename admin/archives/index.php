@@ -145,7 +145,7 @@
                         <td data-label="Date Created"><?php echo date("Y-m-d H:i",strtotime($row['date_created'])) ?></td>
                         <td data-label="Archive Code"><?php echo ($row['archive_code']) ?></td>
                         <td data-label="Project Title"><?php echo ucwords($row['title']) ?></td>
-                        <td data-label="Curriculum"><?php echo $cur_arr[$row['curriculum_id']] ?></td>
+                        <!-- <td data-label="Curriculum"><?php echo $cur_arr[$row['curriculum_id']] ?></td> -->
                         <td data-label="Status" class="text-center">
                             <?php
                                 switch($row['status']){
