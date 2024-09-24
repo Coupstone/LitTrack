@@ -135,9 +135,9 @@
                 <tbody>
                     <?php 
                         $i = 1;
-                        $curriculum = $conn->query("SELECT * FROM curriculum_list where id in (SELECT curriculum_id from `archive_list`)");
+                        $curriculum = $conn->query("SELECT * FROM curriculum_list where id in (SELECT curriculum_id from archive_list)");
                         $cur_arr = array_column($curriculum->fetch_all(MYSQLI_ASSOC),'name','id');
-                        $qry = $conn->query("SELECT * from `archive_list` order by `year` desc, `title` desc ");
+                        $qry = $conn->query("SELECT * from archive_list order by year desc, title desc ");
                         while($row = $qry->fetch_assoc()):
                     ?>
                     <tr>
@@ -145,7 +145,7 @@
                         <td data-label="Date Created"><?php echo date("Y-m-d H:i",strtotime($row['date_created'])) ?></td>
                         <td data-label="Archive Code"><?php echo ($row['archive_code']) ?></td>
                         <td data-label="Project Title"><?php echo ucwords($row['title']) ?></td>
-                        <td data-label="Curriculum"><?php echo $cur_arr[$row['curriculum_id']] ?></td>
+                        <!-- <td data-label="Curriculum"><?php echo $cur_arr[$row['curriculum_id']] ?></td> -->
                         <td data-label="Status" class="text-center">
                             <?php
                                 switch($row['status']){
