@@ -30,7 +30,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
     resize: none; 
     overflow: hidden;
     height: auto; 
-
+    }
 .input-line:focus {
     border-bottom: 2px solid #007bff; 
     outline: none;
