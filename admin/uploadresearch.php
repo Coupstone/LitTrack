@@ -170,7 +170,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
             }
 
             $.ajax({
-                url: base_url + "classes/Master.php?f=save_archive",
+                url:_base_url_ + "classes/Master.php?f=save_archive",
                 data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,

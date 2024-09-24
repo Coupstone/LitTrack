@@ -118,7 +118,7 @@
                     <col width="15%">
                     <col width="20%">
                     <col width="20%">
-                    <col width="10%">
+                    <!-- <col width="10%"> -->
                     <col width="10%">
                 </colgroup>
                 <thead>
@@ -127,7 +127,7 @@
                         <th>Date Created</th>
                         <th>Archive Code</th>
                         <th>Project Title</th>
-                        <th>Curriculum</th>
+                        <!-- <th>Curriculum</th> -->
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
