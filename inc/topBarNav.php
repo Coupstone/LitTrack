@@ -133,7 +133,6 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
         opacity: 1;
     }
 </style>
-<?php if (!isset($page) || $page !== 'view_archive'): ?>
 <body class="sidebar-expanded">
  <!-- Sidebar -->
  <nav class="main-sidebar sidebar-light-dark">
@@ -275,7 +274,6 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
         </div>
         <!-- /.sidebar -->
     </nav>
-<?php endif; ?>
 
 
 
