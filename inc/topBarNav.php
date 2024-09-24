@@ -185,7 +185,7 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
 
                     <!-- Projects Link -->
                     <li class="nav-item mt-1">
-                        <a href="./?page=projects" class="nav-link <?= isset($page) && $page == 'projects' ? 'active' : '' ?>">
+                        <a href="./?page=projects" class="nav-link <?= isset($page) && ($page == 'projects' || $page == 'view_archive') ? 'active' : '' ?>">
                             <i class="nav-icon fas fa-project-diagram"></i>
                             <p>Researches</p>
                         </a>

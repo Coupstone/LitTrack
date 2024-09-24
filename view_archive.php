@@ -1,4 +1,9 @@
 <?php 
+$page = isset($_GET['page']) ? $_GET['page'] : 'view_archive';
+require_once('./config.php'); 
+require_once('inc/topBarNav.php'); 
+require_once('inc/header.php'); 
+
 if (isset($_GET['id']) && $_GET['id'] > 0) {
     $id = intval($_GET['id']); 
     $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
@@ -22,7 +27,9 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         }
     }
 }
+
 ?>
+
 <style>
     .main-sidebar .nav-sidebar .nav-link p,
 .main-sidebar .nav-sidebar .nav-header,
@@ -34,7 +41,6 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         margin: 0;
         padding: 0;
         height: 100%;
-        font-family: 'Arial', sans-serif;
         background-color: #f9f9f9;
     }
     .header {
