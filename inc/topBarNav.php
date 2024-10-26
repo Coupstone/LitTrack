@@ -9,6 +9,9 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
 ?>
     <!-- Site Icon -->
     <link rel="icon" href="uploads/LitTrack.png" type="image/png"/>
+        <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
 <style>
     body, p, a, span, li, h1, h2, h3, h4, h5, h6 {
         font-weight: 600;
@@ -264,11 +267,15 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
                         </a>
                     </li>
                     <?php endif; ?>
-                </ul>
+      
                 <br><br><br><br><br><br><br><br><br><br><br><br><br>
-                <div class="text-center mt-4">
-                  <a href="<?= base_url.'classes/Login.php?f=student_logout' ?>" class="btn btn-dark" style="color: white;"><i class="fa fa-power-off"></i></a>
-                </div>
+                <li class="nav-item">
+                <a href="<?= base_url.'classes/Login.php?f=student_logout' ?>" class="nav-link">
+                    <i class="nav-icon bi bi-box-arrow-in-left"></i>
+                    <p>Logout</p>
+                </a>
+            </li>
+            </ul>
             </nav>
             <!-- /.sidebar-menu -->
         </div>
