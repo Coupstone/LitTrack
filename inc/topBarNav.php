@@ -10,7 +10,7 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
     <!-- Site Icon -->
     <link rel="icon" href="uploads/LitTrack.png" type="image/png"/>
         <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
 <style>
     body, p, a, span, li, h1, h2, h3, h4, h5, h6 {
@@ -178,13 +178,13 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
                     </li>
 
                     <li class="nav-item mx-1">
-                        <a href="./library.php" class="nav-link d-flex align-items-center <?= isset($page) && $page == 'library' ? 'active' : '' ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                        </svg>
-                            <p class ="mx-3">My Library</p>
-                        </a>
-                    </li>
+    <a href="./library.php" class="nav-link d-flex align-items-center <?= basename($_SERVER['PHP_SELF']) == 'library.php' ? 'active' : '' ?>">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+        </svg>
+        <p class="mx-3">My Library</p>
+    </a>
+</li>
 
                     <!-- Projects Link -->
                     <li class="nav-item mt-1">
@@ -267,8 +267,8 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
                         </a>
                     </li>
                     <?php endif; ?>
-      
-                <br><br><br><br><br><br><br><br><br><br><br><br><br>
+       
+                    <br><br><br><br><br><br><br><br><br><br><br><br><br>
                 <li class="nav-item">
                 <a href="<?= base_url.'classes/Login.php?f=student_logout' ?>" class="nav-link">
                     <i class="nav-icon bi bi-box-arrow-in-left"></i>
@@ -276,6 +276,7 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
                 </a>
             </li>
             </ul>
+
             </nav>
             <!-- /.sidebar-menu -->
         </div>
