@@ -70,6 +70,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
                             </div>
                         </div>
                     </div>
+                    <!--
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group">
@@ -82,6 +83,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
                             </div>
                         </div>
                     </div>
+                    -->
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group">

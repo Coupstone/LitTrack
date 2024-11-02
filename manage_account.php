@@ -5,12 +5,13 @@ foreach($user->fetch_array() as $k =>$v){
 }
 ?>
 <style>
-    .student-img{
-		object-fit:scale-down;
-		object-position:center center;
-        height:200px;
-        width:200px;
-	}
+        .student-img {
+            object-fit: scale-down;
+            object-position: center center;
+            height: 200px;
+            width: 200px;
+            border-radius: 50%; /* Make the image circular */
+        }
 </style>
 <div class="content py-4">
     <div class="card card-outline card-primary shadow rounded-0">
@@ -74,7 +75,7 @@ foreach($user->fetch_array() as $k =>$v){
 
                             <div class="form-group">
                                 <label for="cpassword" class="control-label text-navy">Confirm New Password</label>
-                                <input type="password" id="cpassword" placeholder="Confirm Password" class="form-control form-control-border">
+                                <input type="password" name="cpassword" id="cpassword" placeholder="Confirm Password" class="form-control form-control-border">
                             </div>
                             <small class='text-muted'>Leave the New Password and Confirm New Password Blank if you don't wish to change your password.</small>
                         </div>
@@ -112,72 +113,95 @@ foreach($user->fetch_array() as $k =>$v){
     </div>
 </div>
 <script>
-    function displayImg(input,_this) {
-	    if (input.files && input.files[0]) {
-	        var reader = new FileReader();
-	        reader.onload = function (e) {
-	        	$('#cimg').attr('src', e.target.result);
-	        }
-
-	        reader.readAsDataURL(input.files[0]);
-	    }else{
+    function displayImg(input, _this) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#cimg').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
             $('#cimg').attr('src', "<?= validate_image(isset($avatar) ? $avatar : "") ?>");
         }
-	}
+    }
+
     $(function(){
-        // Update Form Submit
-        $('#update-form').submit(function(e){
-            e.preventDefault()
-            var _this = $(this)
-                $(".pop-msg").remove()
-                $('#password, #cpassword').removeClass("is-invalid")
-            var el = $("<div>")
-                el.addClass("alert pop-msg my-2")
-                el.hide()
-            if($("#password").val() != $("#cpassword").val()){
-                el.addClass("alert-danger")
-                el.text("Password does not match.")
-                $('#password, #cpassword').addClass("is-invalid")
-                $('#cpassword').after(el)
-                el.show('slow')
-                return false;
+        $('#update-form').submit(function(e) {
+    e.preventDefault();
+    var _this = $(this);
+
+    // Debugging: Check password and confirm password fields
+    console.log("Password: ", $('#password').val());
+    console.log("Confirm Password: ", $('#cpassword').val());
+
+    $(".pop-msg").remove();
+    $('#update-form .is-invalid').removeClass("is-invalid"); // Clear previous validation errors
+
+    let isValid = true;
+
+    // Check required fields
+    $('#update-form input[required]').each(function() {
+        if ($(this).val().trim() === '') {
+            $(this).addClass('is-invalid'); // Highlight the invalid field
+            isValid = false;
+        }
+    });
+
+    if (!isValid) {
+        var el = $("<div>");
+        el.addClass("alert pop-msg my-2 alert-danger");
+        el.text("Please fill in all required fields.");
+        _this.prepend(el);
+        el.show('slow');
+        return; // Stop form submission if validation fails
+    }
+
+    start_loader();
+
+    $.ajax({
+        url: _base_url_ + "classes/Users.php?f=save_student",
+        data: new FormData(_this[0]),
+        cache: false,
+        contentType: false,
+        processData: false,
+        method: 'POST',
+        type: 'POST',
+        dataType: 'json',
+        error: function(err) {
+            console.log("AJAX error:", err);
+            var el = $("<div>");
+            el.addClass("alert pop-msg my-2 alert-danger");
+            el.text("An error occurred while saving the data. Please try again.");
+            _this.prepend(el);
+            el.show('slow');
+            end_loader();
+        },
+        success: function(resp) {
+            console.log("AJAX response:", resp); // Debug response
+
+            var el = $("<div>");
+            el.addClass("alert pop-msg my-2");
+            el.hide();
+
+            if (resp.status === 'success') {
+                location.href = "./?page=profile";
+            } else if (resp.msg) {
+                el.text(resp.msg);
+                el.addClass("alert-danger");
+                _this.prepend(el);
+                el.show('slow');
+            } else {
+                el.text("An error occurred while saving the data.");
+                el.addClass("alert-danger");
+                _this.prepend(el);
+                el.show('slow');
             }
-            start_loader();
-            $.ajax({
-                url:_base_url_+"classes/Users.php?f=save_student",
-                data: new FormData($(this)[0]),
-                cache: false,
-                contentType: false,
-                processData: false,
-                method: 'POST',
-                type: 'POST',
-                dataType:'json',
-                error:err=>{
-                    console.log(err)
-                    el.text("An error occured while saving the data")
-                    el.addClass("alert-danger")
-                    _this.prepend(el)
-                    el.show('slow')
-                    end_loader()
-                },
-                success:function(resp){
-                    if(resp.status == 'success'){
-                        location.href= "./?page=profile"
-                    }else if(!!resp.msg){
-                        el.text(resp.msg)
-                        el.addClass("alert-danger")
-                        _this.prepend(el)
-                        el.show('show')
-                    }else{
-                        el.text("An error occured while saving the data")
-                        el.addClass("alert-danger")
-                        _this.prepend(el)
-                        el.show('show')
-                    }
-                    end_loader();
-                    $('html, body').animate({scrollTop: 0},'fast')
-                }
-            })
-        })
-    })
+            end_loader();
+            $('html, body').animate({scrollTop: 0}, 'fast');
+        }
+    });
+});
+});
 </script>
+
+

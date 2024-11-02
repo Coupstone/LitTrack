@@ -320,9 +320,9 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
                         </div>
                     <?php endif; ?>
                     <hr>
-                    <div class="text-center">
+                    <!-- <div class="text-center">
                         <img src="<?= validate_image($banner_path ?? "") ?>" alt="Banner Image" id="banner-img" class="img-fluid border bg-gradient-dark">
-                    </div>
+                    </div> -->
                     <fieldset class="fieldset">
                         <legend class="legend">Project Year:</legend>
                         <div class="pl-4"><large><?= $year ?? "----" ?></large></div>
