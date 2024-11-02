@@ -15,25 +15,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-    <!-- CDN jQuery -->
-    <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script> -->
-
     <!-- Site Icon -->
     <link rel="icon" href="images/LitTrack.png" type="image/png"/>
 
-    
-  <script>
+    <script>
         start_loader()
-  </script>
-    
+    </script>
 </head>
 
+<body>
 <div class="container h-100 d-flex justify-content-center align-items-center mt-5" id="login">
     <div class="card card-outline card-primary shadow-lg col-lg-6 col-md-8 col-sm-10">
         <div class="card-header bg-white">
             <h5 class="card-title text-center text-dark mt-3"><b>Registration</b></h5>
         </div>
         <div class="card-body">
+            <!-- Message container inside the form container -->
+            <div id="message-container" class="alert d-none" role="alert"></div>
+
             <form action="" id="registration-form" class="needs-validation" novalidate>
                 <input type="hidden" name="id">
                 
@@ -152,8 +151,6 @@
     </div>
 </div>
 
-
-
 <!-- jQuery -->
 <script src="plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->
@@ -165,76 +162,87 @@
 
 <script>
     var cur_arr = $.parseJSON('<?= json_encode($cur_arr) ?>');
-  $(document).ready(function(){
-    end_loader();
-    $('.select2').select2({
-        width:"100%"
-    })
-    $('#department_id').change(function(){
-        var did = $(this).val()
-        $('#curriculum_id').html("")
-        if(!!cur_arr[did]){
-            Object.keys(cur_arr[did]).map(k=>{
-                var opt = $("<option>")
-                    opt.attr('value',cur_arr[did][k].id)
-                    opt.text(cur_arr[did][k].name)
-                $('#curriculum_id').append(opt)
-            })
-        }
-        $('#curriculum_id').trigger("change")
-    })
-
-    // Registration Form Submit
-    $('#registration-form').submit(function(e){
-        e.preventDefault()
-        var _this = $(this)
-            $(".pop-msg").remove()
-            $('#password, #cpassword').removeClass("is-invalid")
-        var el = $("<div>")
-            el.addClass("alert pop-msg my-2")
-            el.hide()
-        if($("#password").val() != $("#cpassword").val()){
-            el.addClass("alert-danger")
-            el.text("Password does not match.")
-            $('#password, #cpassword').addClass("is-invalid")
-            $('#cpassword').after(el)
-            el.show('slow')
-            return false;
-        }
-        start_loader();
-        $.ajax({
-            url:_base_url_+"classes/Users.php?f=save_student",
-            method:'POST',
-            data:_this.serialize(),
-            dataType:'json',
-            error:err=>{
-                console.log(err)
-                el.text("An error occured while saving the data")
-                el.addClass("alert-danger")
-                _this.prepend(el)
-                el.show('slow')
-                end_loader()
-            },
-            success:function(resp){
-                if(resp.status == 'success'){
-                    location.href= "./login.php"
-                }else if(!!resp.msg){
-                    el.text(resp.msg)
-                    el.addClass("alert-danger")
-                    _this.prepend(el)
-                    el.show('show')
-                }else{
-                    el.text("An error occured while saving the data")
-                    el.addClass("alert-danger")
-                    _this.prepend(el)
-                    el.show('show')
-                }
-                end_loader();
-                $('html, body').animate({scrollTop: 0},'fast')
+    $(document).ready(function(){
+        end_loader();
+        $('.select2').select2({
+            width: "100%"
+        });
+        
+        $('#department_id').change(function(){
+            var did = $(this).val();
+            $('#curriculum_id').html("");
+            if(!!cur_arr[did]){
+                Object.keys(cur_arr[did]).map(k => {
+                    var opt = $("<option>")
+                        .attr('value', cur_arr[did][k].id)
+                        .text(cur_arr[did][k].name);
+                    $('#curriculum_id').append(opt);
+                });
             }
-        })
-    })
-  })
+            $('#curriculum_id').trigger("change");
+        });
+
+        // Registration Form Submit
+        $('#registration-form').submit(function(e){
+            e.preventDefault();
+            var _this = $(this);
+            $('#message-container').removeClass("alert-danger alert-success d-none").text(""); // Clear previous messages
+
+            if ($("#password").val() !== $("#cpassword").val()) {
+                $('#message-container')
+                    .addClass("alert alert-danger")
+                    .text("Passwords do not match.")
+                    .removeClass("d-none");
+                return false;
+            }
+
+            start_loader();
+
+            $.ajax({
+                url: _base_url_ + "classes/Users.php?f=save_student",
+                method: 'POST',
+                data: {
+                    id: _this.find('input[name="id"]').val(),
+                    firstname: $('#firstname').val(),
+                    lastname: $('#lastname').val(),
+                    email: $('#email').val(),
+                    department_id: $('#department_id').val(),
+                    curriculum_id: $('#curriculum_id').val(),
+                    password: $('#password').val(),
+                    cpassword: $('#cpassword').val(),
+                },
+                dataType: 'json',
+                error: function(err) {
+                    console.log("AJAX error:", err);
+                    $('#message-container')
+                        .addClass("alert alert-danger")
+                        .text("An error occurred while saving the data.")
+                        .removeClass("d-none");
+                    end_loader();
+                },
+                success: function(resp) {
+                    console.log("AJAX response:", resp); // Debug response
+
+                    if (resp.status === 'success') {
+                        $('#message-container')
+                            .addClass("alert alert-success")
+                            .text("Registration successful! Redirecting...")
+                            .removeClass("d-none");
+                        setTimeout(function() {
+                            location.href = "./login.php";
+                        }, 2000);
+                    } else {
+                        $('#message-container')
+                            .addClass("alert alert-danger")
+                            .text(resp.msg || "An error occurred while saving the data.")
+                            .removeClass("d-none");
+                    }
+                    end_loader();
+                    $('html, body').animate({ scrollTop: 0 }, 'fast');
+                }
+            });
+        });
+    });
 </script>
 </body>
 </html>
