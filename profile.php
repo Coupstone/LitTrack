@@ -32,8 +32,9 @@ foreach($user->fetch_array() as $k => $v){
             object-position: center center;
             height: 200px;
             width: 200px;
+            border-radius: 50%; /* Make the image circular */
         }
-
+        
         .card-tools .btn {
             margin-left: 10px;
         }
@@ -67,7 +68,7 @@ foreach($user->fetch_array() as $k => $v){
                 <div class="container-fluid">
                     <div class="row d-flex justify-content-center align-items-center"> 
                         <div class="col-lg-4 col-sm-12 text-center">
-                            <img src="<?= validate_image($avatar) ?>" alt="Student Image" class="img-fluid student-img bg-gradient-dark border">
+                            <img src="<?= isset($avatar) ? $avatar : 'default.png' ?>" alt="Student Image" class="img-fluid student-img bg-gradient-dark border">
                         </div>
                         <div class="col-lg-8 col-sm-12">
                             <dl>

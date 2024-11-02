@@ -105,13 +105,13 @@ $research_projects = $conn->query("SELECT * FROM archive_list");
                                 <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $row['id'] ?>"></i>
                             </div>
                             <div class="row clickable-row">
-                                <div class="col-lg-4 col-md-5 col-sm-12 text-center">
+                                <!-- <div class="col-lg-4 col-md-5 col-sm-12 text-center">
                                     <img src="<?= validate_image($row['banner_path']) ?>" class="banner-img img-fluid" alt="Banner Image">
-                                </div>
+                                </div> -->
                                 <div class="col-lg-8 col-md-7 col-sm-12">
                                     <h3 class="text-navy"><b><?php echo $row['title'] ?></b></h3>
                                     <small class="text-muted">By <b class="text-info"><?= isset($student_arr[$row['student_id']]) ? $student_arr[$row['student_id']] : "N/A" ?></b></small>
-                                    <p class="truncate-5"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
+                                    <p class="truncate-5 text-truncate"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
                                 </div>
                             </div>
                         </div>
