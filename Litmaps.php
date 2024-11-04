@@ -4,7 +4,7 @@ require_once('./config.php');
 require_once('inc/topBarNav.php'); 
 require_once('inc/header.php'); 
 
-/// Create connection using mysqli
+// Database connection
 $host = "localhost"; // Use your DB host
 $username = "root"; // Your DB username
 $password = ""; // Your DB password
@@ -17,8 +17,13 @@ if ($db->connect_error) {
     die("Connection failed: " . $db->connect_error);
 }
 
-// Fetch all literature that is published (status = 1)
-$query = "SELECT id, title, abstract FROM archive_list WHERE status = 1";
+// Query to fetch literature details with only the primary author (lowest author_order)
+$query = "
+    SELECT al.id, al.title, al.year AS publication_year, CONCAT(aa.first_name, ' ', aa.last_name) AS author
+    FROM archive_list al
+    LEFT JOIN archive_authors aa ON al.id = aa.archive_id
+    WHERE al.status = 1 AND aa.author_order = 1
+";
 $literature_result = $db->query($query);
 
 if(!$literature_result) {
@@ -44,6 +49,7 @@ while ($row = $citation_result->fetch_assoc()) {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en" style="height: auto;">
 <head>
@@ -68,17 +74,19 @@ while ($row = $citation_result->fetch_assoc()) {
             stroke-opacity: 0.6;
         }
         .tooltip {
-            position: absolute;
-            text-align: center;
-            width: 120px;
-            height: 28px;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0;
-            border-radius: 8px;
-            pointer-events: none;
-        }
+    position: absolute;
+    text-align: left; /* Align text to the left */
+    max-width: 300px; /* Increase the maximum width */
+    padding: 8px; /* Add more padding */
+    font: 14px sans-serif; /* Increase font size for readability */
+    background: lightsteelblue;
+    border: 0;
+    border-radius: 8px;
+    pointer-events: none;
+    white-space: normal; /* Allow text to wrap */
+    color: #000; /* Optional: improve text contrast */
+    line-height: 1.4; /* Optional: add line spacing for readability */
+}
         html, body {
             height: 100%;
             margin: 0;
@@ -232,25 +240,22 @@ const node = svg.append("g")
                 .enter().append("g")
                 .attr("class", "node")
                 .on("mouseover", function(event, d) {
-                    // Highlight only the links connected to the hovered node
                     link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#00f" : "#ccc")
-                        .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1); // Connected lines blue, others dim
+                        .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
-                    // Dim all nodes except the connected ones
                     node.selectAll("circle")
                         .attr("fill", n => (citationLinks.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id))) ? "gray" : "#ccc")
                         .attr("opacity", n => (citationLinks.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id))) ? 1 : 0.3);
 
-                    // Show tooltip
                     tooltip.transition()
-                           .duration(200)
-                           .style("opacity", .9);
-                    tooltip.html(d.title)
-                           .style("left", (event.pageX + 5) + "px")
-                           .style("top", (event.pageY - 28) + "px");
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`${d.author} (${d.publication_year}).<br>${d.title}`)
+                        .style("left", Math.min(event.pageX + 10, window.innerWidth - 320) + "px")
+                        .style("top", Math.min(event.pageY - 10, window.innerHeight - tooltip.node().clientHeight - 10) + "px");
                 })
-                .on("mouseout", function(d) {
-                    // Restore link colors and node opacity
+                .on("mouseout", function() {
+                    // Reset link and node appearances
                     link.attr("stroke", "#999")
                         .attr("stroke-opacity", 0.6);
 
@@ -258,7 +263,6 @@ const node = svg.append("g")
                         .attr("fill", "gray")
                         .attr("opacity", 1);
 
-                    // Hide tooltip
                     tooltip.transition()
                            .duration(500)
                            .style("opacity", 0);
@@ -269,11 +273,11 @@ node.append("circle")
     .attr("r", 8)
     .attr("fill", "gray");
 
-// Add text labels for the nodes
+// Add default text labels for the nodes (only author and date)
 node.append("text")
     .attr("x", 12)
     .attr("dy", ".35em")
-    .text(d => d.title);
+    .text(d => `${d.author} (${d.publication_year})`);
 
 // Update positions on tick (curved links)
 simulation.on("tick", () => {
@@ -281,7 +285,6 @@ simulation.on("tick", () => {
 
     node.attr("transform", d => `translate(${d.x},${d.y})`);
 });
-
 </script>
 </body>
 </html>

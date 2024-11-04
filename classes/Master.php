@@ -124,116 +124,78 @@ Class Master extends DBConnection {
 		return json_encode($resp);
 
 	}
-	function save_archive(){
-		if(empty($_POST['id'])){
-			$pref= date("Ym");
-			$code = sprintf("%'.04d",1);
-			while(true){
-				$check = $this->conn->query("SELECT * FROM `archive_list` where archive_code = '{$pref}{$code}'")->num_rows;
-				if($check > 0){
-					$code = sprintf("%'.04d",abs($code)+1);
-				}else{
+	function save_archive() {
+		if (empty($_POST['id'])) {
+			$pref = date("Ym");
+			$code = sprintf("%'.04d", 1);
+			while (true) {
+				$check = $this->conn->query("SELECT * FROM `archive_list` WHERE archive_code = '{$pref}{$code}'")->num_rows;
+				if ($check > 0) {
+					$code = sprintf("%'.04d", abs($code) + 1);
+				} else {
 					break;
 				}
 			}
-			$_POST['archive_code'] = $pref.$code;
+			$_POST['archive_code'] = $pref . $code;
 			$_POST['student_id'] = $this->settings->userdata('id');
 			$_POST['curriculum_id'] = $this->settings->userdata('curriculum_id');
 		}
-		if(isset($_POST['abstract']))
-		$_POST['abstract'] = htmlentities($_POST['abstract']);
-		if(isset($_POST['members']))
-		$_POST['members'] = htmlentities($_POST['members']);
+		
+		if (isset($_POST['abstract'])) {
+			$_POST['abstract'] = htmlentities($_POST['abstract']);
+		}
+		
 		extract($_POST);
 		$data = "";
-		if(isset($_FILES['pdf']) && !empty($_FILES['pdf']['tmp_name'])){
-			$type = mime_content_type($_FILES['pdf']['tmp_name']);
-			if($type != "application/pdf"){
-				$resp['status'] = "failed";
-				$resp['msg'] = "Invalid Document File Type.";
-				return json_encode($resp);
-			} 
-		}
-		foreach($_POST as $k =>$v){
-			if(!in_array($k,array('id')) && !is_array($_POST[$k])){
-				if(!is_numeric($v))
+		
+		foreach ($_POST as $k => $v) {
+			if (!in_array($k, array('id', 'author_firstname', 'author_lastname')) && !is_array($_POST[$k])) {
+				if (!is_numeric($v))
 					$v = $this->conn->real_escape_string($v);
-				if(!empty($data)) $data .=",";
+				if (!empty($data)) $data .= ",";
 				$data .= " `{$k}`='{$v}' ";
 			}
 		}
-		if(empty($id)){
-			$sql = "INSERT INTO `archive_list` set {$data} ";
-		}else{
-			$sql = "UPDATE `archive_list` set {$data} where id = '{$id}' ";
+	
+		if (empty($id)) {
+			$sql = "INSERT INTO `archive_list` SET {$data}";
+		} else {
+			$sql = "UPDATE `archive_list` SET {$data} WHERE id = '{$id}'";
 		}
+	
 		$save = $this->conn->query($sql);
-		if($save){
+		if ($save) {
 			$aid = !empty($id) ? $id : $this->conn->insert_id;
 			$resp['status'] = 'success';
 			$resp['id'] = $aid;
-			if(empty($id))
+	
+			// Insert authors
+			if (!empty($_POST['author_firstname']) && is_array($_POST['author_firstname'])) {
+				$this->conn->query("DELETE FROM `archive_authors` WHERE archive_id = '{$aid}'"); // Clear existing authors if updating
+				foreach ($_POST['author_firstname'] as $index => $first_name) {
+					$last_name = $_POST['author_lastname'][$index];
+					$first_name = $this->conn->real_escape_string($first_name);
+					$last_name = $this->conn->real_escape_string($last_name);
+	
+					$this->conn->query("INSERT INTO `archive_authors` (archive_id, first_name, last_name) VALUES ('{$aid}', '{$first_name}', '{$last_name}')");
+				}
+			}
+	
+			if (empty($id)) {
 				$resp['msg'] = "Archive was successfully submitted";
-			else
-				$resp['msg'] = "Archive details was updated successfully.";
-
-				if(isset($_FILES['img']) && $_FILES['img']['tmp_name'] != ''){
-					$fname = 'uploads/banners/archive-'.$aid.'.png';
-					$dir_path =base_app. $fname;
-					$upload = $_FILES['img']['tmp_name'];
-					$type = mime_content_type($upload);
-					$allowed = array('image/png','image/jpeg');
-					if(!in_array($type,$allowed)){
-						$resp['msg'].=" But Image failed to upload due to invalid file type.";
-					}else{
-						$new_height = 720; 
-						$new_width = 1280;  
-				
-						list($width, $height) = getimagesize($upload);
-						$t_image = imagecreatetruecolor($new_width, $new_height);
-						imagealphablending( $t_image, false );
-						imagesavealpha( $t_image, true );
-						$gdImg = ($type == 'image/png')? imagecreatefrompng($upload) : imagecreatefromjpeg($upload);
-						imagecopyresampled($t_image, $gdImg, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
-						if($gdImg){
-								if(is_file($dir_path))
-								unlink($dir_path);
-								$uploaded_img = imagepng($t_image,$dir_path);
-								imagedestroy($gdImg);
-								imagedestroy($t_image);
-						}else{
-						$resp['msg'].=" But Image failed to upload due to unkown reason.";
-						}
-					}
-					if(isset($uploaded_img)){
-						$this->conn->query("UPDATE archive_list set `banner_path` = CONCAT('{$fname}','?v=',unix_timestamp(CURRENT_TIMESTAMP)) where id = '{$aid}' ");
-					}
-				}
-				if(isset($_FILES['pdf']) && $_FILES['pdf']['tmp_name'] != ''){
-					$fname = 'uploads/pdf/archive-'.$aid.'.pdf';
-					$dir_path =base_app. $fname;
-					$upload = $_FILES['pdf']['tmp_name'];
-					$type = mime_content_type($upload);
-					$allowed = array('application/pdf');
-					if(!in_array($type,$allowed)){
-						$resp['msg'].=" But Document File has failed to upload due to invalid file type.";
-					}else{
-						$uploaded = move_uploaded_file($_FILES['pdf']['tmp_name'],$dir_path);
-					}
-					if(isset($uploaded)){
-						$this->conn->query("UPDATE archive_list set `document_path` = CONCAT('{$fname}','?v=',unix_timestamp(CURRENT_TIMESTAMP)) where id = '{$aid}' ");
-					}
-				}
-			
-		}else{
+			} else {
+				$resp['msg'] = "Archive details were updated successfully.";
+			}
+		} else {
 			$resp['status'] = 'failed';
-			$resp['msg'] = "An error occured.";
-			$resp['err'] = $this->conn->error."[{$sql}]";
+			$resp['msg'] = "An error occurred.";
+			$resp['err'] = $this->conn->error . "[{$sql}]";
 		}
-		if($resp['status'] =='success')
-		$this->settings->set_flashdata('success',$resp['msg']);
+	
 		return json_encode($resp);
 	}
+	
+	
 	function delete_archive(){
 		extract($_POST);
 		$get = $this->conn->query("SELECT * FROM `archive_list` where id = '{$id}'");
