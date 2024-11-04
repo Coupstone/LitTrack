@@ -20,7 +20,7 @@ foreach($user->fetch_array() as $k =>$v){
         </div>
         <div class="card-body rounded-0">
             <div class="container-fluid">
-                <form action="" id="update-form">
+                <form action="" id="update-form" enctype="multipart/form-data">
                     <input type="hidden" name="id" value="<?= $_settings->userdata('id') ?>">
                     <div class="row">
                         <div class="col-lg-6">
