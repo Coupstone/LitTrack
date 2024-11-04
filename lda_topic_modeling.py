@@ -4,7 +4,7 @@ import pdfplumber
 import os
 import re
 import gensim
-from gensim import corpora
+from gensim import corpora, matutils
 from nltk.corpus import stopwords
 import nltk
 
@@ -34,25 +34,32 @@ def extract_text_from_pdf(pdf_path):
         print(f"Error reading PDF file {pdf_path}: {e}")
         return ""
 
-# Function to extract APA-style references from the text
+# APA reference formatting function
+def format_apa_reference(author, year, title, source, additional_info=""):
+    return f"{author} ({year}). {title}. {source}. {additional_info}"
+
+# Multiple patterns for different APA 7th edition reference formats
+reference_patterns = [
+    re.compile(r"([A-Z][a-zA-Z]+(?:, [A-Z]\. [A-Z]?\.?)?(?:, & [A-Z][a-zA-Z]+, [A-Z]\. [A-Z]?\.?)*) \((\d{4}|n\.d\.)\)\. (.+?)\. ([A-Za-z0-9\s,:\(\)\-]+?)\.(?:\s*(https?://[^\s]+)?)", re.MULTILINE | re.DOTALL),
+    re.compile(r"([A-Z][a-zA-Z]+(?:, [A-Z]\. [A-Z]?\.?)+) \((\d{4})\)\. (.+?)\. (In [A-Z][a-zA-Z]+, Title of Proceedings.*)\. (.+?)\.(?:\s*(https?://[^\s]+)?)", re.MULTILINE | re.DOTALL),
+    re.compile(r"([A-Z][a-zA-Z]+(?:, [A-Z]\. [A-Z]?\.?)+) \((\d{4}, [A-Za-z]+ [0-9]{1,2})\)\. (.+?)\. ([A-Za-z\s]+)\.(?:\s*(https?://[^\s]+)?)", re.MULTILINE | re.DOTALL),
+    re.compile(r"([A-Z][a-zA-Z]+(?:, [A-Z]\. [A-Z]?\.?)+) \((n\.d\.)\)\. (.+?)\. ([A-Za-z\s]+)\.(?:\s*(https?://[^\s]+)?)", re.MULTILINE | re.DOTALL)
+]
+
+# Function to extract APA-style references from the text using multiple patterns
 def extract_references(text):
-    reference_pattern = re.compile(r"([A-Z][a-zA-Z]+, [A-Z]\. [A-Z]?\.? \(\d{4}\).+)", re.MULTILINE)
-    return reference_pattern.findall(text)
+    text = text.replace('\n', ' ')  # Remove line breaks within paragraphs
+    formatted_references = []
+    for pattern in reference_patterns:
+        matches = pattern.findall(text)
+        for match in matches:
+            author, year, title, source, url = match if len(match) == 5 else (match + ("",))  # Handle cases without URLs
+            additional_info = url if url else ""
+            formatted_reference = format_apa_reference(author, year, title, source, additional_info)
+            formatted_references.append(formatted_reference)
+    return formatted_references
 
-# Function to compare topic distributions between two documents
-def compare_topic_similarity(doc1, doc2):
-    vec1 = lda_model[dictionary.doc2bow(doc1)]
-    vec2 = lda_model[dictionary.doc2bow(doc2)]
-    
-    # Convert LDA vectors to dense format for cosine similarity
-    dense_vec1 = gensim.matutils.corpus2dense([vec1], num_terms=lda_model.num_topics).T[0]
-    dense_vec2 = gensim.matutils.corpus2dense([vec2], num_terms=lda_model.num_topics).T[0]
-    
-    # Calculate cosine similarity
-    similarity = gensim.matutils.cossim(vec1, vec2)
-    return similarity
-
-# Connect to MySQL database using pymysql
+# Connect to MySQL database
 conn = pymysql.connect(
     host="localhost",
     user="root",
@@ -67,58 +74,45 @@ df = pd.read_sql(query, conn)
 # Normalize titles for better matching
 titles_dict = {re.sub(r"[^\w\s]", "", row['title'].lower()).strip(): row['id'] for index, row in df.iterrows()}
 
-# Print titles to verify
-print("Titles in the Database (Normalized):")
-for title in titles_dict.keys():
-    print(title)
-
 # Directory where the PDFs are stored
 pdf_base_directory = "uploads/pdf/"
 
-# Create citation links based on references found in PDFs
+# Create citation links and collect references per document
 citation_links = []
-documents = []  # Store preprocessed texts for LDA
-document_ids = []  # Store paper IDs for LDA
+documents = []
+document_ids = []
+all_references_per_study = {}
 
 for idx, row in df.iterrows():
-    # Clean the document path
     cleaned_document_path = clean_document_path(row.get('document_path'))
     pdf_filename = os.path.basename(cleaned_document_path)
-    
-    # Construct the full path to the PDF
     pdf_path = os.path.join(pdf_base_directory, pdf_filename)
     
-    combined_text = row.get('abstract', "")  # Start with the abstract
+    combined_text = row.get('abstract', "")
 
     if os.path.exists(pdf_path):
         print(f"Processing PDF: {pdf_path}")
         pdf_text = extract_text_from_pdf(pdf_path)
         combined_text += " " + pdf_text  # Combine abstract and PDF text
     
+    # Debug: print extracted text
+    print(f"Extracted text for Study ID {row['id']}:\n{combined_text}\n")
+
     # Preprocess and store combined text for LDA
     processed_text = preprocess_text(combined_text)
     documents.append(processed_text)
     document_ids.append(row['id'])
 
-    # Extract and print references
+    # Extract and store formatted references
     references = extract_references(combined_text)
-    print(f"\nExtracted references from {pdf_filename}: {references}")
-    
-    # Match references to existing titles in the database to establish connections
+    all_references_per_study[row['id']] = references
+
+# Print all extracted references per study
+print("\nAll Extracted References per Study:")
+for doc_id, references in all_references_per_study.items():
+    print(f"\nStudy ID {doc_id}:")
     for ref in references:
-        ref_normalized = re.sub(r"[^\w\s]", "", ref.lower()).strip()
-        matched = False
-        for title in titles_dict:
-            print(f"Comparing Reference: '{ref_normalized}' with Title: '{title}'")
-            if title in ref_normalized:
-                citing_paper_id = row['id']
-                cited_paper_id = titles_dict[title]
-                if citing_paper_id != cited_paper_id:
-                    citation_links.append((citing_paper_id, cited_paper_id))
-                    print(f"Matched Reference: {title} (Cited by ID: {citing_paper_id})")
-                    matched = True
-        if not matched:
-            print(f"No match found for extracted reference: {ref}")
+        print(f" - {ref}")
 
 # LDA Topic Modeling
 # Create a dictionary representation of the documents
@@ -130,18 +124,25 @@ corpus = [dictionary.doc2bow(doc) for doc in documents]
 # Build the LDA model
 lda_model = gensim.models.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=15)
 
-# Print the topics discovered by LDA
-topics = lda_model.print_topics(num_words=4)
-print("\nLDA Topics:")
+# Print the topics discovered by LDA, filtering out keywords that are numbers
+topics = lda_model.print_topics(num_words=10)
+filtered_topics = []
+
+print("\nFiltered LDA Topics:")
 for topic in topics:
-    print(topic)
+    topic_id, words = topic
+    # Filter out words that contain only numbers
+    filtered_words = ", ".join([word for word in re.findall(r'\"(\w+)\"', words) if not re.match(r'^\d+$', word)])
+    print(f"Topic {topic_id}: {filtered_words}")
+    filtered_topics.append((topic_id, filtered_words))
 
 # Store LDA topics for each document in the database
 cursor = conn.cursor()
 for idx, doc_id in enumerate(document_ids):
     doc_topics = lda_model.get_document_topics(corpus[idx], minimum_probability=0.1)
     for topic_id, prob in doc_topics:
-        topic_keywords = ", ".join([word for word, _ in lda_model.show_topic(topic_id, topn=4)])
+        # Filtered keywords for current topic
+        topic_keywords = filtered_topics[topic_id][1]
         cursor.execute(
             "INSERT INTO lda_topics (paper_id, topic_id, topic_name, topic_keywords) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE topic_keywords=%s",
             (doc_id, topic_id, f"Topic {topic_id + 1}", topic_keywords, topic_keywords)
@@ -151,17 +152,10 @@ for idx, doc_id in enumerate(document_ids):
 topic_based_links = []
 for i in range(len(documents)):
     for j in range(i + 1, len(documents)):
-        similarity_score = compare_topic_similarity(documents[i], documents[j])
+        similarity_score = matutils.cossim(lda_model[dictionary.doc2bow(documents[i])], lda_model[dictionary.doc2bow(documents[j])])
         if similarity_score > 0.5:  # Adjust the threshold as needed
             topic_based_links.append((df.iloc[i]['id'], df.iloc[j]['id']))
             print(f"Similar Topic Found: Paper {df.iloc[i]['id']} <-> Paper {df.iloc[j]['id']} (Similarity: {similarity_score})")
-
-# Store the citation links into the database
-for citing_paper_id, cited_paper_id in citation_links:
-    cursor.execute(
-        "INSERT INTO citation_relationships (citing_paper_id, cited_paper_id) VALUES (%s, %s) ON DUPLICATE KEY UPDATE citing_paper_id=citing_paper_id",
-        (citing_paper_id, cited_paper_id)
-    )
 
 # Store the topic-based connections into the database
 for citing_paper_id, cited_paper_id in topic_based_links:
