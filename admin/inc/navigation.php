@@ -56,7 +56,7 @@
   <aside class="main-sidebar sidebar-light elevation-4 sidebar-no-expand bg-white">
     <!-- Brand Logo -->
     <a href="<?php echo base_url ?>admin" class="brand-link bg-transparent text-sm shadow-sm d-flex align-items-center">
-      <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
+    <img src="../uploads/pupLogo.jfif" alt="Store Logo" class="brand-image img-circle elevation-3 bg-black" style="width: 2.5rem; height: 2.5rem; max-height: unset; object-fit: scale-down; object-position: center center;">
       <span class="brand-text font-weight-light">
         <span style="font-family: 'Georgia', serif; font-size: 0.9rem; background: linear-gradient(to right, #651d32, #b81d24); -webkit-background-clip: text; color: transparent; font-weight: normal;">PUP Sta. Rosa</span>
         <span class="littrack-text">LitTrack</span>
