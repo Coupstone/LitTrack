@@ -5,50 +5,29 @@ require_once('inc/topBarNav.php');
 require_once('inc/header.php'); 
 
 // Database connection
-$host = "localhost"; // Use your DB host
-$username = "root"; // Your DB username
-$password = ""; // Your DB password
-$database = "otas_db"; // Your database name
+$host = "localhost"; 
+$username = "root"; 
+$password = ""; 
+$database = "otas_db"; 
 
 $db = new mysqli($host, $username, $password, $database);
 
-// Check connection
 if ($db->connect_error) {
     die("Connection failed: " . $db->connect_error);
 }
 
-// Query to fetch literature details with only the primary author (lowest author_order)
-$query = "
-    SELECT al.id, al.title, al.year AS publication_year, CONCAT(aa.first_name, ' ', aa.last_name) AS author
-    FROM archive_list al
-    LEFT JOIN archive_authors aa ON al.id = aa.archive_id
-    WHERE al.status = 1 AND aa.author_order = 1
-";
+// Fetch initial literature data for recent Litmaps view
+$query = "SELECT al.id, al.title, al.year AS publication_year, CONCAT(aa.first_name, ' ', aa.last_name) AS author 
+          FROM archive_list al 
+          LEFT JOIN archive_authors aa ON al.id = aa.archive_id 
+          WHERE al.status = 1 AND aa.author_order = 1";
 $literature_result = $db->query($query);
-
-if(!$literature_result) {
-    die("Error fetching literature: " . $db->error);
-}
 
 $literature = [];
 while ($row = $literature_result->fetch_assoc()) {
     $literature[] = $row;
 }
-
-// Fetch citation relationships from the citation_relationships table
-$citation_query = "SELECT citing_paper_id, cited_paper_id FROM citation_relationships";
-$citation_result = $db->query($citation_query);
-
-if(!$citation_result) {
-    die("Error fetching citations: " . $db->error);
-}
-
-$citations = [];
-while ($row = $citation_result->fetch_assoc()) {
-    $citations[] = $row;
-}
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en" style="height: auto;">
@@ -56,38 +35,75 @@ while ($row = $citation_result->fetch_assoc()) {
     <title>Literature Map</title>
     <!-- Load D3.js -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    
+    
     <style>
+         /* Center container for search bar and results */
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px; /* Increased width to provide a bit more space */
+            background-color: white; /* Optional: add a background to the container */
+            border: 1px solid #ccc; /* Optional: add a border to the container */
+            padding: 8px; /* Optional: add padding to create some spacing */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: add shadow for better visibility */
+            z-index: 1000; /* Make sure it stays above other elements */
+            border-radius: 8px; /* Optional: rounded corners */
+        }
+
+        /* Style for search bar */
+        #searchBar {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        /* Style for search results */
+        #searchResults {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
         #map {
             width: 100vw;
             height: 100vh;
         }
-        .node circle {
-            stroke: #fff;
-            stroke-width: 1.5px;
-        }
-        .node text {
-            font: 12px sans-serif;
-            pointer-events: none;
-        }
-        .link {
-            stroke: #999;
-            stroke-opacity: 0.6;
-        }
+
         .tooltip {
-    position: absolute;
-    text-align: left; /* Align text to the left */
-    max-width: 300px; /* Increase the maximum width */
-    padding: 8px; /* Add more padding */
-    font: 14px sans-serif; /* Increase font size for readability */
-    background: lightsteelblue;
-    border: 0;
-    border-radius: 8px;
-    pointer-events: none;
-    white-space: normal; /* Allow text to wrap */
-    color: #000; /* Optional: improve text contrast */
-    line-height: 1.4; /* Optional: add line spacing for readability */
+            position: absolute;
+            text-align: left;
+            max-width: 300px;
+            padding: 8px;
+            font: 14px sans-serif;
+            background: lightsteelblue;
+            border-radius: 8px;
+            pointer-events: none;
+            color: #000;
+            line-height: 1.4;
+        }
+
+        #searchResults div {
+            padding: 8px;
+            cursor: pointer;
+        }
+        #searchResults div:hover {
+            background-color: #f0f0f0;
+        }
+        /* Sidebar styling */
+.sidebar {
+    overflow: hidden; /* Hide scrollbar */
+    /* other styling like width, height, background color, etc. */
 }
-        html, body {
+html, body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -170,121 +186,129 @@ while ($row = $citation_result->fetch_assoc()) {
 </head>
 <body>
 
-<h1 class="text-center">Literature Mapping</h1>
 <div id="map"></div>
 
+<!-- Centered Search Bar and Results -->
+<div class="search-container">
+    <div style="position: relative; width: 100%;">
+        <input type="text" id="searchBar" placeholder="Type to search studies..." autocomplete="off">
+        <button id="clearButton" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: gray;">&times;</button>
+    </div>
+    <div id="searchResults"></div>
+</div>
+
+
 <script>
-// Sample data from PHP
-const literature = <?php echo json_encode($literature); ?>;
-const citations = <?php echo json_encode($citations); ?>;
+// JavaScript for autocomplete and D3.js visualization
 
-console.log("Literature Data:", literature); // Debugging: print literature data
-console.log("Citation Data:", citations); // Debugging: print citation data
+// AJAX for real-time search suggestions
+document.getElementById("searchBar").addEventListener("input", function() {
+    let query = this.value;
+    if (query.length > 0) { // Start searching from the first character
+        fetch(`search_studies.php?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            let suggestions = document.getElementById("searchResults");
+            suggestions.innerHTML = ""; // Clear previous suggestions
+            data.forEach(study => {
+                let option = document.createElement("div");
+                // Display format: Author (Year) - Title
+                option.innerHTML = `${study.author} (${study.publication_year}) - ${study.title}`;
+                option.onclick = () => loadMapping(study.id);
+                suggestions.appendChild(option);
+            });
+        });
+    } else {
+        document.getElementById("searchResults").innerHTML = ""; // Clear suggestions if query is empty
+    }
+});
 
-// Convert citations to D3 format
-const citationLinks = citations.map(citation => ({
-    source: citation.citing_paper_id,
-    target: citation.cited_paper_id
-}));
+// Clear button functionality
+document.getElementById("clearButton").addEventListener("click", function() {
+    document.getElementById("searchBar").value = ""; // Clear the search input
+    document.getElementById("searchResults").innerHTML = ""; // Clear the search results
+});
 
-const width = window.innerWidth;
-const height = window.innerHeight;
 
-// Create SVG
-const svg = d3.select("#map").append("svg")
-              .attr("width", width)
-              .attr("height", height)
-              .call(d3.zoom().on("zoom", (event) => {
-                  svg.attr("transform", event.transform); // Apply zoom transform
-              }))
-              .append("g"); // Append the group element after applying zoom
-
-// Tooltip
-const tooltip = d3.select("body").append("div")
-                  .attr("class", "tooltip")
-                  .style("opacity", 0);
-
-// Simulation setup
-const simulation = d3.forceSimulation(literature)
-                     .force("link", d3.forceLink(citationLinks).id(d => d.id).distance(200))
-                     .force("charge", d3.forceManyBody().strength(-500))
-                     .force("center", d3.forceCenter(width / 2, height / 2));
-
-// Function to draw a curved link between two nodes using a quadratic Bézier curve
-function curvedLinkPath(d) {
-    const midX = (d.source.x + d.target.x) / 2;
-    const midY = (d.source.y + d.target.y) / 2;
-    const dx = d.target.x - d.source.x;
-    const dy = d.target.y - d.source.y;
-    const curveOffset = Math.sqrt(dx * dx + dy * dy) / 4; // Control the curvature
-    return `M ${d.source.x},${d.source.y} Q ${midX + curveOffset},${midY - curveOffset} ${d.target.x},${d.target.y}`;
+// Function to load mapping based on selected study ID
+function loadMapping(studyId) {
+    fetch(`get_mapping_data.php?study_id=${studyId}`)
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("searchResults").innerHTML = ""; // Clear search suggestions
+        updateD3Visualization(data);
+    });
 }
 
-// Links (as paths instead of lines)
-const link = svg.append("g")
-                .attr("class", "links")
-                .selectAll("path")
-                .data(citationLinks)
-                .enter().append("path")
-                .attr("class", "link")
-                .attr("stroke-width", 1.5)
-                .attr("stroke", "#999")
-                .attr("fill", "none")
-                .attr("stroke-opacity", 0.6);
+// D3.js code to create and update visualization
+function updateD3Visualization(data) {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-// Nodes
-const node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("g")
-                .data(literature)
-                .enter().append("g")
-                .attr("class", "node")
-                .on("mouseover", function(event, d) {
-                    link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#00f" : "#ccc")
-                        .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
+    // Clear any existing SVG elements
+    d3.select("#map").selectAll("svg").remove();
 
-                    node.selectAll("circle")
-                        .attr("fill", n => (citationLinks.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id))) ? "gray" : "#ccc")
-                        .attr("opacity", n => (citationLinks.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id))) ? 1 : 0.3);
+    const svg = d3.select("#map").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .call(d3.zoom().on("zoom", (event) => {
+            svg.attr("transform", event.transform); // Apply zoom transform
+        }))
+        .append("g");
 
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    tooltip.html(`${d.author} (${d.publication_year}).<br>${d.title}`)
-                        .style("left", Math.min(event.pageX + 10, window.innerWidth - 320) + "px")
-                        .style("top", Math.min(event.pageY - 10, window.innerHeight - tooltip.node().clientHeight - 10) + "px");
-                })
-                .on("mouseout", function() {
-                    // Reset link and node appearances
-                    link.attr("stroke", "#999")
-                        .attr("stroke-opacity", 0.6);
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
-                    node.selectAll("circle")
-                        .attr("fill", "gray")
-                        .attr("opacity", 1);
+    const link = svg.selectAll(".link")
+        .data(data.citations)
+        .enter().append("line")
+        .attr("class", "link")
+        .style("stroke", "#999")
+        .style("stroke-opacity", 0.6)
+        .style("stroke-width", 1.5);
 
-                    tooltip.transition()
-                           .duration(500)
-                           .style("opacity", 0);
-                });
+    const node = svg.selectAll(".node")
+        .data(data.literature)
+        .enter().append("g")
+        .attr("class", "node")
+        .on("mouseover", function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(`${d.author} (${d.publication_year}).<br>${d.title}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
 
-// Add circles to represent the nodes
-node.append("circle")
-    .attr("r", 8)
-    .attr("fill", "gray");
+    node.append("circle")
+        .attr("r", 8)
+        .attr("fill", "gray");
 
-// Add default text labels for the nodes (only author and date)
-node.append("text")
-    .attr("x", 12)
-    .attr("dy", ".35em")
-    .text(d => `${d.author} (${d.publication_year})`);
+    node.append("text")
+        .attr("x", 12)
+        .attr("dy", ".35em")
+        .text(d => `${d.author} (${d.publication_year})`);
 
-// Update positions on tick (curved links)
-simulation.on("tick", () => {
-    link.attr("d", curvedLinkPath); // Update the curved path on each tick
+    const simulation = d3.forceSimulation(data.literature)
+        .force("link", d3.forceLink(data.citations).id(d => d.id).distance(200))
+        .force("charge", d3.forceManyBody().strength(-500))
+        .force("center", d3.forceCenter(width / 2, height / 2));
 
-    node.attr("transform", d => `translate(${d.x},${d.y})`);
-});
+    simulation.on("tick", () => {
+        link.attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+}
 </script>
 </body>
 </html>
