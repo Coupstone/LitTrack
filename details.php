@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 $page = isset($_GET['page']) ? $_GET['page'] : 'view_archive';
 require_once('./config.php'); 
 require_once('inc/topBarNav.php'); 
@@ -31,25 +30,30 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         } else {
             $reads_count = 0;
         }
-    }
 
-   // Fetch citation count from archive_citation
-$citations_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
-$citations_stmt->bind_param("i", $id);
-$citations_stmt->execute();
-$citations_result = $citations_stmt->get_result();
-$citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_assoc()['citation_count'] : 0;
+        // Fetch download count from archive_downloads
+        $download_stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
+        $download_stmt->bind_param("i", $id);
+        $download_stmt->execute();
+        $download_result = $download_stmt->get_result();
+        if ($download_result->num_rows > 0) {
+            $download_data = $download_result->fetch_assoc();
+            $downloads_count = $download_data['download_count'];
+        } else {
+            $downloads_count = 0;
+        }
 
-    // Prepare a statement to select the download count from archive_downloads
-    $download_stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
-    $download_stmt->bind_param("i", $id);
-    $download_stmt->execute();
-    $download_result = $download_stmt->get_result();
-    if ($download_result->num_rows > 0) {
-        $download_data = $download_result->fetch_assoc();
-        $downloads_count = $download_data['download_count'];
-    } else {
-        $downloads_count = 0;
+        // Fetch citation count from archive_citations
+        $citation_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
+        $citation_stmt->bind_param("i", $id);
+        $citation_stmt->execute();
+        $citation_result = $citation_stmt->get_result();
+        if ($citation_result->num_rows > 0) {
+            $citation_data = $citation_result->fetch_assoc();
+            $citations_count = $citation_data['citation_count'];
+        } else {
+            $citations_count = 0;
+        }
     }
 
     // Fetch authors and format specifically for APA, MLA, Chicago, Harvard, and Vancouver citation styles
@@ -73,9 +77,8 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         $first_name_initial = strtoupper(substr($first_name, 0, 1));
         $middle_name_initial = (strpos($first_name, ' ') !== false) ? strtoupper(substr($first_name, strpos($first_name, ' ') + 1, 1)) : '';
 
-        // APA format: Last, F. M.
-        $initials = $middle_name_initial ? "{$first_name_initial}. {$middle_name_initial}." : "{$first_name_initial}.";
-        $apa_authors[] = "{$last_name}, {$initials}";
+        // APA format: Last, F.
+        $apa_authors[] = "{$last_name}, {$first_name_initial}.";
 
         // General format for other citations
         $general_authors[] = "{$first_name} {$last_name}";
@@ -96,6 +99,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         }
 
         // Harvard format: Last, F.M. (or Last, F. if no middle name initial)
+        $initials = $middle_name_initial ? "{$first_name_initial}.{$middle_name_initial}." : "{$first_name_initial}.";
         $harvard_authors[] = "{$last_name}, {$initials}";
 
         // Vancouver format: Last F M (without periods)
@@ -112,7 +116,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     }
 
     // MLA format: use "et al." if there are multiple authors
-    $mla_authors_formatted = $has_multiple_authors ? "{$mla_author}, et al" : $mla_author;
+    $mla_authors_formatted = $has_multiple_authors ? "{$mla_author}, et al." : $mla_author;
 
     // Chicago format: authors in "Last, First" for the first author and "First Last" for others
     $chicago_authors_formatted = implode(", ", $chicago_authors);
@@ -145,6 +149,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     }
 }
 ?>
+
 
 <style>
     .main-sidebar .nav-sidebar .nav-link p,
@@ -445,33 +450,28 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     color: #000;
     margin-left: 3px; /* Optional, adjust as needed for more spacing */
 }
+/* Citation Modal */
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Prevents scrolling */
-    background-color: rgba(0, 0, 0, 0.4);
-}
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
 
-.modal-content {
-    background-color: #fefefe;
-    margin: auto; /* Center horizontally */
-    top: 50%; /* Center vertically */
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 600px;
-    border-radius: 8px;
-    overflow: hidden; /* Prevents scrolling within modal content */
-    max-height: calc(100vh - 100px); /* Limits height to avoid scrolling */
-    position: fixed;
-}
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 600px;
+        border-radius: 8px;
+    }
 
     .close {
         color: #aaa;
@@ -499,8 +499,9 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         width: 80px;
     }
 
-</style>
+    </style>
 
+<!-- Display Citation and Document Details -->
 <div class="card-body rounded-0">
     <div class="container-fluid">
         <fieldset class="fieldset">
@@ -544,6 +545,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     </div>
 </div>
 
+<!-- Citation Modal for Different Styles -->
 <div id="citationModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeCitationModal()">&times;</span>
@@ -553,8 +555,6 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         <div class="citation-style"><strong>Chicago:</strong> <span id="chicagoCitation"></span></div>
         <div class="citation-style"><strong>Harvard:</strong> <span id="harvardCitation"></span></div>
         <div class="citation-style"><strong>Vancouver:</strong> <span id="vancouverCitation"></span></div>
-        
-        <!-- Download Citation Button -->
         <div style="text-align: center; margin-top: 20px;">
             <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button>
         </div>
@@ -562,8 +562,8 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
 </div>
 
 <script>
+// Generate citations and show modal
 function generateCitations() {
-    // Generate and display citation text in the modal
     const mlaAuthors = "<?= $mla_authors_formatted ?>";
     const apaAuthors = "<?= $apa_authors_formatted ?>";
     const chicagoAuthors = "<?= $chicago_authors_formatted ?>";
@@ -572,35 +572,38 @@ function generateCitations() {
     const year = "<?= htmlspecialchars($year ?? '----') ?>";
     const title = "<?= htmlspecialchars($title ?? 'No Title') ?>";
 
-    // Format citations
     document.getElementById('mlaCitation').innerText = `${mlaAuthors}. "${title}." (${year}).`;
     document.getElementById('apaCitation').innerText = `${apaAuthors} (${year}). ${title}.`;
     document.getElementById('chicagoCitation').innerText = `${chicagoAuthors}. "${title}" (${year}).`;
     document.getElementById('harvardCitation').innerText = `${harvardAuthors}, ${year}. ${title}.`;
-    document.getElementById('vancouverCitation').innerText = `${vancouverAuthors}. ${title}. ${year}.`;
+    document.getElementById('vancouverCitation').innerText = `${vancouverAuthors}. ${title}.${year}.`;
 
-    // Show the citation modal
     document.getElementById("citationModal").style.display = "block";
 }
 
 function closeCitationModal() {
-    // Hide the citation modal
     document.getElementById("citationModal").style.display = "none";
 }
 
-// Attach event listener to the Cite button to open the citation modal
-document.getElementById("citeButton").addEventListener("click", generateCitations);
+document.getElementById("citeButton")?.addEventListener("click", function () {
+    generateCitations();
+});
 
-// Attach event listener to the close button to close the citation modal
-document.querySelector(".close").addEventListener("click", closeCitationModal);
-
+// Function to create a downloadable file with all citations and increment the citation count
 function downloadCitation() {
-    const citationText = 
-        `MLA: ${document.getElementById('mlaCitation').innerText}
-        APA: ${document.getElementById('apaCitation').innerText}
-        Chicago: ${document.getElementById('chicagoCitation').innerText}
-        Harvard: ${document.getElementById('harvardCitation').innerText}
-        Vancouver: ${document.getElementById('vancouverCitation').innerText}`;
+    const mlaCitation = document.getElementById('mlaCitation').innerText;
+    const apaCitation = document.getElementById('apaCitation').innerText;
+    const chicagoCitation = document.getElementById('chicagoCitation').innerText;
+    const harvardCitation = document.getElementById('harvardCitation').innerText;
+    const vancouverCitation = document.getElementById('vancouverCitation').innerText;
+
+    const citationText = `
+MLA: ${mlaCitation}
+APA: ${apaCitation}
+Chicago: ${chicagoCitation}
+Harvard: ${harvardCitation}
+Vancouver: ${vancouverCitation}
+    `;
 
     const blob = new Blob([citationText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -611,41 +614,17 @@ function downloadCitation() {
     a.click();
     document.body.removeChild(a);
 
-    // AJAX request to update citation count in the database
+    // AJAX request to increment citation count
     $.ajax({
         url: 'increment_citation.php',
         type: 'POST',
         data: { archive_id: <?= $id ?> },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                // Update displayed citation count
-                $('.stats .fa-quote-left').next('.stat-value').text(response.new_citation_count + ' Citations');
-            } else {
-                console.error('Error:', response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('AJAX Error:', error);
-        }
-    });
-}
-
-
-function downloadDocument() {
-    var archiveId = <?= $id ?>;
-    window.open("<?= htmlspecialchars($document_path) ?>", '_blank');
-
-    $.ajax({
-        url: 'download_document.php',
-        type: 'POST',
-        data: {archive_id: archiveId},
         success: function(response) {
             const result = JSON.parse(response);
-            if (result.success && result.download_count !== undefined) {
-                $('.stats .fa-download').next().text(result.download_count + ' Downloads');
+            if (result.success && result.new_citation_count !== undefined) {
+                $('.stats .fa-quote-left').next().text(result.new_citation_count + ' Citations');
             } else {
-                console.error('Failed to increment download count:', result.error);
+                console.error('Failed to increment citation count:', result.error);
             }
         },
         error: function(xhr, status, error) {
@@ -654,3 +633,4 @@ function downloadDocument() {
     });
 }
 </script>
+

@@ -20,11 +20,10 @@ if (!$count_all) {
 }
 $pages = ceil($count_all->num_rows / $limit);
 
-$archives = $conn->query("
-    SELECT a.*, 
+$archives = $conn->query("SELECT a.*, 
            (SELECT COUNT(*) FROM archive_reads WHERE archive_id = a.id) AS `reads`,
            (SELECT COUNT(*) FROM archive_downloads WHERE archive_id = a.id) AS downloads,
-           (SELECT COUNT(*) FROM archive_citations WHERE archive_id = a.id) AS citations
+           (SELECT COUNT(*) FROM archive_citation WHERE archive_id = a.id) AS citations
     FROM archive_list a
     WHERE a.status = 1 {$search}
     ORDER BY UNIX_TIMESTAMP(a.date_created) DESC 
@@ -209,7 +208,6 @@ if ($archive_ids) {
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.star-btn-wrapper').on('click', function(e) {
