@@ -152,18 +152,13 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 
 
 <style>
-    .main-sidebar .nav-sidebar .nav-link p,
-.main-sidebar .nav-sidebar .nav-header,
-.main-sidebar .nav-sidebar .brand-text {
-    font-weight: 700;
-}
 
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background-color: #f9f9f9;
-    }
+html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+        }
     .header {
         display: none; 
     }
@@ -498,50 +493,126 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         display: inline-block;
         width: 80px;
     }
+    .main-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            transition: width 0.3s ease-in-out; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+            background-color: white;
+        }
+        .main-sidebar::-webkit-scrollbar {
+            display: none;
+        }
+        .main-sidebar {
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+        }
+        body.sidebar-collapsed .main-sidebar {
+            width: 70px;
+        }
+        .main-sidebar .nav-link p {
+            display: inline;
+        }
+        body.sidebar-collapsed .main-sidebar .nav-link p {
+            display: none;
+        }
+        .main-sidebar .nav-link i {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        body.sidebar-collapsed .main-sidebar .nav-link i {
+            text-align: center;
+            margin-right: 0;
+            width: 100%;
+        }
+        /* Content area */
+        .content-wrapper {
+            margin-left: 250px;
+            transition: margin-left 0.3s ease-in-out;
+            height: 100%;
+            overflow-y: auto; /* Allow vertical scrolling in the content area */
+        }
+        body.sidebar-collapsed .content-wrapper {
+            margin-left: 60px;
+        }
+        .brand-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            transition: padding 0.3s ease;
+            height: 3.5rem;
+            overflow: hidden;
+        }
+        .brand-link .brand-image {
+            width: 2.5rem;
+            height: 2.5rem;
+            transition: width 0.3s ease, height 0.3s ease;
+            margin-right: 0.5rem;
+        }
+        body.sidebar-collapsed .brand-link .brand-image {
+            width: 2rem;
+            height: 2rem;
+            margin-right: 0; 
+        }
+        .brand-link .brand-text {
+            font-size: 1rem;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        body.sidebar-collapsed .brand-link .brand-text {
+            opacity: 0;
+            overflow: hidden;
+        }
 
     </style>
 
-<!-- Display Citation and Document Details -->
-<div class="card-body rounded-0">
-    <div class="container-fluid">
-        <fieldset class="fieldset">
-            <legend class="legend"></legend>
-            <h2 class="font-weight-bold"><?= $title ?? "" ?></h2>
-            <small class="text-muted">Submitted by <b class="text-info"><?= $submitted ?></b> on <?= date("F d, Y h:i A", strtotime($date_created)) ?></small>
-            <div class="stats">
-                <div><i class="fa fa-eye"></i><span class="stat-value"><?= $reads_count ?? "0" ?></span> Reads</div>
-                <div><i class="fa fa-quote-left"></i><span class="stat-value"><?= $citations_count ?? "0" ?></span> Citations</div>
-                <div><i class="fa fa-download"></i><span class="stat-value"><?= $downloads_count ?? "0" ?></span> Downloads</div>
-            </div>
-        </fieldset>
-        <hr>
-        <fieldset class="fieldset">
-            <legend class="legend">Project Year:</legend>
-            <div class="pl-4"><large><?= $year ?? "----" ?></large></div>
-        </fieldset>
-        <fieldset class="fieldset">
-            <legend class="legend">Abstract:</legend>
-            <div class="pl-4"><large><?= html_entity_decode($abstract ?? "") ?></large></div>
-        </fieldset>
-        <fieldset class="fieldset">
-            <legend class="legend">Authors:</legend>
-            <div><?= $general_authors_formatted ?></div>
-        </fieldset>
-        <fieldset class="fieldset">
-            <legend class="legend">Project Document:</legend>
-            <div>
-                <?php if (!empty($document_path) && file_exists($document_path)): ?>
-                    <iframe src="<?= htmlspecialchars($document_path) ?>" frameborder="0" style="width: 100%; height: 500px;"></iframe>
-                    <div class="doc-controls">
-                        <button id="citeButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-quote-right"></i> Cite</button>
-                        <a href="javascript:void(0);" onclick="downloadDocument()" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-download"></i> Download</a>
-                        <a href="<?= htmlspecialchars($document_path) ?>" target="_blank" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-eye"></i> View</a>
-                    </div>
-                <?php else: ?>
-                    <p>Document not available or could not be loaded.</p>
-                <?php endif; ?>
-            </div>
-        </fieldset>
+<div class="content-wrapper"> <!-- Added wrapper div -->
+    <!-- Display Citation and Document Details -->
+    <div class="card-body rounded-0">
+        <div class="container-fluid">
+            <fieldset class="fieldset">
+                <legend class="legend"></legend>
+                <h2 class="font-weight-bold"><?= $title ?? "" ?></h2>
+                <small class="text-muted">Submitted by <b class="text-info"><?= $submitted ?></b> on <?= date("F d, Y h:i A", strtotime($date_created)) ?></small>
+                <div class="stats">
+                    <div><i class="fa fa-eye"></i><span class="stat-value"><?= $reads_count ?? "0" ?></span> Reads</div>
+                    <div><i class="fa fa-quote-left"></i><span class="stat-value"><?= $citations_count ?? "0" ?></span> Citations</div>
+                    <div><i class="fa fa-download"></i><span class="stat-value"><?= $downloads_count ?? "0" ?></span> Downloads</div>
+                </div>
+            </fieldset>
+            <hr>
+            <fieldset class="fieldset">
+                <legend class="legend">Project Year:</legend>
+                <div class="pl-4"><large><?= $year ?? "----" ?></large></div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="legend">Abstract:</legend>
+                <div class="pl-4"><large><?= html_entity_decode($abstract ?? "") ?></large></div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="legend">Authors:</legend>
+                <div><?= $general_authors_formatted ?></div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="legend">Project Document:</legend>
+                <div>
+                    <?php if (!empty($document_path) && file_exists($document_path)): ?>
+                        <iframe src="<?= htmlspecialchars($document_path) ?>" frameborder="0" style="width: 100%; height: 500px;"></iframe>
+                        <div class="doc-controls">
+                            <button id="citeButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-quote-right"></i> Cite</button>
+                            <a href="javascript:void(0);" onclick="downloadDocument()" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-download"></i> Download</a>
+                            <a href="<?= htmlspecialchars($document_path) ?>" target="_blank" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-eye"></i> View</a>
+                        </div>
+                    <?php else: ?>
+                        <p>Document not available or could not be loaded.</p>
+                    <?php endif; ?>
+                </div>
+            </fieldset>
+        </div>
     </div>
 </div>
 
