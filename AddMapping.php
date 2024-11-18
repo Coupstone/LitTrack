@@ -38,23 +38,79 @@ while ($stmt->fetch()) {
 }
 $stmt->close();
 
-// Fetch details for each mapping in `$recentMappings`
-$recentMappingData = [];
-foreach ($recentMappings as $mappingId) {
-    $query = "SELECT al.id, al.title, al.year, CONCAT(aa.first_name, ' ', aa.last_name) AS author 
-              FROM archive_list al 
-              LEFT JOIN archive_authors aa ON al.id = aa.archive_id 
-              WHERE al.id = ?";
-    $stmt = $db->prepare($query);
-    $stmt->bind_param("i", $mappingId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        $recentMappingData[] = $row;
-    }
-    $stmt->close();
+// Fetch details for each mapping in `$recentMappings`, include all authors and abstract
+$relatedLiteratureQuery = "
+SELECT al.id, 
+       COALESCE(al.title, 'Unknown Title') AS title, 
+       COALESCE(al.year, 'Unknown Year') AS year, 
+       COALESCE(al.abstract, 'No Abstract Available') AS abstract,
+       (SELECT CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) 
+        FROM archive_authors aa 
+        WHERE aa.archive_id = al.id 
+        AND aa.author_order = 1 LIMIT 1) AS primary_author,
+       GROUP_CONCAT(CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) SEPARATOR ', ') AS author
+FROM archive_list al
+LEFT JOIN archive_authors aa ON al.id = aa.archive_id
+WHERE al.status = 1 
+AND al.id IN (
+    SELECT rm.mapping_id FROM recent_student_mappings rm WHERE rm.student_id = ?
+    UNION
+    SELECT cr.cited_paper_id FROM citation_relationships cr
+    WHERE cr.citing_paper_id IN (
+        SELECT rm.mapping_id FROM recent_student_mappings rm WHERE rm.student_id = ?
+    )
+    UNION
+    SELECT cr.citing_paper_id FROM citation_relationships cr
+    WHERE cr.cited_paper_id IN (
+        SELECT rm.mapping_id FROM recent_student_mappings rm WHERE rm.student_id = ?
+    )
+)
+GROUP BY al.id";
+
+
+$stmt = $db->prepare($relatedLiteratureQuery);
+$stmt->bind_param("iii", $student_id, $student_id, $student_id);
+
+// Execute the query and fetch related literature
+$stmt->execute();
+$result = $stmt->get_result();
+$literatureData = [];
+while ($row = $result->fetch_assoc()) {
+    $literatureData[] = $row;
+    // Debugging: log the fetched row data
+    error_log(print_r($row, true));
 }
+$stmt->close();
+
+// Fetch all citations (both citing and cited relationships)
+$citationQuery = "
+    SELECT cr.citing_paper_id, cr.cited_paper_id
+    FROM citation_relationships cr
+    WHERE cr.citing_paper_id IN (
+        SELECT rm.mapping_id FROM recent_student_mappings rm WHERE rm.student_id = ?
+    )
+    OR cr.cited_paper_id IN (
+        SELECT rm.mapping_id FROM recent_student_mappings rm WHERE rm.student_id = ?
+    )
+";
+$stmt = $db->prepare($citationQuery);
+$stmt->bind_param("ii", $student_id, $student_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$citations = [];
+while ($row = $result->fetch_assoc()) {
+    $citations[] = $row;
+}
+$stmt->close();
+
+// Prepare data for frontend
+$response = [
+    "literature" => $literatureData,
+    "citations" => $citations
+];
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en" style="height: auto;">
 <head>
@@ -73,35 +129,46 @@ foreach ($recentMappings as $mappingId) {
         margin-left: 70px; /* Adjust margin when sidebar is collapsed */
     }
 
-    /* Search container */
     .search-container {
-        width: 80%;
-        max-width: 600px;
-        margin: 50px auto 20px;
-        text-align: center;
-    }
-    #searchBar {
-        width: 100%;
-        padding: 8px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    .search-results {
-        margin-top: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    .result-item {
-        padding: 10px;
-        cursor: pointer;
-        text-align: left;
-    }
-    .result-item:hover {
-        background-color: #f0f0f0;
-    }
+    width: 80%;
+    max-width: 600px;
+    margin: 50px auto 20px;
+    text-align: center;
+    position: relative; /* Set position relative to allow .search-results to position absolutely */
+}
+
+#searchBar {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-results {
+    position: absolute; /* Position the search results absolutely */
+    top: 100%; /* Position below the search bar */
+    left: 0; /* Align to the left edge of the search container */
+    width: 100%; /* Match the width of the search container */
+    z-index: 100; /* Ensure it overlaps other content */
+    background-color: white; /* Background color for visibility */
+    border: 1px solid #ddd; /* Optional border */
+    border-radius: 8px;
+    max-height: 300px; /* Optional: Set max height for scrolling */
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for better aesthetics */
+}
+
+.result-item {
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.result-item:hover {
+    background-color: #f0f0f0;
+}
+
 
     /* Map container */
     #map {
@@ -130,7 +197,7 @@ foreach ($recentMappings as $mappingId) {
     overflow: hidden; /* Hide scrollbar */
     /* other styling like width, height, background color, etc. */
 }
-html, body {
+        html, body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -223,16 +290,32 @@ html, body {
     <div id="map"></div>
 </div>
 
+<!-- Modal Structure -->
+<div id="studyModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+    <div style="background-color:#fff; margin:2% auto; padding:20px; border-radius:8px; width:80%; max-width:600px; position:relative; box-shadow: 0px 4px 8px rgba(0,0,0,0.2);">
+        <span id="closeModal" style="position:absolute; top:10px; right:10px; font-size:24px; font-weight:bold; cursor:pointer;">&times;</span>
+        <h2 id="modalTitle" style="text-align:center;"></h2>
+        <p><strong>Authors:</strong> <span id="modalAuthors"></span></p>
+        <p><strong>Year:</strong> <span id="modalYear"></span></p>
+        <p><strong>Abstract:</strong> <span id="modalAbstract"></span></p>
+    </div>
+</div>
+
+
+
+
 <script>
 
 document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mappingId = urlParams.get('id');
-        
-        if (mappingId) {
-            loadMapping(mappingId);
-        }
-    });
+    const urlParams = new URLSearchParams(window.location.search);
+    const mappingId = parseInt(urlParams.get('id')); // Get and parse the ID
+
+    console.log("Mapping ID from URL:", mappingId); // Debug
+
+    if (mappingId) {
+        loadMapping(mappingId);
+    }
+});
 // JavaScript functions for search, mapping, and visualization
 function performSearch(query) {
     query = query.trim();
@@ -247,101 +330,176 @@ function performSearch(query) {
     }
 
     fetch(`search_studies.php?query=${encodeURIComponent(query)}`)
-    .then(response => response.json())
-    .then(data => {
-        resultsDiv.innerHTML = '';
-        data.forEach(study => {
-            let div = document.createElement('div');
-            div.classList.add('result-item');
-            div.innerHTML = `<strong>${study.author} (${study.publication_year})</strong><br>${study.title}`;
-            div.onclick = () => {
-                loadMapping(study.id);
-                fetch(`saveMapping.php?id=${study.id}`)
-                    .then(response => response.text())
-                    .then(data => {
-                        console.log("Save Mapping Response:", data);
-                    })
-                    .catch(error => {
-                        console.error("Error saving mapping:", error);
-                    });
-            };
-            resultsDiv.appendChild(div);
+        .then(response => response.json())
+        .then(data => {
+            resultsDiv.innerHTML = '';
+            data.forEach(study => {
+                let div = document.createElement('div');
+                div.classList.add('result-item');
+                div.innerHTML = `<strong>${study.author} (${study.publication_year})</strong><br>${study.title}`;
+                
+                div.onclick = () => {
+                    loadMapping(study.id); // Load the selected study mapping
+                    fetch(`saveMapping.php?id=${study.id}`) // Save the mapping
+                        .then(response => response.text())
+                        .then(data => {
+                            console.log("Save Mapping Response:", data);
+                        })
+                        .catch(error => {
+                            console.error("Error saving mapping:", error);
+                        });
+
+                    // Clear and hide the search results
+                    resultsDiv.innerHTML = '';
+                    resultsDiv.style.display = 'none';
+                };
+
+                resultsDiv.appendChild(div);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching search results:", error);
+            resultsDiv.innerHTML = '';
         });
-    })
-    .catch(error => {
-        console.error("Error fetching search results:", error);
-        resultsDiv.innerHTML = '';
-    });
 }
 
 document.getElementById('searchBar').addEventListener('input', function() {
     performSearch(this.value);
 });
 
-function loadMapping(studyId) {
-    fetch(`get_mapping_data.php?study_id=${studyId}`)
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('searchResults').innerHTML = '';
-        updateD3Visualization(data);
-    });
+async function loadMapping(studyId) {
+    try {
+        const response = await fetch(`get_mapping_data.php?study_id=${studyId}`);
+        const data = await response.json();
+
+        if (!data || !data.literature || !data.citations) {
+            console.error("Invalid data structure:", data);
+            return;
+        }
+
+        const citationNodeIds = new Set(data.citations.flatMap(citation => [citation.citing_paper_id, citation.cited_paper_id]));
+        const literatureNodeIds = new Set(data.literature.map(node => node.id));
+
+        // Fetch missing nodes if necessary
+        for (const id of citationNodeIds) {
+            if (!literatureNodeIds.has(id)) {
+                const nodeResponse = await fetch(`get_mapping_data.php?study_id=${id}`);
+                const nodeData = await nodeResponse.json();
+                if (nodeData.literature.length > 0) {
+                    data.literature.push(nodeData.literature[0]);
+                }
+            }
+        }
+
+        console.log("Loaded Data:", data); // Debug
+
+        // Pass the studyId to highlight it in the visualization
+        updateD3Visualization(data, studyId);
+    } catch (error) {
+        console.error("Error loading mapping data:", error);
+    }
 }
 
-function updateD3Visualization(data) {
+// Close the modal when clicking on the close button
+document.getElementById("closeModal").onclick = function() {
+    document.getElementById("studyModal").style.display = "none";
+};
+
+// Close the modal when clicking outside the modal content
+window.onclick = function(event) {
+    const modal = document.getElementById("studyModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+};
+
+
+function updateD3Visualization(data, selectedStudyId) {
     const width = document.getElementById("map").clientWidth;
     const height = document.getElementById("map").clientHeight;
 
-    d3.select("#map").selectAll("svg").remove();
+    // Clear the existing SVG for updates
+    d3.select("#map").select("svg").remove();
 
     const svg = d3.select("#map").append("svg")
         .attr("width", width)
         .attr("height", height)
-        .call(d3.zoom().on("zoom", (event) => {
-            svg.attr("transform", event.transform);
-        }))
         .append("g");
 
+    // Create tooltip for hover
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
+    const formattedCitations = data.citations.map(citation => ({
+        source: citation.citing_paper_id,
+        target: citation.cited_paper_id
+    }));
+
+    // Draw links
     const link = svg.selectAll(".link")
-        .data(data.citations)
+        .data(formattedCitations)
         .enter().append("line")
         .attr("class", "link")
         .style("stroke", "#999")
-        .style("stroke-opacity", 0.6)
         .style("stroke-width", 1.5);
 
+    // Draw nodes
     const node = svg.selectAll(".node")
         .data(data.literature)
         .enter().append("g")
         .attr("class", "node")
-        .on("mouseover", function(event, d) {
+        .on("mouseover", (event, d) => {
+            // Show tooltip on hover
             tooltip.transition()
                 .duration(200)
-                .style("opacity", .9);
-            tooltip.html(`${d.author} (${d.publication_year}).<br>${d.title}`)
+                .style("opacity", 0.9);
+            tooltip.html(` 
+                ${d.authors || "Unknown Author"}
+                (${d.year || d.publication_year || "Unknown Year"})<br>
+                ${d.title || "No Title"}
+            `)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 10) + "px");
         })
-        .on("mouseout", function() {
+        .on("mouseout", () => {
+            // Hide tooltip
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);
+        })
+        .on("click", (event, d) => {
+            // Hide tooltip explicitly when clicking the node
+            tooltip.style("opacity", 0);
+
+           // Populate the modal with study details
+            document.getElementById("modalTitle").innerText = d.title || "No Title Available";
+            document.getElementById("modalAuthors").innerText = d.authors || "Unknown Author(s)";
+            document.getElementById("modalAbstract").innerText = d.abstract || "No Abstract Available";
+            document.getElementById("modalYear").innerText = d.year || d.publication_year || "Unknown Year";
+
+            // Show the modal
+            const modal = document.getElementById("studyModal");
+            modal.style.display = "block";
         });
 
+
+    // Append circles with conditional shading
     node.append("circle")
         .attr("r", 8)
-        .attr("fill", "gray");
+        .attr("fill", d => d.id === selectedStudyId ? "gray" : "white") // Highlight only the selected node
+        .attr("stroke", "black") // Stroke for all nodes
+        .attr("stroke-width", 1.5);
 
+    // Add labels for the nodes
     node.append("text")
-        .attr("x", 12)
-        .attr("dy", ".35em")
-        .text(d => `${d.author} (${d.publication_year})`);
+    .attr("x", 12)
+    .attr("dy", ".35em")
+    .text(d => `${d.primary_author || "Unknown Primary Author"} (${d.year || d.publication_year || "Unknown Year"})`);
+
 
     const simulation = d3.forceSimulation(data.literature)
-        .force("link", d3.forceLink(data.citations).id(d => d.id).distance(200))
+        .force("link", d3.forceLink(formattedCitations).id(d => d.id).distance(200))
         .force("charge", d3.forceManyBody().strength(-500))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
