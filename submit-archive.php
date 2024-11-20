@@ -18,21 +18,105 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 <!-- Include SweetAlert Library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<style>
-    .banner-img {
-        object-fit: scale-down;
-        object-position: center center;
-        height: 30vh;
-        width: calc(100%);
+
+    <style>
+            #title-label,
+    #abstract-label,
+    #pdf-label {
+        font-weight: normal; /* Ensures text is not bold */
+    }
+            #abstract {
+        min-height: 150px; /* Set a minimum height for the textarea */
+        width: 100%; /* Ensure it takes up all available width within its container */
+    }
+
+    .container {
+        max-width: 1600px; /* Keep the container wide as previously set */
+    }
+    .form-control, .form-control:focus {
+        border-color: #ced4da; /* Consistent with the design */
+        box-shadow: none; /* No focus shadow */
+    }
+    .form-floating {
+        margin-bottom: 16px; /* Space between fields */
+    }
+    .card {
+        border-radius: 0; /* Flat design */
+    }
+    .card-header {
+        border-bottom: 2px solid #007bff; /* Stylish blue border top on card header */
+    }
+
+    /* Smaller button styles */
+    .btn {
+        padding: 0.375rem 0.75rem; /* Reduced padding */
+        font-size: 0.875rem; /* Smaller font size */
+        line-height: 1.5; /* Standard line height */
+    }
+    .author-row .form-control {
+        margin-right: 15px; /* Adds space to the right of each input field except the last in the row */
+    }
+    .author-row .form-control:last-child {
+        margin-right: 0; /* Ensures the last input in the row does not have extra space on the right */
     }
     .author-row {
-        margin-top: 10px;
+        display: flex; /* Ensures the input fields are aligned in a row */
+        align-items: center; /* Aligns items vertically */
+        margin-bottom: 15px; /* Adds space below each author row for better separation */
     }
-    .author-row input[type="text"] {
-        width: 45%;
-        margin-right: 15px;
+    #pdf-label {
+        display: block; /* Ensures the label takes up the full width and behaves like a block element */
+        margin-bottom: 8px; /* Adds some space below the label before the input field */
+        font-weight: normal; /* Keeps the label text normal, non-bold */
+    }
+    .form-control {
+        display: block;
+        width: 100%; /* Ensures the input takes full width of its container */
+        padding: 0.375rem 0.75rem; /* Standard padding for Bootstrap form controls */
+        font-size: 1rem; /* Standard font size for input text */
+        line-height: 1.5; /* Standard line height for readability */
+        color: #495057; /* Default text color */
+        background-color: #fff; /* White background */
+        background-clip: padding-box; /* Ensures background extends to the borders */
+        border: 1px solid #ced4da; /* Standard border styling */
+        border-radius: 0.25rem; /* Rounded borders for aesthetics */
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Smooth transition for focus effects */
+    }
+    .btn-info {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-label {
+        font-weight: normal; /* Ensures the label text is not bold */
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .optional-text {
+        font-size: 0.875rem; /* Slightly smaller than button text */
+        color: #6c757d; /* Muted text color for secondary information */
+        margin-left: 2px; /* Space between button and text */
+        vertical-align: middle; /* Align text vertically with the button */
     }
 </style>
+
 
 <div class="content py-4">
     <div class="card card-outline card-primary shadow rounded-0">
@@ -80,6 +164,16 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
                         </div>
                     </div>
 
+                    
+<!-- Visibility -->
+<div class="form-group">
+    <label for="visibility" class="control-label text-navy">Visibility</label>
+    <select name="visibility" id="visibility" class="form-control form-control-border" required>
+        <option value="public" <?= isset($visibility) && $visibility == 'public' ? "selected" : "" ?>>Public</option>
+        <option value="private" <?= isset($visibility) && $visibility == 'private' ? "selected" : "" ?>>Private</option>
+    </select>
+</div>
+
                     <!-- Project Document -->
                     <div class="form-group">
                         <label for="pdf" class="control-label text-muted">Project Document (PDF File Only, maximum of 25MB)</label>
@@ -98,6 +192,23 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 </div>
 
 <script>
+
+document.getElementById('pdf').addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const fileType = file.type;
+            if (fileType !== 'application/pdf') {
+                Swal.fire({
+                    title: 'Invalid File',
+                    text: 'Only PDF files are allowed. Please upload a valid PDF file.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                this.value = ''; // Clear the invalid file
+            }
+        }
+    });
+
     function addAuthorRow() {
         const authorContainer = document.getElementById("author-container");
         const authorRows = authorContainer.getElementsByClassName("author-row");
@@ -127,6 +238,7 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 </script>
 
+
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'] ?? null;
@@ -137,6 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $author_firstnames = $_POST['author_firstname'];
     $author_lastnames = $_POST['author_lastname'];
     $student_id = $_settings->userdata('id');
+    $visibility = $_POST['visibility']; // Capture the visibility
 
     if (empty($id)) {
         $yearCode = date("Y");
@@ -149,10 +262,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $archive_code = $yearCode . str_pad($increment, 4, '0', STR_PAD_LEFT);
-        $qry = $conn->query("INSERT INTO archive_list (title, year, abstract, archive_code, student_id, curriculum_id) VALUES ('$title', '$year', '$abstract', '$archive_code', '$student_id', '$curriculum_id')");
+        $qry = $conn->query("INSERT INTO archive_list (title, year, abstract, archive_code, student_id, curriculum_id, visibility) VALUES ('$title', '$year', '$abstract', '$archive_code', '$student_id', '$curriculum_id', '$visibility')");
         $id = $conn->insert_id;
     } else {
-        $qry = $conn->query("UPDATE archive_list SET title='$title', year='$year', abstract='$abstract', curriculum_id='$curriculum_id' WHERE id='$id'");
+        $qry = $conn->query("UPDATE archive_list SET title='$title', year='$year', abstract='$abstract', curriculum_id='$curriculum_id', visibility='$visibility' WHERE id='$id'");
     }
 
     if ($id && $author_firstnames && $author_lastnames) {

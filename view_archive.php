@@ -1,24 +1,28 @@
 <?php
 
+
 $page = isset($_GET['page']) ? $_GET['page'] : 'view_archive';
-require_once('./config.php'); 
-require_once('inc/topBarNav.php'); 
-require_once('inc/header.php'); 
+require_once('./config.php');
+require_once('inc/topBarNav.php');
+require_once('inc/header.php');
+
 
 if (isset($_GET['id']) && $_GET['id'] > 0) {
-    $id = intval($_GET['id']); 
+    $id = intval($_GET['id']);
     $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        extract($row); 
+        extract($row);
+
 
         // Insert a new read record
         $insert_read_stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
         $insert_read_stmt->bind_param("i", $id);
         $insert_read_stmt->execute();
+
 
         // Fetch read count from archive_reads
         $read_stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
@@ -33,12 +37,14 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         }
     }
 
-   // Fetch citation count from archive_citation
-$citations_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
-$citations_stmt->bind_param("i", $id);
-$citations_stmt->execute();
-$citations_result = $citations_stmt->get_result();
-$citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_assoc()['citation_count'] : 0;
+
+    // Fetch citation count from archive_citation
+    $citations_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
+    $citations_stmt->bind_param("i", $id);
+    $citations_stmt->execute();
+    $citations_result = $citations_stmt->get_result();
+    $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_assoc()['citation_count'] : 0;
+
 
     // Prepare a statement to select the download count from archive_downloads
     $download_stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
@@ -52,11 +58,13 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         $downloads_count = 0;
     }
 
+
     // Fetch authors and format specifically for APA, MLA, Chicago, Harvard, and Vancouver citation styles
     $authors_stmt = $conn->prepare("SELECT DISTINCT first_name, last_name FROM archive_authors WHERE archive_id = ? ORDER BY author_order ASC");
     $authors_stmt->bind_param("i", $id);
     $authors_stmt->execute();
     $authors_result = $authors_stmt->get_result();
+
 
     $apa_authors = [];
     $general_authors = [];
@@ -66,6 +74,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     $harvard_authors = [];
     $vancouver_authors = [];
 
+
     $is_first_author = true;
     while ($author_row = $authors_result->fetch_assoc()) {
         $first_name = htmlspecialchars($author_row['first_name']);
@@ -73,12 +82,15 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         $first_name_initial = strtoupper(substr($first_name, 0, 1));
         $middle_name_initial = (strpos($first_name, ' ') !== false) ? strtoupper(substr($first_name, strpos($first_name, ' ') + 1, 1)) : '';
 
+
         // APA format: Last, F. M.
         $initials = $middle_name_initial ? "{$first_name_initial}. {$middle_name_initial}." : "{$first_name_initial}.";
         $apa_authors[] = "{$last_name}, {$initials}";
 
+
         // General format for other citations
         $general_authors[] = "{$first_name} {$last_name}";
+
 
         // MLA format: first author + "et al." if multiple authors
         if ($mla_author === null) {
@@ -86,6 +98,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         } else {
             $has_multiple_authors = true;
         }
+
 
         // Chicago format: First author as "Last, First" and others as "First Last"
         if ($is_first_author) {
@@ -95,13 +108,16 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
             $chicago_authors[] = "{$first_name} {$last_name}";
         }
 
+
         // Harvard format: Last, F.M. (or Last, F. if no middle name initial)
         $harvard_authors[] = "{$last_name}, {$initials}";
+
 
         // Vancouver format: Last F M (without periods)
         $vancouver_initials = $middle_name_initial ? "{$first_name_initial}{$middle_name_initial}" : "{$first_name_initial}";
         $vancouver_authors[] = "{$last_name} {$vancouver_initials}";
     }
+
 
     // APA authors formatted string
     if (count($apa_authors) > 1) {
@@ -111,11 +127,14 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         $apa_authors_formatted = $apa_authors[0];
     }
 
+
     // MLA format: use "et al." if there are multiple authors
     $mla_authors_formatted = $has_multiple_authors ? "{$mla_author}, et al" : $mla_author;
 
+
     // Chicago format: authors in "Last, First" for the first author and "First Last" for others
     $chicago_authors_formatted = implode(", ", $chicago_authors);
+
 
     // Harvard format: authors with initials
     if (count($harvard_authors) > 1) {
@@ -125,11 +144,14 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         $harvard_authors_formatted = $harvard_authors[0];
     }
 
+
     // Vancouver format: authors in "Last F M" style
     $vancouver_authors_formatted = implode(", ", $vancouver_authors);
 
+
     // Join authors for general formatting
     $general_authors_formatted = implode(", ", $general_authors);
+
 
     // Fetch the student's email who submitted the archive
     $submitted = "N/A";
@@ -144,14 +166,44 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         }
     }
 }
+
+
+// Check if user_id exists in the session before using it
+if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
+    $id = intval($_GET['id']);
+    $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        extract($row);
+
+
+        // Safely access user_id from session
+        $user_id = $_SESSION['student_id'];
+        $access_stmt = $conn->prepare("SELECT status FROM access_requests WHERE archive_id = ? AND user_id = ? AND status = 'granted'");
+        $access_stmt->bind_param("ii", $id, $user_id);
+        $access_stmt->execute();
+        $access_result = $access_stmt->get_result();
+
+
+        $access_granted = ($access_result->num_rows > 0) ? true : false;
+    }
+}
+
+
 ?>
 
+
+   
 <style>
     .main-sidebar .nav-sidebar .nav-link p,
 .main-sidebar .nav-sidebar .nav-header,
 .main-sidebar .nav-sidebar .brand-text {
     font-weight: 700;
 }
+
 
     html, body {
         margin: 0;
@@ -160,25 +212,28 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         background-color: #f9f9f9;
     }
     .header {
-        display: none; 
+        display: none;
     }
+
 
     .content {
         padding: 30px;
         border-radius: 10px;
         margin: 20px auto;
         max-width: 1200px;
-        background-color: #ffffff; 
-        box-shadow: none; 
+        background-color: #ffffff;
+        box-shadow: none;
     }
+
 
     .card {
         border-radius: 10px;
         overflow: hidden;
-        background-color: #ffffff; 
-        border: none; 
-        box-shadow: none; 
+        background-color: #ffffff;
+        border: none;
+        box-shadow: none;
     }
+
 
     .card-header {
         background-color: #a8001d;
@@ -187,16 +242,19 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         border-bottom: 1px solid #8c0000;
     }
 
+
     .card-title {
         font-size: 1.75rem;
         margin: 0;
         font-weight: bold;
     }
 
+
     .card-body {
         padding: 20px;
-        background-color: #ffffff; 
+        background-color: #ffffff;
     }
+
 
     .btn-flat {
         border-radius: 4px;
@@ -206,15 +264,18 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
+
     .btn-navy {
-        background-color: #a8001d; 
+        background-color: #a8001d;
         color: #ffffff;
         border: none;
     }
 
+
     .btn-navy:hover {
-        background-color: #80001a; 
+        background-color: #80001a;
     }
+
 
     .btn-danger {
         background-color: #dc3545;
@@ -222,25 +283,31 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         border: none;
     }
 
+
     .btn-danger:hover {
         background-color: #c82333;
     }
+
 
     .text-info {
         color: #17a2b8;
     }
 
+
     .text-navy {
         color: #003366;
     }
+
 
     .border {
         border: 2px solid #a8001d;
     }
 
+
     .bg-gradient-dark {
-        background-color: #ffffff; 
+        background-color: #ffffff;
     }
+
 
     .img-fluid {
         max-width: 100%;
@@ -248,31 +315,36 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         border-radius: 8px;
     }
 
+
     .fieldset {
         margin-bottom: 20px;
         border: 1px solid #e1e1e1;
         border-radius: 8px;
         padding: 20px;
-        background-color: #ffffff; 
-        box-shadow: none; 
+        background-color: #ffffff;
+        box-shadow: none;
     }
+
 
     .legend {
         font-size: 1.25rem;
         font-weight: bold;
-        color: #a8001d; 
+        color: #a8001d;
         border-bottom: 2px solid #80001a;
         padding-bottom: 8px;
         margin-bottom: 12px;
     }
 
+
     .pl-4 {
         padding-left: 1.5rem;
     }
 
+
     .text-center {
         text-align: center;
     }
+
 
     .container-fluid {
         max-width: 1200px;
@@ -280,10 +352,12 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         padding: 0 15px;
     }
 
+
     .doc-controls {
         margin-top: 20px;
         text-align: center;
     }
+
 
     .doc-controls button, .doc-controls a {
         background-color: #a8001d;
@@ -298,11 +372,13 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         border: 1px solid #e1e1e1;
     }
 
+
     iframe#document_field {
-        height: 1000px; 
-        background-color: #ffffff; 
+        height: 1000px;
+        background-color: #ffffff;
         border: none;
     }
+
 
     .main-sidebar .os-content {
         margin-top: 0;
@@ -427,17 +503,20 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     color: #555;
 }
 
+
 .stats div {
     margin-right: 10px; /* Reduced margin */
     display: flex;
     align-items: center;
 }
 
+
 .stats i {
     margin-right: 5px; /* Added more spacing between icon and text */
     font-size: 0.6rem; /* Smaller icons */
     color: #000 /* Theme color */
 }
+
 
 .stats .stat-value::after {
     content: " " attr(data-label); /* Adds a space followed by the label */
@@ -457,6 +536,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     background-color: rgba(0, 0, 0, 0.4);
 }
 
+
 .modal-content {
     background-color: #fefefe;
     margin: auto; /* Center horizontally */
@@ -473,6 +553,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
     position: fixed;
 }
 
+
     .close {
         color: #aaa;
         float: left;
@@ -482,6 +563,7 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         margin-left: 520px;
     }
 
+
     .close:hover,
     .close:focus {
         color: black;
@@ -489,17 +571,21 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         cursor: pointer;
     }
 
+
     .citation-style {
         margin: 10px 0;
         font-size: 14px;
     }
+
 
     .citation-style strong {
         display: inline-block;
         width: 80px;
     }
 
+
 </style>
+
 
 <div class="card-body rounded-0">
     <div class="container-fluid">
@@ -529,20 +615,64 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         <fieldset class="fieldset">
             <legend class="legend">Project Document:</legend>
             <div>
-                <?php if (!empty($document_path) && file_exists($document_path)): ?>
-                    <iframe src="<?= htmlspecialchars($document_path) ?>" frameborder="0" style="width: 100%; height: 500px;"></iframe>
-                    <div class="doc-controls">
-                        <button id="citeButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-quote-right"></i> Cite</button>
-                        <a href="javascript:void(0);" onclick="downloadDocument()" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-download"></i> Download</a>
-                        <a href="<?= htmlspecialchars($document_path) ?>" target="_blank" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-eye"></i> View</a>
-                    </div>
-                <?php else: ?>
-                    <p>Document not available or could not be loaded.</p>
-                <?php endif; ?>
+            
+<?php
+// Check if user_id exists in the session before using it
+if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
+    $id = intval($_GET['id']);
+    $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        extract($row);
+
+        // Safely access user_id from session
+        $user_id = $_SESSION['student_id'];
+
+        // Check if the current user is the owner
+        $is_owner = ($student_id == $user_id);
+
+        // Check if the user has been granted access
+        $access_stmt = $conn->prepare("SELECT status FROM access_requests WHERE archive_id = ? AND user_id = ? AND status = 'granted'");
+        $access_stmt->bind_param("ii", $id, $user_id);
+        $access_stmt->execute();
+        $access_result = $access_stmt->get_result();
+
+        $access_granted = ($access_result->num_rows > 0);
+
+        // Determine document access
+        if ($visibility === "private" && !$is_owner && !$access_granted) {
+            echo '<p>This document is private. You need to request access from the owner.</p>
+                  <div class="doc-controls">
+                    <button onclick="requestAccess(' . $id . ')" class="btn btn-flat btn-danger btn-sm"><i class="fa fa-lock"></i> Request Access</button>
+                  </div>';
+        } elseif (!empty($document_path) && file_exists($document_path)) {
+            // Display the document
+            echo '<iframe src="' . htmlspecialchars($document_path) . '" frameborder="0" style="width: 100%; height: 500px;"></iframe>';
+            echo '<div class="doc-controls">
+                    <button id="citeButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-quote-right"></i> Cite</button>
+                    <a href="javascript:void(0);" onclick="downloadDocument()" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-download"></i> Download</a>
+                    <a href="' . htmlspecialchars($document_path) . '" target="_blank" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-eye"></i> View</a>
+                  </div>';
+        } else {
+            echo '<p>Document not available or could not be loaded.</p>';
+        }
+    }
+}
+?>
+
+
+
+
             </div>
         </fieldset>
     </div>
 </div>
+
+
+
 
 <div id="citationModal" class="modal">
     <div class="modal-content">
@@ -553,13 +683,14 @@ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_
         <div class="citation-style"><strong>Chicago:</strong> <span id="chicagoCitation"></span></div>
         <div class="citation-style"><strong>Harvard:</strong> <span id="harvardCitation"></span></div>
         <div class="citation-style"><strong>Vancouver:</strong> <span id="vancouverCitation"></span></div>
-        
+       
         <!-- Download Citation Button -->
         <div style="text-align: center; margin-top: 20px;">
             <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button>
         </div>
     </div>
 </div>
+
 
 <script>
 function generateCitations() {
@@ -572,6 +703,7 @@ function generateCitations() {
     const year = "<?= htmlspecialchars($year ?? '----') ?>";
     const title = "<?= htmlspecialchars($title ?? 'No Title') ?>";
 
+
     // Format citations
     document.getElementById('mlaCitation').innerText = `${mlaAuthors}. "${title}." (${year}).`;
     document.getElementById('apaCitation').innerText = `${apaAuthors} (${year}). ${title}.`;
@@ -579,28 +711,34 @@ function generateCitations() {
     document.getElementById('harvardCitation').innerText = `${harvardAuthors}, ${year}. ${title}.`;
     document.getElementById('vancouverCitation').innerText = `${vancouverAuthors}. ${title}. ${year}.`;
 
+
     // Show the citation modal
     document.getElementById("citationModal").style.display = "block";
 }
+
 
 function closeCitationModal() {
     // Hide the citation modal
     document.getElementById("citationModal").style.display = "none";
 }
 
+
 // Attach event listener to the Cite button to open the citation modal
 document.getElementById("citeButton").addEventListener("click", generateCitations);
+
 
 // Attach event listener to the close button to close the citation modal
 document.querySelector(".close").addEventListener("click", closeCitationModal);
 
+
 function downloadCitation() {
-    const citationText = 
+    const citationText =
         `MLA: ${document.getElementById('mlaCitation').innerText}
         APA: ${document.getElementById('apaCitation').innerText}
         Chicago: ${document.getElementById('chicagoCitation').innerText}
         Harvard: ${document.getElementById('harvardCitation').innerText}
         Vancouver: ${document.getElementById('vancouverCitation').innerText}`;
+
 
     const blob = new Blob([citationText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -610,6 +748,7 @@ function downloadCitation() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
 
     // AJAX request to update citation count in the database
     $.ajax({
@@ -632,9 +771,12 @@ function downloadCitation() {
 }
 
 
+
+
 function downloadDocument() {
     var archiveId = <?= $id ?>;
     window.open("<?= htmlspecialchars($document_path) ?>", '_blank');
+
 
     $.ajax({
         url: 'download_document.php',
@@ -653,4 +795,42 @@ function downloadDocument() {
         }
     });
 }
+
+
+function requestAccess(archiveId) {
+    Swal.fire({
+        title: 'Request Access',
+        text: 'This document is private. Would you like to send an access request to the owner?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Request Access',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: 'request_access.php',
+                method: 'POST',
+                data: { archive_id: archiveId },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        console.log(response.success);
+                        console.log(response.message);
+                        console.log('Hello');
+                        Swal.fire('Success', 'Your access request has been sent.', 'success');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ', error);
+                    console.log('Status', status);
+                    console.error('XHR: ', xhr.responseText);
+                    Swal.fire('Error', 'Failed to send access request.', 'error');
+                }
+            });
+        }
+    });
+}
 </script>
+
+
+
