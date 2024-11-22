@@ -3,12 +3,26 @@ require_once('./config.php');
 require_once('inc/topBarNav.php'); 
 require_once('inc/header.php'); 
 
-// Fetch only favorite research projects
-$favorites = $conn->query("SELECT * FROM archive_list WHERE is_favorite = 1");
+if (!isset($_SESSION['student_id'])) {
+    die("Student is not logged in.");
+}
 
-// Fetch student information for display
-$students = $conn->query("SELECT * FROM student_list WHERE id IN (SELECT student_id FROM archive_list WHERE is_favorite = 1)");
-$student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
+$student_id = $_SESSION['student_id'];
+
+// Fetch only favorite research projects for the logged-in student
+$favorites = $conn->prepare("
+    SELECT a.*, f.created_at AS favorite_date 
+    FROM archive_list a 
+    JOIN favorites f ON a.id = f.archive_id 
+    WHERE f.student_id = ?
+");
+$favorites->bind_param("i", $student_id);
+$favorites->execute();
+$result = $favorites->get_result();
+
+if ($result === false) {
+    die("Error fetching favorites: " . $conn->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -18,6 +32,7 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library - Favorite Research</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         #content {
             transition: margin-left 0.3s;
@@ -53,22 +68,8 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
             border: 1px solid #ddd;
             margin-bottom: 10px;
         }
-        .banner-img {
-            object-fit: cover;
-            width: 100%;
-            height: 150px;
-        }
         .content-container {
-            margin-top: 20px; /* Adjusted to raise the table slightly */
-        }
-        .header-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 10px;
-        }
-        .header-wrapper .form-control {
-            max-width: 300px;
+            margin-top: 20px;
         }
          /* Sidebar styling */
          .sidebar {
@@ -152,7 +153,6 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
 </head>
 <body>
 
-<!-- Main Content -->
 <div id="content" class="content py-2">
     <div class="container-fluid content-container">
         <div class="col-12">
@@ -161,20 +161,17 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
                     <h2>My Library - Favorite Researches</h2>
                     <hr class="bg-navy">
                     <div class="list-group">
-                        <?php if ($favorites->num_rows > 0): ?>
-                            <?php while($row = $favorites->fetch_assoc()): ?>
+                        <?php if ($result->num_rows > 0): ?>
+                            <?php while ($row = $result->fetch_assoc()): ?>
                                 <div class="archive-item" data-id="<?= $row['id'] ?>">
                                     <div class="star-btn-wrapper">
-                                        <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $row['id'] ?>"></i>
+                                        <i class="fas fa-star star-btn red" data-id="<?= $row['id'] ?>"></i>
                                     </div>
-                                    <div class="row clickable-row">
-                                        <!-- <div class="col-lg-4 col-md-5 col-sm-12 text-center">
-                                            <img src="<?= validate_image($row['banner_path']) ?>" class="banner-img img-fluid" alt="Banner Image">
-                                        </div> -->
+                                    <div class="row">
                                         <div class="col-lg-8 col-md-7 col-sm-12">
-                                            <h3 class="text-navy"><b><?= $row['title'] ?></b></h3>
-                                            <small class="text-muted">By <b class="text-info"><?= isset($student_arr[$row['student_id']]) ? $student_arr[$row['student_id']] : "N/A" ?></b></small>
-                                            <p class="truncate-5 text-truncate"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
+                                            <h3 class="text-navy"><b><?= htmlspecialchars($row['title']) ?></b></h3>
+                                            <small class="text-muted">Added on: <b><?= htmlspecialchars($row['favorite_date']) ?></b></small>
+                                            <p><?= htmlspecialchars(strip_tags($row['abstract'])) ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -184,9 +181,6 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="card-footer clearfix rounded-0">
-                    <!-- Pagination can be added here if needed -->
-                </div>
             </div>
         </div>
     </div>
@@ -195,39 +189,33 @@ $student_arr = array_column($students->fetch_all(MYSQLI_ASSOC), 'email', 'id');
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Handle star button click
         $('.star-btn-wrapper').on('click', function(e) {
-            e.stopPropagation(); // Prevent the row click event from firing
-            var star = $(this).find('.star-btn');
-            var id = star.data('id');
-            var archiveItem = star.closest('.archive-item');
+            e.stopPropagation();
+            const star = $(this).find('.star-btn');
+            const archiveId = star.data('id');
 
-            // Toggle the red class (favorite state)
-            star.toggleClass('red');
-
-            // Send AJAX request to save the state (Favorite or not)
-            $.ajax({
-                url: 'save_favorite.php',
-                method: 'POST',
-                data: { archive_id: id, favorite: star.hasClass('red') ? 1 : 0 },
-                success: function(response) {
-                    if (!star.hasClass('red')) {
-                        archiveItem.fadeOut(300, function() {
-                            $(this).remove();
-                        });
+            if (confirm("Are you sure you want to remove this item from your favorites?")) {
+                $.ajax({
+                    url: 'save_favorite.php',
+                    method: 'POST',
+                    data: { archive_id: archiveId, favorite: 0 },
+                    success: function(response) {
+                        try {
+                            const res = JSON.parse(response);
+                            if (res.status === 'success') {
+                                window.location.reload(true); // Reload the page
+                            }
+                        } catch (error) {
+                            // Silent failure, no alert
+                            console.error('Error parsing response:', error);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Silent failure, no alert
+                        console.error('AJAX Error:', xhr.responseText);
                     }
-                    console.log('Favorite status updated');
-                },
-                error: function(xhr, status, error) {
-                    console.log('An error occurred: ' + error);
-                }
-            });
-        });
-
-        // Handle row click for navigation
-        $('.clickable-row').on('click', function() {
-            var id = $(this).closest('.archive-item').data('id');
-            window.location.href = './?page=view_archive&id=' + id;
+                });
+            }
         });
     });
 </script>
