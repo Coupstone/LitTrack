@@ -554,15 +554,12 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
 }
 
 
-    .close {
+.close {
         color: #aaa;
-        float: left;
+        float: right;
         font-size: 28px;
         font-weight: bold;
-        margin-right: auto;
-        margin-left: 520px;
     }
-
 
     .close:hover,
     .close:focus {
@@ -571,21 +568,23 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         cursor: pointer;
     }
 
-
     .citation-style {
+        display: flex;
+        justify-content: space-between;
         margin: 10px 0;
         font-size: 14px;
     }
 
-
     .citation-style strong {
-        display: inline-block;
-        width: 80px;
+        flex-basis: 30%; /* Adjusts the width of the label column */
+        text-align: left;
     }
 
-
-</style>
-
+    .citation-style span {
+        flex-basis: 100%; /* Adjusts the width of the value column */
+        text-align: start;
+    }
+    </style>
 
 <div class="card-body rounded-0">
     <div class="container-fluid">
@@ -612,6 +611,36 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
             <legend class="legend">Authors:</legend>
             <div><?= $general_authors_formatted ?></div>
         </fieldset>
+<!-- Modal for publicaton details -->
+<div id="publicationDetailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closePublicationDetailsModal()">&times;</span>
+        <h2>Publication Details</h2>
+        <div class="citation-style">
+            <strong>Journal:</strong>
+            <span><?= !empty($journal) ? htmlspecialchars($journal) : 'N/A' ?></span>
+        </div>
+        <div class="citation-style">
+            <strong>Volume:</strong>
+            <span><?= !empty($volume) ? htmlspecialchars($volume) : 'N/A' ?></span>
+        </div>
+        <div class="citation-style">
+            <strong>Pages:</strong>
+            <span><?= !empty($pages) ? htmlspecialchars($pages) : 'N/A' ?></span>
+        </div>
+        <div class="citation-style">
+            <strong>DOI:</strong>
+            <span>
+                <?= !empty($doi) ? '<a href="https://doi.org/' . htmlspecialchars($doi) . '" target="_blank">' . htmlspecialchars($doi) . '</a>' : 'N/A' ?>
+            </span>
+        </div>
+        <div class="citation-style">
+            <strong>Publication Date:</strong>
+            <span><?= !empty($publication_date) ? htmlspecialchars(date("F d, Y", strtotime($publication_date))) : 'N/A' ?></span>
+        </div>
+    </div>
+</div>
+
         <fieldset class="fieldset">
             <legend class="legend">Project Document:</legend>
             <div>
@@ -655,6 +684,7 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
                     <button id="citeButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-quote-right"></i> Cite</button>
                     <a href="javascript:void(0);" onclick="downloadDocument()" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-download"></i> Download</a>
                     <a href="' . htmlspecialchars($document_path) . '" target="_blank" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-eye"></i> View</a>
+                    <button id="publicationDetailsButton" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-info-circle"></i> Publication Details</button>
                   </div>';
         } else {
             echo '<p>Document not available or could not be loaded.</p>';
@@ -670,6 +700,7 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         </fieldset>
     </div>
 </div>
+
 
 
 
@@ -690,6 +721,8 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         </div>
     </div>
 </div>
+
+
 
 
 <script>
@@ -830,6 +863,30 @@ function requestAccess(archiveId) {
         }
     });
 }
+
+
+function openPublicationDetailsModal() {
+    // Show the modal
+    document.getElementById("publicationDetailsModal").style.display = "block";
+}
+
+function closePublicationDetailsModal() {
+    // Hide the modal
+    document.getElementById("publicationDetailsModal").style.display = "none";
+}
+
+// Attach event listener to the "Publication Details" button
+document.getElementById("publicationDetailsButton").addEventListener("click", openPublicationDetailsModal);
+
+// Close the modal when the user clicks anywhere outside the modal
+window.onclick = function(event) {
+    const modal = document.getElementById("publicationDetailsModal");
+    if (event.target === modal) {
+        closePublicationDetailsModal();
+    }
+};
+</script>
+
 </script>
 
 

@@ -205,11 +205,12 @@
                     id: _this.find('input[name="id"]').val(),
                     firstname: $('#firstname').val(),
                     lastname: $('#lastname').val(),
+                    gender: $('input[name="gender"]:checked').val(),
                     email: $('#email').val(),
                     department_id: $('#department_id').val(),
                     curriculum_id: $('#curriculum_id').val(),
                     password: $('#password').val(),
-                    cpassword: $('#cpassword').val(),
+                    cpassword: $('#cpassword').val()
                 },
                 dataType: 'json',
                 error: function(err) {

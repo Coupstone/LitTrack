@@ -173,6 +173,31 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         <option value="private" <?= isset($visibility) && $visibility == 'private' ? "selected" : "" ?>>Private</option>
     </select>
 </div>
+<!-- Publication Details -->
+<div class="mb-3">
+    <label class="form-label">Publication Details</label>
+    <button type="button" class="btn btn-info" onclick="togglePublicationDetails()">+ Add</button>
+    <span class="optional-text">(Optional)</span>
+</div>
+<div id="publication-details" style="display: none;">
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="journal" name="journal" placeholder="Journal" value="<?= isset($journal) ? $journal : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="volume" name="volume" placeholder="Volume" value="<?= isset($volume) ? $volume : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="pages" name="pages" placeholder="Pages" value="<?= isset($pages) ? $pages : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="doi" name="doi" placeholder="DOI" value="<?= isset($doi) ? $doi : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="date" class="form-control" id="publicationDate" name="publicationDate" value="<?= isset($publication_date) ? $publication_date : '' ?>">
+    </div>
+</div>
+
+
 
                     <!-- Project Document -->
                     <div class="form-group">
@@ -192,6 +217,10 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 </div>
 
 <script>
+    function togglePublicationDetails() {
+        const detailsDiv = document.getElementById('publication-details');
+        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+    }
 
 document.getElementById('pdf').addEventListener('change', function () {
         const file = this.files[0];
@@ -242,14 +271,19 @@ document.getElementById('pdf').addEventListener('change', function () {
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'] ?? null;
-    $title = $_POST['title'];
-    $year = $_POST['year'];
+    $title = $conn->real_escape_string($_POST['title']);
+    $year = $conn->real_escape_string($_POST['year']);
     $abstract = htmlentities($_POST['abstract']);
     $curriculum_id = $_settings->userdata('curriculum_id'); // Automatically retrieve user's curriculum_id
     $author_firstnames = $_POST['author_firstname'];
     $author_lastnames = $_POST['author_lastname'];
     $student_id = $_settings->userdata('id');
-    $visibility = $_POST['visibility']; // Capture the visibility
+    $visibility = $conn->real_escape_string($_POST['visibility']); // Capture the visibility
+    $journal = !empty($_POST['journal']) ? $conn->real_escape_string($_POST['journal']) : null;
+    $volume = !empty($_POST['volume']) ? $conn->real_escape_string($_POST['volume']) : null;
+    $pages = !empty($_POST['pages']) ? $conn->real_escape_string($_POST['pages']) : null;
+    $doi = !empty($_POST['doi']) ? $conn->real_escape_string($_POST['doi']) : null;
+    $publication_date = !empty($_POST['publicationDate']) ? $conn->real_escape_string($_POST['publicationDate']) : null;
 
     if (empty($id)) {
         $yearCode = date("Y");
@@ -262,14 +296,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $archive_code = $yearCode . str_pad($increment, 4, '0', STR_PAD_LEFT);
-        $qry = $conn->query("INSERT INTO archive_list (title, year, abstract, archive_code, student_id, curriculum_id, visibility) VALUES ('$title', '$year', '$abstract', '$archive_code', '$student_id', '$curriculum_id', '$visibility')");
-        $id = $conn->insert_id;
+        // Insert the new record including publication details
+        $qry = $conn->query("INSERT INTO archive_list 
+            (title, year, abstract, archive_code, student_id, curriculum_id, visibility, journal, volume, pages, doi, publication_date) 
+            VALUES 
+            ('$title', '$year', '$abstract', '$archive_code', '$student_id', '$curriculum_id', '$visibility', 
+            " . ($journal ? "'$journal'" : "NULL") . ", 
+            " . ($volume ? "'$volume'" : "NULL") . ", 
+            " . ($pages ? "'$pages'" : "NULL") . ", 
+            " . ($doi ? "'$doi'" : "NULL") . ", 
+            " . ($publication_date ? "'$publication_date'" : "NULL") . ")");
+        
+        $id = $conn->insert_id; // Get the inserted ID
     } else {
-        $qry = $conn->query("UPDATE archive_list SET title='$title', year='$year', abstract='$abstract', curriculum_id='$curriculum_id', visibility='$visibility' WHERE id='$id'");
+        // Update the existing record including publication details
+        $qry = $conn->query("UPDATE archive_list 
+            SET 
+                title='$title', 
+                year='$year', 
+                abstract='$abstract', 
+                curriculum_id='$curriculum_id', 
+                visibility='$visibility', 
+                journal=" . ($journal ? "'$journal'" : "NULL") . ", 
+                volume=" . ($volume ? "'$volume'" : "NULL") . ", 
+                pages=" . ($pages ? "'$pages'" : "NULL") . ", 
+                doi=" . ($doi ? "'$doi'" : "NULL") . ", 
+                publication_date=" . ($publication_date ? "'$publication_date'" : "NULL") . " 
+            WHERE id='$id'");
     }
 
     if ($id && $author_firstnames && $author_lastnames) {
-        $conn->query("DELETE FROM archive_authors WHERE archive_id='$id'");
+        $conn->query("DELETE FROM archive_authors WHERE archive_id='$id'"); // Clear existing authors
         foreach ($author_firstnames as $key => $first_name) {
             $last_name = $author_lastnames[$key];
             $order = $key + 1;

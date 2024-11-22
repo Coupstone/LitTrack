@@ -126,8 +126,10 @@ if (isset($_POST['email'])) {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com'; // SMTP server for Gmail
             $mail->SMTPAuth = true;
-            $mail->Username = 'kimjudeamayon468@gmail.com'; // Replace with your email
-            $mail->Password = 'phcf xlrb gvwh rwes'; // Replace with your 16-character app password
+            $mail->Username = 'pupsrclittrack@gmail.com
+'; // Replace with your email
+            $mail->Password = 'uzjg iyup fghg ahfq
+'; // Replace with your 16-character app password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS encryption
             $mail->Port = 587; // Gmail SMTP port
 
