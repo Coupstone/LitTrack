@@ -14,6 +14,9 @@
     <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <!-- Site Icon -->
     <link rel="icon" href="images/LitTrack.png" type="image/png"/>
@@ -58,7 +61,39 @@
                             <label for="lastname" class="fw-medium text-carbon-grey font-13">Lastname<span style="color: red;"> *</span></label>
                         </div>
                     </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text" name="student_number" id="student_number" 
+                                class="form-control shadow-sm" 
+                                maxlength="15" 
+                                placeholder="2021-00306-SR-0" 
+                                pattern="^202[0-9]-00[0-9]{3}-SR-[0-9]$" 
+                                title="Student number must follow the format 202X-00XXX-SR-0, where X is a digit." 
+                                required>
+                            <label for="student_number" class="fw-medium text-carbon-grey font-13">
+                                Student Number<span style="color: red;"> *</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text" name="student_number" id="student_number" 
+                                class="form-control shadow-sm" 
+                                maxlength="15" 
+                                placeholder="2021-00306-SR-0" 
+                                pattern="^202[0-9]-00[0-9]{3}-SR-[0-9]$" 
+                                title="Student number must follow the format 202X-00XXX-SR-0, where X is a digit." 
+                                required>
+                            <label for="student_number" class="fw-medium text-carbon-grey font-13">
+                                Student Number (202X-00XXX-SR-0)<span style="color: red;"> *</span>
+                            </label>
+                        </div>
+                    </div>
+                </div> -->
 
                 <div class="row">
                     <div class="form-group col-auto">
@@ -71,6 +106,15 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="genderFemale" name="gender" value="Female">
                             <label for="genderFemale" class="form-check-label text-carbon-grey font-13">Female</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-floating mb-3">
+                            <input type="file" name="cor" id="cor" class="form-control shadow-sm" accept=".pdf" required>
+                            <label for="cor" class="fw-medium text-carbon-grey font-13">Certificate of Registration (PDF only)<span style="color: red;"> *</span></label>
                         </div>
                     </div>
                 </div>
@@ -162,87 +206,160 @@
 
 <script>
     var cur_arr = $.parseJSON('<?= json_encode($cur_arr) ?>');
-    $(document).ready(function(){
+    $(document).ready(function () {
         end_loader();
-        $('.select2').select2({
-            width: "100%"
-        });
-        
-        $('#department_id').change(function(){
+
+        // Initialize Select2 for dropdowns
+        $('.select2').select2({ width: "100%" });
+
+        // Dynamically load curriculum based on selected department
+        $('#department_id').change(function () {
             var did = $(this).val();
             $('#curriculum_id').html("");
-            if(!!cur_arr[did]){
-                Object.keys(cur_arr[did]).map(k => {
-                    var opt = $("<option>")
-                        .attr('value', cur_arr[did][k].id)
-                        .text(cur_arr[did][k].name);
-                    $('#curriculum_id').append(opt);
+            if (cur_arr[did]) {
+                cur_arr[did].forEach(function (curriculum) {
+                    $('#curriculum_id').append(
+                        $("<option>").val(curriculum.id).text(curriculum.name)
+                    );
                 });
             }
             $('#curriculum_id').trigger("change");
         });
 
-        // Registration Form Submit
-        $('#registration-form').submit(function(e){
-            e.preventDefault();
-            var _this = $(this);
-            $('#message-container').removeClass("alert-danger alert-success d-none").text(""); // Clear previous messages
+        // File validation on file attachment
+        $('#cor').on('change', function () {
+            var corFile = this.files[0]; // Get the file object
 
-            if ($("#password").val() !== $("#cpassword").val()) {
-                $('#message-container')
-                    .addClass("alert alert-danger")
-                    .text("Passwords do not match.")
-                    .removeClass("d-none");
-                return false;
+            if (!corFile) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No file selected',
+                    text: 'Please upload a Certificate of Registration.',
+                });
+                return;
             }
 
-            start_loader();
+            var fileExtension = corFile.name.split('.').pop().toLowerCase();
+            var allowedExtensions = ['pdf'];
+            var mimeType = corFile.type;
 
-            $.ajax({
-                url: _base_url_ + "classes/Users.php?f=save_student",
-                method: 'POST',
-                data: {
-                    id: _this.find('input[name="id"]').val(),
-                    firstname: $('#firstname').val(),
-                    lastname: $('#lastname').val(),
-                    gender: $('input[name="gender"]:checked').val(),
-                    email: $('#email').val(),
-                    department_id: $('#department_id').val(),
-                    curriculum_id: $('#curriculum_id').val(),
-                    password: $('#password').val(),
-                    cpassword: $('#cpassword').val()
-                },
-                dataType: 'json',
-                error: function(err) {
-                    console.log("AJAX error:", err);
-                    $('#message-container')
-                        .addClass("alert alert-danger")
-                        .text("An error occurred while saving the data.")
-                        .removeClass("d-none");
-                    end_loader();
-                },
-                success: function(resp) {
-                    console.log("AJAX response:", resp); // Debug response
+            if (!allowedExtensions.includes(fileExtension) || mimeType !== 'application/pdf') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid file format',
+                    text: 'Only PDF files are allowed for the Certificate of Registration.',
+                });
 
-                    if (resp.status === 'success') {
-                        $('#message-container')
-                            .addClass("alert alert-success")
-                            .text("Registration successful! Redirecting...")
-                            .removeClass("d-none");
-                        setTimeout(function() {
-                            location.href = "./login.php";
-                        }, 2000);
-                    } else {
-                        $('#message-container')
-                            .addClass("alert alert-danger")
-                            .text(resp.msg || "An error occurred while saving the data.")
-                            .removeClass("d-none");
-                    }
-                    end_loader();
-                    $('html, body').animate({ scrollTop: 0 }, 'fast');
-                }
-            });
+                // Clear the file input
+                $(this).val('');
+                return;
+            }
         });
+
+        // Registration Form Submit
+$('#registration-form').submit(function (e) {
+    e.preventDefault();
+    var _this = $(this);
+    $('#message-container').removeClass("alert-danger alert-success d-none").text(""); // Clear previous messages
+
+    // Access the file input directly within the submit handler
+    var corFileInput = $('#cor')[0]; // Get the file input element
+    var corFile = corFileInput.files[0]; // Access the selected file
+
+    // Check if all required fields have values
+    if (
+        !$('#firstname').val().trim() ||
+        !$('#lastname').val().trim() ||
+        !$('#student_number').val().trim() ||
+        !$('#password').val().trim() ||
+        !$('#cpassword').val().trim() ||
+        !$('#department_id').val() || // Check if department is selected
+        !$('#curriculum_id').val() || // Check if curriculum is selected
+        !$('#email').val().trim() || // Check if email has a value
+        !$('#cor')[0].files.length // Check if COR file is uploaded
+    ) {
+        $('#message-container')
+            .addClass("alert alert-danger")
+            .text("Please fill in all required fields.")
+            .removeClass("d-none");
+        return false;
+    }
+
+    // Validate student number format
+    var studentNumber = $('#student_number').val().trim();
+    if (studentNumber !== "") { // Only validate if the field is not empty
+        var studentNumberRegex = /^202[0-9]-00[0-9]{3}-SR-[0]$/; // Updated regex for SR-only validation
+        if (!studentNumberRegex.test(studentNumber)) {
+            $('#message-container')
+                .addClass("alert alert-danger")
+                .text("Invalid student number format. Example: 2021-00306-SR-0.")
+                .removeClass("d-none");
+            return false;
+        }
+    }
+
+    // Check if passwords match
+    if ($("#password").val() !== $("#cpassword").val()) {
+        $('#message-container')
+            .addClass("alert alert-danger")
+            .text("Passwords do not match.")
+            .removeClass("d-none");
+        return false;
+    }
+
+    start_loader();
+
+    // AJAX call to save the form data
+    var formData = new FormData();
+    formData.append('id', _this.find('input[name="id"]').val());
+    formData.append('student_number', studentNumber);
+    formData.append('firstname', $('#firstname').val());
+    formData.append('lastname', $('#lastname').val());
+    formData.append('gender', $('input[name="gender"]:checked').val());
+    formData.append('email', $('#email').val());
+    formData.append('department_id', $('#department_id').val());
+    formData.append('curriculum_id', $('#curriculum_id').val());
+    formData.append('password', $('#password').val());
+    formData.append('cpassword', $('#cpassword').val());
+    formData.append('cor', corFile); // Add the COR file to the form data
+
+    $.ajax({
+        url: _base_url_ + "classes/Users.php?f=save_student",
+        method: 'POST',
+        data: formData,
+        processData: false, // Important to prevent jQuery from automatically processing the data
+        contentType: false, // Let the browser set the content-type
+        dataType: 'json',
+        error: function (err) {
+            console.log("AJAX error:", err);
+            $('#message-container')
+                .addClass("alert alert-danger")
+                .text("An error occurred while saving the data.")
+                .removeClass("d-none");
+            end_loader();
+        },
+        success: function (resp) {
+            if (resp.status === 'success') {
+                $('#message-container')
+                    .addClass("alert alert-success")
+                    .text("Registration successful! Redirecting...")
+                    .removeClass("d-none");
+                setTimeout(function () {
+                    location.href = "./login.php";
+                }, 2000);
+            } else {
+                $('#message-container')
+                    .addClass("alert alert-danger")
+                    .text(resp.msg || "An error occurred while saving the data.")
+                    .removeClass("d-none");
+            }
+            end_loader();
+            $('html, body').animate({ scrollTop: 0 }, 'fast');
+        }
+    });
+});
+
+
     });
 </script>
 </body>

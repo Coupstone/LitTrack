@@ -10,7 +10,21 @@ $search = "";
 
 if (isset($_GET['q'])) {
     $keyword = $conn->real_escape_string($_GET['q']);
-    $search = " AND (a.title LIKE '%{$keyword}%' OR a.abstract LIKE '%{$keyword}%')";
+    $search = " AND (
+        a.title LIKE '%{$keyword}%' OR 
+        a.abstract LIKE '%{$keyword}%' OR 
+        a.year LIKE '%{$keyword}%' OR 
+        EXISTS (
+            SELECT 1 
+            FROM archive_authors au 
+            WHERE au.archive_id = a.id 
+            AND (
+                au.first_name LIKE '%{$keyword}%' OR 
+                au.last_name LIKE '%{$keyword}%' OR 
+                CONCAT(au.first_name, ' ', au.last_name) LIKE '%{$keyword}%'
+            )
+        )
+    )";
 }
 
 // Count total items for pagination
@@ -147,7 +161,15 @@ if ($archive_ids) {
                     </div>
                     <hr class="bg-navy">
                     
+                    <!-- Display Search Header if Query Exists -->
+                    <?php if (isset($_GET['q'])): ?>
+                        <div class="search-header mb-3">
+                            <p>Search Results for: <strong><?= htmlspecialchars($_GET['q']) ?></strong></p>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="list-group">
+                        <!-- Iterate Through Archive Data -->
                         <?php foreach ($archive_data as $id => $row): ?>
                             <div class="archive-item" data-id="<?= $id ?>">
                                 <div class="star-btn-wrapper">
@@ -167,8 +189,17 @@ if ($archive_ids) {
                                 </div>
                             </div>
                         <?php endforeach; ?>
+
+                        <!-- Handle Empty Search Results -->
+                        <?php if (empty($archive_data)): ?>
+                            <div class="text-center text-muted">
+                                <p>No research projects found for the search term <strong><?= htmlspecialchars($_GET['q'] ?? '') ?></strong>.</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Pagination -->
                 <div class="card-footer clearfix rounded-0">
                     <div class="col-12">
                         <div class="row">
@@ -191,10 +222,12 @@ if ($archive_ids) {
                         </div>
                     </div>
                 </div>
+                <!-- End Pagination -->
             </div>
         </div>
     </div>
 </div>
+
 
 <script>
     $(document).ready(function() {

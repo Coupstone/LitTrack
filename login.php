@@ -1,4 +1,4 @@
-<?php require_once('./config.php') ?>
+<?php require_once('./config.php') ?> 
 <!DOCTYPE html>
 <html lang="en" style="height: auto;">
 <head>

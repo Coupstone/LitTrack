@@ -1,9 +1,6 @@
 <?php
-header('Content-Type: application/json');
-require_once('config.php'); 
+require_once('./config.php'); 
 
-// Start session and check if the user is logged in
-session_start();
 
 if (!isset($_SESSION['student_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'User not logged in']);

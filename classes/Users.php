@@ -133,18 +133,48 @@ Class Users extends DBConnection {
 		extract($_POST);
 		$data = '';
 		$resp = ['msg' => ''];
-
+	
 		// Check for required fields
-		if (empty($firstname) || empty($lastname) || empty($email)) {
+		if (empty($firstname) || empty($lastname) || empty($email) || ($id == 0 && empty($student_number))) {
 			return json_encode(array("status" => "failed", "msg" => "Please fill in all required fields."));
 		}
 
-		// Check if email is already in use
-		$chk = $this->conn->query("SELECT * FROM `student_list` WHERE email ='{$email}' ".($id > 0 ? " AND id != '{$id}' " : ""))->num_rows;
-		if ($chk > 0) {
-			return json_encode(array("status" => "failed", "msg" => "Email is already in use."));
+		// Validate student number format with "SR" (only for new records)
+		if ($id == 0 && !preg_match('/^\d{4}-00\d{3}-SR-[0]$/', $student_number)) {
+			return json_encode(array("status" => "failed", "msg" => "Invalid student number format. Example: 2024-00123-SR-0."));
 		}
 
+// Check for duplicates based on registration type (new user or existing user)
+if ($id == 0) {
+	// Registration: Check both email and student_number
+	$chk_query = "SELECT * FROM `student_list` WHERE email = '{$email}' OR student_number = '{$student_number}'";
+} else {
+	// Account management (editing existing user): Check email and student_number (if provided)
+	$chk_query = "SELECT * FROM `student_list` WHERE email = '{$email}'";
+	
+	if (!empty($student_number)) {
+		$chk_query .= " OR student_number = '{$student_number}'";
+	}
+
+	// Exclude the current student's id in case of an update
+	$chk_query .= " AND id != '{$id}'"; 
+}
+
+// Execute the query to check for duplicates
+$chk = $this->conn->query($chk_query);
+
+// Check for any result rows
+if ($chk && $chk->num_rows > 0) {
+    // Check if duplicate is due to email or student_number
+    $existing_user = $chk->fetch_assoc();
+    if ($existing_user['email'] == $email) {
+        return json_encode(array("status" => "failed", "msg" => "Email is already in use."));
+    } else if ($existing_user['student_number'] == $student_number) {
+        return json_encode(array("status" => "failed", "msg" => "Student number is already in use."));
+    }
+}
+
+	
 		// Verify current password if provided
 		if (!empty($oldpassword)) {
 			$user = $this->conn->query("SELECT password FROM student_list WHERE id = '{$id}'");
@@ -157,7 +187,7 @@ Class Users extends DBConnection {
 				return json_encode(array("status" => "failed", "msg" => "User not found."));
 			}
 		}
-
+	
 		// Prepare data for insertion or update
 		foreach ($_POST as $k => $v) {
 			if (!in_array($k, array('id', 'oldpassword', 'cpassword', 'password'))) {
@@ -165,7 +195,7 @@ Class Users extends DBConnection {
 				$data .= " {$k} = '{$v}' ";
 			}
 		}
-
+	
 		// Only update the password if both password fields are provided and match
 		if (!empty($password) && !empty($cpassword) && $password === $cpassword) {
 			$password = md5($password);
@@ -174,13 +204,37 @@ Class Users extends DBConnection {
 		} elseif (!empty($password) || !empty($cpassword)) {
 			return json_encode(array("status" => "failed", "msg" => "New password and confirmation do not match."));
 		}
-
+	
+		// Handle COR file upload if provided
+		$cor_file_path = null;
+		if (isset($_FILES['cor']) && $_FILES['cor']['tmp_name'] != '') {
+			$target_dir = "uploads/cor/"; // Ensure this directory exists
+			if (!is_dir($target_dir)) {
+				mkdir($target_dir, 0777, true);
+			}
+	
+			$file_name = 'cor-' . $student_number . '.pdf'; // Use student number for uniqueness
+			$target_file = $target_dir . $file_name;
+	
+			// Validate file type
+			$file_type = mime_content_type($_FILES['cor']['tmp_name']);
+			if ($file_type === 'application/pdf') {
+				if (move_uploaded_file($_FILES['cor']['tmp_name'], $target_file)) {
+					$cor_file_path = $file_name;
+					$data .= ", cor = '{$cor_file_path}' "; // Include COR in database fields
+				} else {
+					return json_encode(array("status" => "failed", "msg" => "Failed to upload Certificate of Registration."));
+				}
+			} else {
+				return json_encode(array("status" => "failed", "msg" => "Invalid file type for COR. Only PDF files are allowed."));
+			}
+		}
+	
 		// Insert or update student record
 		if (empty($id)) {
 			$qry = $this->conn->query("INSERT INTO student_list SET {$data}");
 			if ($qry) {
 				$id = $this->conn->insert_id;
-				$this->settings->set_flashdata('success', 'Student User Details successfully saved.');
 				$resp['status'] = "success";
 			} else {
 				return json_encode(array("status" => "failed", "msg" => "An error occurred while saving the data. Error: ". $this->conn->error));
@@ -194,37 +248,34 @@ Class Users extends DBConnection {
 				return json_encode(array("status" => "failed", "msg" => "An error occurred while saving the data. Error: ". $this->conn->error));
 			}
 		}
-
+	
 		// Handle image upload if provided
 		if (isset($_FILES['img']) && $_FILES['img']['tmp_name'] != '') {
 			$target_dir = "uploads/"; // Directory to save uploaded avatars
 			if (!is_dir($target_dir)) {
 				mkdir($target_dir, 0777, true);
 			}
-
-			// Generate a unique name for the uploaded file to prevent overwrites
+	
 			$file_name = 'avatar-'.$id.'.png';
 			$target_file = $target_dir . $file_name;
-
-			// Validate image file type
+	
 			$upload = $_FILES['img']['tmp_name'];
 			$type = mime_content_type($upload);
 			$allowed = array('image/png', 'image/jpeg');
-
+	
 			if (in_array($type, $allowed)) {
-				// Resize and save the image
 				$new_height = 200;
 				$new_width = 200;
 				list($width, $height) = getimagesize($upload);
 				$t_image = imagecreatetruecolor($new_width, $new_height);
 				imagealphablending($t_image, false);
 				imagesavealpha($t_image, true);
-
+	
 				$gdImg = ($type == 'image/png') ? imagecreatefrompng($upload) : imagecreatefromjpeg($upload);
 				imagecopyresampled($t_image, $gdImg, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
-
+	
 				if ($gdImg) {
-					if (is_file(base_app . $target_file)) unlink(base_app . $target_file);  // Remove old image if exists
+					if (is_file(base_app . $target_file)) unlink(base_app . $target_file);
 					$uploaded_img = imagepng($t_image, base_app . $target_file);
 					imagedestroy($gdImg);
 					imagedestroy($t_image);
@@ -234,16 +285,15 @@ Class Users extends DBConnection {
 			} else {
 				$resp['msg'] .= " But image failed to upload due to an invalid file type.";
 			}
-
+	
 			if (isset($uploaded_img)) {
-				// Update the avatar field in the database
 				$this->conn->query("UPDATE student_list SET `avatar` = CONCAT('{$target_file}', '?v=', unix_timestamp(CURRENT_TIMESTAMP)) WHERE id = '{$id}'");
 				if ($id == $this->settings->userdata('id')) {
 					$this->settings->set_userdata('avatar', $target_file);
 				}
 			}
 		}
-
+	
 		if (isset($resp['msg']))
 			$this->settings->set_flashdata('success', $resp['msg']);
 		return json_encode($resp);
