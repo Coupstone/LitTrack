@@ -32,7 +32,7 @@ if ($result === false) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library - Favorite Research</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" integrity="sha384-DyZ88mC6Up2uqSXA8WCDmj6jHznz2pHABZfEkKY9BlHfuivZx05BrF4CP9Au8b/4" crossorigin="anonymous"></script> -->
     <style>
         #content {
             transition: margin-left 0.3s;
@@ -167,11 +167,11 @@ if ($result === false) {
                                     <div class="star-btn-wrapper">
                                         <i class="fas fa-star star-btn red" data-id="<?= $row['id'] ?>"></i>
                                     </div>
-                                    <div class="row">
+                                    <div class="row clickable-row">
                                         <div class="col-lg-8 col-md-7 col-sm-12">
                                             <h3 class="text-navy"><b><?= htmlspecialchars($row['title']) ?></b></h3>
                                             <small class="text-muted">Added on: <b><?= htmlspecialchars($row['favorite_date']) ?></b></small>
-                                            <p><?= htmlspecialchars(strip_tags($row['abstract'])) ?></p>
+                                            <!-- <p><?= htmlspecialchars(strip_tags($row['abstract'])) ?></p> -->
                                         </div>
                                     </div>
                                 </div>
@@ -194,30 +194,34 @@ if ($result === false) {
             const star = $(this).find('.star-btn');
             const archiveId = star.data('id');
 
-            if (confirm("Are you sure you want to remove this item from your favorites?")) {
-                $.ajax({
-                    url: 'save_favorite.php',
-                    method: 'POST',
-                    data: { archive_id: archiveId, favorite: 0 },
-                    success: function(response) {
-                        try {
-                            const res = JSON.parse(response);
-                            if (res.status === 'success') {
-                                window.location.reload(true); // Reload the page
-                            }
-                        } catch (error) {
-                            // Silent failure, no alert
-                            console.error('Error parsing response:', error);
+            // Automatically remove the favorite without confirmation
+            $.ajax({
+                url: 'save_favorite.php',
+                method: 'POST',
+                data: { archive_id: archiveId, favorite: 0 },
+                success: function(response) {
+                    try {
+                        const res = JSON.parse(response);
+                        if (res.status === 'success') {
+                            window.location.reload(true); // Reload the page to reflect the change
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        // Silent failure, no alert
-                        console.error('AJAX Error:', xhr.responseText);
+                    } catch (error) {
+                        console.error('Error parsing response:', error);
                     }
-                });
-            }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                }
+            });
+        });
+
+                // Handle row click for navigation
+                $('.clickable-row').on('click', function() {
+            var id = $(this).closest('.archive-item').data('id');
+            window.location.href = './?page=view_archive&id=' + id;
         });
     });
+
 </script>
 
 </body>

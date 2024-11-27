@@ -10,23 +10,35 @@
       </script>
       <?php endif;?>  
   <body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
-    <div class="wrapper">  
-      
-      <!-- Content Wrapper. Contains page content -->
-      <div class="content-wrapper pt-5" style="background-color: white;">
-        <?php if($page == "home" || $page == "about_us"): ?>
-          <div id="header" class="mb-4 d-flex flex-column align-items-center justify-content-center text-center">
-              <img src="uploads/LitLogo.png" alt="PUP Logo" class="mb-3 img-fluid" style="max-width: 100%; height: auto;">
-              <div class="search-bar mt-4 w-100 d-flex flex-column align-items-center">
-                  <form id="search-form" class="d-flex w-100 flex-column flex-md-row align-items-center justify-content-center" action="search_results.php" method="GET">
-                      <input type="search" id="search-input" class="form-control rounded-0 mb-2 mb-md-0" name="q" required placeholder="Search..." value="<?= isset($_GET['q']) ? $_GET['q'] : '' ?>" style="width: 100%; max-width: 400px;">
-                      <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                  </form>
-                  <div class="mt-2">
-                  </div>
-              </div>
-          </div>
-        <?php endif; ?>
+      <div class="wrapper">  
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper pt-5" style="background-color: white;">
+            <?php if($page == "home" || $page == "about_us"): ?>
+                <div id="header" class="mb-4 text-center">
+                <img src="uploads/LitLogo.png" alt="PUP Logo" class="mb-3 img-fluid" style="max-width: 100%; height: auto;">
+                    <form id="search-form" action="projects.php" method="GET" class="d-flex justify-content-center mt-4">
+                        <div class="autocomplete-wrapper" style="position: relative; width: 50%;">
+                            <input type="search" id="search-input" class="form-control" name="q" required 
+                                placeholder="Search by title, authors, abstract and project year ">
+                            <div id="autocomplete-results" style="
+                                position: absolute;
+                                top: 100%;
+                                left: 0;
+                                width: 100%;
+                                background: white;
+                                border: 1px solid #ddd;
+                                max-height: 200px;
+                                overflow-y: auto;
+                                z-index: 1000;
+                                display: none;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary ms-2"><i class="fa fa-search"></i> Search</button>
+                    </form>
+                </div>
+        </div>
+      </div>
+      <?php endif; ?>
         
         <!-- Main content -->
         <section class="content">
@@ -133,6 +145,55 @@
           }
         });
       });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Listen for input in the search bar
+            $('#search-input').on('input', function () {
+              let query = $(this).val();
+              if (query.length > 0) { // Allow single-character queries
+                  $.ajax({
+                      url: 'search_suggestions.php',
+                      method: 'GET',
+                      data: { q: query },
+                      success: function (response) {
+                          let results = JSON.parse(response);
+                          let suggestions = '';
+                          if (results.length > 0) {
+                              results.forEach(function (item) {
+                                  suggestions += `
+                                      <div class="autocomplete-item" style="padding: 10px; cursor: pointer;" data-id="${item.id}">
+                                          <strong>${item.title}</strong><br>
+                                          <small>Authors: ${item.authors}</small>
+                                      </div>`;
+                              });
+                              $('#autocomplete-results').html(suggestions).show();
+                          } else {
+                              $('#autocomplete-results').html('<div style="padding: 10px; color: gray;">No results found</div>').show();
+                          }
+                      },
+                      error: function (xhr, status, error) {
+                          console.error('Error fetching suggestions:', error);
+                      }
+                  });
+              } else {
+                  $('#autocomplete-results').hide();
+              }
+          });
+
+            // Click on a suggestion
+            $(document).on('click', '.autocomplete-item', function () {
+                let id = $(this).data('id');
+                window.location.href = './?page=view_archive&id=' + id; // Redirect to the specific study
+            });
+
+            // Hide suggestions when clicking outside
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.autocomplete-wrapper').length) {
+                    $('#autocomplete-results').hide();
+                }
+            });
+        });
     </script>
           <!-- /.content-wrapper -->
           <?php require_once('inc/footer.php') ?>
