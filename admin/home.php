@@ -1,4 +1,89 @@
-<h1 class="welcome-title">Welcome to <?php echo $_settings->info('name'); ?></h1>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+.interactive-box {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.interactive-box:hover {
+    transform: scale(1.02); 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
+
+.info-box {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff; 
+    font-family: 'Roboto', sans-serif; 
+}
+.info-box-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; 
+    height: 60px; 
+    border-radius: 8px; 
+}
+
+.square-icon {
+    border-radius: 8px; 
+}
+
+.info-box-content {
+    padding-left: 15px; 
+}
+
+.font-weight-bold {
+    font-weight: bold;
+}
+
+.welcome-title {
+    font-family: 'Roboto', sans-serif; 
+    font-size: 2em; 
+    margin-bottom: 20px; 
+    color: #333; 
+}
+
+
+.department-box {
+    background-color: #e0f7fa; 
+}
+
+.curriculum-box {
+    background-color: #f3e5f5; 
+}
+
+.verified-students-box {
+    background-color: #c8e6c9; 
+}
+
+.not-verified-students-box {
+    background-color: #fff9c4; 
+}
+
+.verified-archives-box {
+    background-color: #c8e6c9; 
+}
+
+.not-verified-archives-box {
+    background-color: #f5f5f5; }
+</style>
+<!-- Include SweetAlert Library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSRC LitTrack</title>
+    <link href="dist/css/style.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<body>
 <hr class="border-info">
 <div class="row">
     <!-- Department List Box -->
@@ -91,77 +176,5 @@
         </a>
     </div>
 </div>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-.interactive-box {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.interactive-box:hover {
-    transform: scale(1.02); 
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
-
-.info-box {
-    height: 120px;
-    display: flex;
-    align-items: center;
-    background-color: #ffffff; 
-    font-family: 'Roboto', sans-serif; 
-
-.info-box-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 60px; 
-    height: 60px; 
-    border-radius: 8px; 
-}
-
-.square-icon {
-    border-radius: 8px; 
-}
-
-.info-box-content {
-    padding-left: 15px; 
-}
-
-.font-weight-bold {
-    font-weight: bold;
-}
-
-.welcome-title {
-    font-family: 'Roboto', sans-serif; 
-    font-size: 2em; 
-    margin-bottom: 20px; 
-    color: #333; 
-}
-
-
-.department-box {
-    background-color: #e0f7fa; 
-}
-
-.curriculum-box {
-    background-color: #f3e5f5; 
-}
-
-.verified-students-box {
-    background-color: #c8e6c9; 
-}
-
-.not-verified-students-box {
-    background-color: #fff9c4; 
-}
-
-.verified-archives-box {
-    background-color: #c8e6c9; 
-}
-
-.not-verified-archives-box {
-    background-color: #f5f5f5; }
-</style>
+</body>
+</html>

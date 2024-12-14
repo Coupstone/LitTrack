@@ -227,6 +227,8 @@
                             <td class="text-center">
                                 <?php if($row['status'] == 1): ?>
                                     <span class="badge badge-pill badge-success">Verified</span>
+                                <?php elseif($row['status'] == 2): ?>
+                                    <span class="badge badge-pill badge-danger">Rejected</span>
                                 <?php else: ?>
                                     <span class="badge badge-pill badge-primary">Not Verified</span>
                                 <?php endif; ?>
@@ -242,33 +244,45 @@
                                         <span class="sr-only">Toggle Dropdown</span>
                                     </button>
                                     
-                                    <!-- Dropdown menu -->
                                     <div class="dropdown-menu" role="menu">
-                                        <!-- View Details -->
-                                        <a class="dropdown-item view_details" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
-                                            <span class="fa fa-eye text-dark"></span> View
-                                        </a>
-                                        <div class="dropdown-divider"></div>
+    <!-- View Details -->
+    <a class="dropdown-item view_details" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
+        <span class="fa fa-eye text-dark"></span> View
+    </a>
+    <div class="dropdown-divider"></div>
 
-                                        <!-- View COR (moved inside dropdown) -->
-                                        <a class="dropdown-item view_cor" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>" data-toggle="modal" data-target="#corModal">
-                                            <span class="fa fa-file text-dark"></span> View COR
-                                        </a>
-                                        <div class="dropdown-divider"></div>
+    <!-- View COR (kept as is) -->
+    <a class="dropdown-item view_cor" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>" data-toggle="modal" data-target="#corModal">
+        <span class="fa fa-file text-dark"></span> View COR
+    </a>
+    <div class="dropdown-divider"></div>
 
-                                        <!-- Verify User (if not verified) -->
-                                        <?php if($row['status'] != 1): ?>
+            <!-- Approve User -->
+            <?php if ($row['status'] != 1 && $row['status'] != 2): ?>
+                <a class="dropdown-item approve_user" href="javascript:void(0)" data-id="<?= $row['id'] ?>" data-email="<?= $row['email'] ?>">
+                    <span class="fa fa-check text-success"></span> Approve
+                </a>
+                <div class="dropdown-divider"></div>
+            <?php endif; ?> 
+            <!-- <?php if($row['status'] != 1): ?>
                                             <a class="dropdown-item verify_user" href="javascript:void(0)" data-id="<?= $row['id'] ?>" data-name="<?= $row['email'] ?>">
                                                 <span class="fa fa-check text-primary"></span> Verify
                                             </a>
                                             <div class="dropdown-divider"></div>
-                                        <?php endif; ?>
+                                        <?php endif; ?> -->
+            <!-- Reject User -->
+            <?php if ($row['status'] != 1 && $row['status'] != 2): ?>
+                <a class="dropdown-item reject_user" href="javascript:void(0)" data-id="<?= $row['id'] ?>" data-email="<?= $row['email'] ?>">
+                    <span class="fa fa-times text-danger"></span> Reject
+                </a>
+                <div class="dropdown-divider"></div>
+            <?php endif; ?>
 
-                                        <!-- Delete User -->
-                                        <a class="dropdown-item delete_data" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>" data-name="<?= $row['email'] ?>">
-                                            <span class="fa fa-trash text-danger"></span> Delete
-                                        </a>
-                                    </div>
+    <!-- Delete User -->
+    <a class="dropdown-item delete_data" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>" data-name="<?= $row['email'] ?>">
+        <span class="fa fa-trash text-danger"></span> Delete
+    </a>
+</div>
                                 </div>
                             </td>
                         </tr>
@@ -297,142 +311,321 @@
         </div>
     </div>
 </div>
+    <!-- Rejection Reason Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel">Reject User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="rejectionReason">Please enter the reason for rejection:</label>
+                    <textarea id="rejectionReason" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="submitRejection">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script> -->
     <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <script>
 $(document).ready(function () {
-    // Handle COR link click
-    $('.view_cor').click(function () {
-        var studentId = $(this).attr('data-id');
-        console.log('Fetching COR for Student ID:', studentId);
 
-        // Open the COR modal
-        $('#corModal').modal('show');
+// Handle COR link click
+$('.view_cor').click(function () {
+    var studentId = $(this).attr('data-id');
+    console.log('Fetching COR for Student ID:', studentId);
 
-        // Wait for the modal to fully open
-        $('#corModal').on('shown.bs.modal', function () {
-            // Dynamically set the iframe source again to ensure it loads in mobile view
-            var iframe = $('#corModal iframe');
-            iframe.attr('src', iframe.attr('src')); // Refresh the iframe
-            console.log('Modal opened:', $('#corModal').is(':visible'));
-        });
+    // Open the COR modal
+    $('#corModal').modal('show');
 
-        // Fetch the COR data via AJAX
-        $.ajax({
-            url: 'students/get_cor.php', // Adjusted path
-            method: 'GET',
-            data: { id: studentId },
-            success: function (response) {
-                $('#corContent').html(response); // Populate the modal with COR data
-            },
-            error: function (err) {
-                console.error('Error fetching COR:', err); // Log error details
-                alert('An error occurred while fetching COR data.');
-            },
-        });
-    });
-
-    // Modal setup for proper aria-hidden handling
-    $('#corModal').on('show.bs.modal', function () {
-        $(this).removeAttr('aria-hidden');
-        $(this).attr('inert', true); // Use inert to prevent focus on elements outside the modal
-    });
-
-    $('#corModal').on('shown.bs.modal', function () {
-        // Ensure the modal gets focus
-        $(this).focus();
-        $(this).removeAttr('inert'); // Remove inert once the modal is visible
-    });
-
-    // Fix aria-hidden on window resize
-    $(window).on('resize', function () {
-        if ($('#corModal').hasClass('show')) {
-            $('#corModal').removeAttr('aria-hidden');
-        }
-    });
-
-    // Initialize DataTables with error handling
-    try {
-        $('.table').dataTable();
-        console.log('DataTable initialized successfully.');
-    } catch (e) {
-        console.error('Error initializing DataTables:', e);
-    }
-
-    // Add generic logging for debugging other interactions
-    $('.delete_data').click(function () {
-        console.log('Delete button clicked for Student ID:', $(this).attr('data-id'));
-        _conf(
-            "Are you sure to delete <b>" + $(this).attr('data-name') + "</b>?",
-            'delete_user',
-            [$(this).attr('data-id')]
-        );
-    });
-
-    $('.verify_user').click(function () {
-        console.log('Verify button clicked for Student ID:', $(this).attr('data-id'));
-        _conf(
-            "Are you sure to verify <b>" + $(this).attr('data-name') + "</b>?",
-            'verify_user',
-            [$(this).attr('data-id')]
-        );
-    });
-
-     // Handle View Details (Dynamic Modal)
-     $('.view_details').click(function () {
-        var studentId = $(this).attr('data-id');
-        uni_modal('Student Details', 'students/view_details.php?id=' + studentId, 'mid-large');
+    // Fetch the COR data via AJAX
+    $.ajax({
+        url: 'students/get_cor.php',
+        method: 'GET',
+        data: { id: studentId },
+        success: function (response) {
+            $('#corContent').html(response); // Populate the modal with COR data
+        },
+        error: function (err) {
+            console.error('Error fetching COR:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while fetching COR data.',
+                showConfirmButton: true
+            });
+        },
     });
 });
 
-        function delete_user($id){
-            start_loader();
-            $.ajax({
-                url:_base_url_+"classes/Users.php?f=delete_student",
-                method:"POST",
-                data:{id: $id},
-                dataType:"json",
-                error:err=>{
-                    console.log(err)
+// Approve user
+$(document).on('click', '.approve_user', function () {
+        var studentId = $(this).attr('data-id');
+        var studentEmail = $(this).attr('data-email');
+        console.log('Sending approval for student:', studentId, studentEmail);
+
+        // Show loading SweetAlert
+        Swal.fire({
+            title: 'Processing Approval...',
+            text: 'Please wait while we approve the student.',
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            showConfirmButton: false,
+            allowOutsideClick: false
+        });
+
+        $.ajax({
+            url: 'students/approve_reject_account.php',
+            method: 'POST',
+            data: {
+                action: 'approve',
+                id: studentId,
+                email: studentEmail
+            },
+            dataType: 'json',
+            success: function (response) {
+                console.log('Response received:', response);
+                Swal.close(); // Close the loading SweetAlert
+                if (response.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        showConfirmButton: true
+                    }).then(() => {
+                        // Update the student status without reloading
+                        $("tr[data-id='" + studentId + "'] td.status span")
+                            .text("Verified")
+                            .removeClass("badge-primary")
+                            .addClass("badge-success");
+
+                        // Force page reload after SweetAlert is dismissed
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message,
+                        showConfirmButton: true
+                    });
+                }
+            },
+            error: function (err) {
+                console.log('Error:', err);
+                Swal.close(); // Close the loading SweetAlert
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Error',
+                    text: 'An error occurred while processing the approval. Please try again.',
+                    showConfirmButton: true
+                });
+            }
+        });
+    });
+
+    // Reject user
+    $(document).on('click', '.reject_user', function () {
+        var studentId = $(this).attr('data-id');
+        var studentEmail = $(this).attr('data-email');
+        $('#rejectModal').modal('show');
+
+        // Handle form submission in the rejection modal
+        $('#submitRejection').off('click').on('click', function () {
+            var reason = $('#rejectionReason').val();
+
+            if (reason.trim() !== '') {
+                console.log('Sending rejection for student:', studentId, studentEmail, reason);
+
+                // Show loading SweetAlert
+                Swal.fire({
+                    title: 'Processing Rejection...',
+                    text: 'Please wait while we reject the student.',
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+
+                $.ajax({
+                    url: 'students/approve_reject_account.php',
+                    method: 'POST',
+                    data: {
+                        action: 'reject',
+                        id: studentId,
+                        email: studentEmail,
+                        reason: reason
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        console.log('Rejection response:', response);
+                        Swal.close(); // Close the loading SweetAlert
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Rejected',
+                                text: response.message,
+                                showConfirmButton: true
+                            }).then(() => {
+                                // Update the UI to reflect the rejected status
+                                $("tr[data-id='" + studentId + "'] td.status span")
+                                    .text("Rejected")
+                                    .removeClass("badge-primary")
+                                    .addClass("badge-danger");
+
+                                // Force page reload after SweetAlert is dismissed
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Error',
+                                text: response.message,
+                                showConfirmButton: true
+                            });
+                        }
+                        $('#rejectModal').modal('hide');
+                    },
+                    error: function (err) {
+                        console.log('Error:', err);
+                        Swal.close(); // Close the loading SweetAlert
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Error',
+                            text: 'An error occurred while processing the rejection. Please try again.',
+                            showConfirmButton: true
+                        });
+                        $('#rejectModal').modal('hide');
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Rejection Reason Missing',
+                    text: 'Please provide a reason for rejection.',
+                    showConfirmButton: true
+                });
+            }
+        });
+    });
+
+// Modal setup for proper aria-hidden handling
+$('#corModal').on('show.bs.modal', function () {
+    $(this).removeAttr('aria-hidden');
+    $(this).attr('inert', true); // Use inert to prevent focus on elements outside the modal
+});
+
+$('#corModal').on('shown.bs.modal', function () {
+    $(this).focus();
+    $(this).removeAttr('inert'); // Remove inert once the modal is visible
+});
+
+// Fix aria-hidden on window resize
+$(window).on('resize', function () {
+    if ($('#corModal').hasClass('show')) {
+        $('#corModal').removeAttr('aria-hidden');
+    }
+});
+
+// Initialize DataTables with error handling
+try {
+    $('.table').dataTable();
+    console.log('DataTable initialized successfully.');
+} catch (e) {
+    console.error('Error initializing DataTables:', e);
+}
+
+// Delete user action
+$('.delete_data').click(function () {
+    console.log('Delete button clicked for Student ID:', $(this).attr('data-id'));
+    _conf(
+        "Are you sure to delete <b>" + $(this).attr('data-name') + "</b>?",
+        'delete_user',
+        [$(this).attr('data-id')]
+    );
+});
+
+// Verify user action
+$('.verify_user').click(function () {
+    console.log('Verify button clicked for Student ID:', $(this).attr('data-id'));
+    _conf(
+        "Are you sure to verify <b>" + $(this).attr('data-name') + "</b>?",
+        'verify_user',
+        [$(this).attr('data-id')]
+    );
+});
+
+// Handle View Details (Dynamic Modal)
+$('.view_details').click(function () {
+    var studentId = $(this).attr('data-id');
+    uni_modal('Student Details', 'students/view_details.php?id=' + studentId, 'mid-large');
+});
+});
+
+
+
+    // Function for deleting a user
+    function delete_user($id){
+        start_loader();
+        $.ajax({
+            url:_base_url_+"classes/Users.php?f=delete_student",
+            method:"POST",
+            data:{id: $id},
+            dataType:"json",
+            error:err=>{
+                console.log(err)
+                alert_toast("An error occurred.",'error');
+                end_loader();
+            },
+            success:function(resp){
+                if(typeof resp== 'object' && resp.status == 'success'){
+                    location.reload();
+                }else{
                     alert_toast("An error occurred.",'error');
                     end_loader();
-                },
-                success:function(resp){
-                    if(typeof resp== 'object' && resp.status == 'success'){
-                        location.reload();
-                    }else{
-                        alert_toast("An error occurred.",'error');
-                        end_loader();
-                    }
                 }
-            })
-        }
-        function verify_user($id){
-            start_loader();
-            $.ajax({
-                url:_base_url_+"classes/Users.php?f=verify_student",
-                method:"POST",
-                data:{id: $id},
-                dataType:"json",
-                error:err=>{
-                    console.log(err)
+            }
+        })
+    }
+
+    // Function for verifying a user
+    function verify_user($id){
+        start_loader();
+        $.ajax({
+            url:_base_url_+"classes/Users.php?f=verify_student",
+            method:"POST",
+            data:{id: $id},
+            dataType:"json",
+            error:err=>{
+                console.log(err)
+                alert_toast("An error occurred.",'error');
+                end_loader();
+            },
+            success:function(resp){
+                if(typeof resp== 'object' && resp.status == 'success'){
+                    location.reload();
+                }else{
                     alert_toast("An error occurred.",'error');
                     end_loader();
-                },
-                success:function(resp){
-                    if(typeof resp== 'object' && resp.status == 'success'){
-                        location.reload();
-                    }else{
-                        alert_toast("An error occurred.",'error');
-                        end_loader();
-                    }
                 }
-            })
-        }
-    </script>
+            }
+        })
+    }
+</script>
+
     
