@@ -38,12 +38,14 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 
 
-    // Fetch citation count from archive_citation
-    $citations_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
-    $citations_stmt->bind_param("i", $id);
-    $citations_stmt->execute();
-    $citations_result = $citations_stmt->get_result();
-    $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_assoc()['citation_count'] : 0;
+
+ // Fetch citation count from citation_relationships using cited_paper_id
+ $citations_stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM citation_relationships WHERE cited_paper_id = ?");
+ $citations_stmt->bind_param("i", $id);
+ $citations_stmt->execute();
+ $citations_result = $citations_stmt->get_result();
+ $citations_count = ($citations_result->num_rows > 0) ? $citations_result->fetch_assoc()['citation_count'] : 0;
+
 
 
     // Prepare a statement to select the download count from archive_downloads
@@ -717,7 +719,7 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
        
         <!-- Download Citation Button -->
         <div style="text-align: center; margin-top: 20px;">
-            <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button>
+            <!-- <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button> -->
         </div>
     </div>
 </div>

@@ -12,7 +12,153 @@ foreach($user->fetch_array() as $k =>$v){
             width: 200px;
             border-radius: 50%; /* Make the image circular */
         }
+        body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        min-height: 100vh;
+        padding-left: 0;
+        
+        }
+        .content {
+            margin-left: 40px;
+            margin-top: 10px;
+            transform: translateY(-3%); /* Moves the container up by 10% of its height */
+        }
+
+            #title-label,
+    #abstract-label,
+    #pdf-label {
+        font-weight: normal; /* Ensures text is not bold */
+    }
+            #abstract {
+        min-height: 150px; /* Set a minimum height for the textarea */
+        width: 100%; /* Ensure it takes up all available width within its container */
+    }
+
+.container {
+    max-width: 2000px; /* Adjust width as necessary */
+    width: 103%; /* Use full width for smaller screens */
+    margin: 10px; /* Reduced margin around the container */
+    padding: 10px; /* Reduced padding inside the container for a compact look */
+    transform: translateY(-10%); /* Moves the container up by 10% of its height */
+}
+    .form-control, .form-control:focus {
+        border-color: #ced4da; /* Consistent with the design */
+        box-shadow: none; /* No focus shadow */
+    }
+    .form-floating {
+        margin-bottom: 16px; /* Space between fields */
+    }
+    .card {
+        border-radius: 0; /* Flat design */
+
+    }
+
+    /* Smaller button styles */
+    .btn {
+        padding: 0.375rem 0.75rem; /* Reduced padding */
+        font-size: 0.875rem; /* Smaller font size */
+        line-height: 1.5; /* Standard line height */
+    }
+    .author-row .form-control {
+        margin-right: 15px; /* Adds space to the right of each input field except the last in the row */
+    }
+    .author-row .form-control:last-child {
+        margin-right: 0; /* Ensures the last input in the row does not have extra space on the right */
+    }
+    .author-row {
+        display: flex; /* Ensures the input fields are aligned in a row */
+        align-items: center; /* Aligns items vertically */
+        margin-bottom: 15px; /* Adds space below each author row for better separation */
+    }
+    #pdf-label {
+        display: block; /* Ensures the label takes up the full width and behaves like a block element */
+        margin-bottom: 8px; /* Adds some space below the label before the input field */
+        font-weight: normal; /* Keeps the label text normal, non-bold */
+    }
+    .form-control {
+        display: block;
+        width: 100%; /* Ensures the input takes full width of its container */
+        padding: 0.375rem 0.75rem; /* Standard padding for Bootstrap form controls */
+        font-size: 1rem; /* Standard font size for input text */
+        line-height: 1.5; /* Standard line height for readability */
+        color: #495057; /* Default text color */
+        background-color: #fff; /* White background */
+        background-clip: padding-box; /* Ensures background extends to the borders */
+        border: 1px solid #ced4da; /* Standard border styling */
+        border-radius: 0.25rem; /* Rounded borders for aesthetics */
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Smooth transition for focus effects */
+    }
+    .btn-info {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-label {
+        font-weight:bold; /* Ensures the label text is not bold */
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .optional-text {
+        font-size: 0.875rem; /* Slightly smaller than button text */
+        color: #6c757d; /* Muted text color for secondary information */
+        margin-left: 2px; /* Space between button and text */
+        vertical-align: middle; /* Align text vertically with the button */
+    }
+    .card-tools .btn.bg-primary {
+    background-color: #5DA8F9 !important; /* Lighter shade of blue */
+    border-color: #5DA8F9 !important; /* Match the border */
+    color: white !important; /* Ensure text remains white */
+}
+
+.card-tools .btn.bg-navy {
+    background-color: #1E3E66 !important; /* Lighter shade of navy */
+    border-color: #1E3E66 !important; /* Match the border */
+    color: white !important; /* Ensure text remains white */
+}
+
+/* Button hover effect */
+.card-tools .btn.bg-primary:hover,
+.card-tools .btn.bg-navy:hover {
+    filter: brightness(1.1) !important; /* Brighten on hover */
+}
+.card-header{
+    background-color:#C4D7F1;
+}
 </style>
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update or Upload Research</title>
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    </body>
 <div class="content py-4">
     <div class="card card-outline card-primary shadow rounded-0">
         <div class="card-header rounded-0">
@@ -112,6 +258,7 @@ foreach($user->fetch_array() as $k =>$v){
         </div>
     </div>
 </div>
+</body>
 <script>
     function displayImg(input, _this) {
         if (input.files && input.files[0]) {
@@ -203,5 +350,4 @@ foreach($user->fetch_array() as $k =>$v){
 });
 });
 </script>
-
 

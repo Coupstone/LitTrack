@@ -9,7 +9,6 @@ require_once('classes/DBConnection.php');
 require_once('classes/SystemSettings.php');
 $db = new DBConnection;
 $conn = $db->conn;
-
 function redirect($url=''){
 	if(!empty($url))
 	echo '<script>location.href="'.base_url .$url.'"</script>';
@@ -48,9 +47,10 @@ function isMobileDevice(){
     //Otherwise return false..  
     return false;
 }
+
 // Check if the current URL is the root URL and redirect
 if ($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '/LitTrack/') {
-    redirect('choices.php');
+    redirect('homepage.php');
 }
 ob_end_flush();
 ?>

@@ -10,11 +10,12 @@
       </script>
       <?php endif;?>  
   <body class="layout-top-nav layout-fixed layout-navbar-fixed" style="height: auto;">
-      <div class="wrapper">  
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper pt-5" style="background-color: white;">
-            <?php if($page == "home" || $page == "about_us"): ?>
-                <div id="header" class="mb-4 text-center">
+    <div class="wrapper">  
+      
+      <!-- Content Wrapper. Contains page content -->
+      <div class="content-wrapper pt-5" style="background-color: white;">
+        <?php if($page == "home" || $page == "about_us"): ?>
+          <div id="header" class="mb-4 text-center">
                 <img src="uploads/LitLogo.png" alt="PUP Logo" class="mb-3 img-fluid" style="max-width: 100%; height: auto;">
                     <form id="search-form" action="projects.php" method="GET" class="d-flex justify-content-center mt-4">
                         <div class="autocomplete-wrapper" style="position: relative; width: 50%;">
@@ -36,9 +37,9 @@
                         <button type="submit" class="btn btn-primary ms-2"><i class="fa fa-search"></i> Search</button>
                     </form>
                 </div>
-        </div>
-      </div>
-      <?php endif; ?>
+              </div>
+          </div>
+        <?php endif; ?>
         
         <!-- Main content -->
         <section class="content">
@@ -191,9 +192,9 @@
             $(document).on('click', function (e) {
                 if (!$(e.target).closest('.autocomplete-wrapper').length) {
                     $('#autocomplete-results').hide();
-                }
-            });
+          }
         });
+      });
     </script>
           <!-- /.content-wrapper -->
           <?php require_once('inc/footer.php') ?>

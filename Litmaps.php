@@ -57,6 +57,7 @@ foreach ($recentMappings as $mappingId) {
 
 <!DOCTYPE html>
 <html lang="en">
+<link rel="icon" href="images/LitTrack.png" type="image/png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
 <head>
     <title>Literature Mapping Library</title>
@@ -238,11 +239,14 @@ html, body {
         .dropdown-menu a:hover {
             background-color: #f1f1f1;
         }
+        .custom-large-margin-top {
+        margin-top: 100px; /* Add a large margin value */
+    }
     </style>
 </head>
 <body>
 
-<div class="litmap-container">
+<div class="litmap-container custom-large-margin-top">
     <h2>Literature Mapping Library</h2>
     <div class="recent-mappings">
     <?php if (count($recentMappingData) > 0): ?>

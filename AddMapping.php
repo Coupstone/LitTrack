@@ -48,7 +48,11 @@ SELECT al.id,
         FROM archive_authors aa 
         WHERE aa.archive_id = al.id 
         AND aa.author_order = 1 LIMIT 1) AS primary_author,
-       GROUP_CONCAT(CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) SEPARATOR ', ') AS author
+       GROUP_CONCAT(CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) SEPARATOR ', ') AS authors,
+       -- Add Citation Count
+       (SELECT COUNT(*) 
+        FROM citation_relationships cr 
+        WHERE cr.cited_paper_id = al.id) AS citation_count
 FROM archive_list al
 LEFT JOIN archive_authors aa ON al.id = aa.archive_id
 WHERE al.status = 1 
@@ -68,17 +72,25 @@ AND al.id IN (
 GROUP BY al.id";
 
 
+
+// Prepare and execute the query
 $stmt = $db->prepare($relatedLiteratureQuery);
 $stmt->bind_param("iii", $student_id, $student_id, $student_id);
-
-// Execute the query and fetch related literature
 $stmt->execute();
-$result = $stmt->get_result();
+$stmt->bind_result($id, $title, $year, $abstract, $primary_author, $authors, $citation_count);
+
+// Fetch and store the data
 $literatureData = [];
-while ($row = $result->fetch_assoc()) {
-    $literatureData[] = $row;
-    // Debugging: log the fetched row data
-    error_log(print_r($row, true));
+while ($stmt->fetch()) {
+    $literatureData[] = [
+        'id' => $id,
+        'title' => $title,
+        'year' => $year,
+        'abstract' => $abstract,
+        'primary_author' => $primary_author,
+        'authors' => $authors,
+        'citation_count' => $citation_count
+    ];
 }
 $stmt->close();
 
@@ -276,6 +288,7 @@ $response = [
             opacity: 0;
             overflow: hidden;
         }
+
     </style>
 </head>
 <body>
@@ -288,6 +301,11 @@ $response = [
     </div>
 
     <div id="map"></div>
+        <!-- Control Buttons -->
+        <button class="control-button top-left" id="togglePan">🖱️</button>
+    <button class="control-button top-right" id="recenterMap">🔄</button>
+    <button class="control-button bottom-left" id="zoomIn">🔍+</button>
+    <button class="control-button bottom-right" id="zoomOut">🔍−</button>
 </div>
 
 <!-- Modal Structure -->
@@ -297,6 +315,7 @@ $response = [
         <h2 id="modalTitle" style="text-align:center;"></h2>
         <p><strong>Authors:</strong> <span id="modalAuthors"></span></p>
         <p><strong>Year:</strong> <span id="modalYear"></span></p>
+        <p><strong>Citations:</strong> <span id="modalCitations"></span></p> <!-- Citation count added here -->
         <p><strong>Abstract:</strong> <span id="modalAbstract"></span></p>
     </div>
 </div>
@@ -305,7 +324,6 @@ $response = [
 
 
 <script>
-
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const mappingId = parseInt(urlParams.get('id')); // Get and parse the ID
@@ -316,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMapping(mappingId);
     }
 });
+
 // JavaScript functions for search, mapping, and visualization
 function performSearch(query) {
     query = query.trim();
@@ -413,7 +432,6 @@ window.onclick = function(event) {
     }
 };
 
-
 function updateD3Visualization(data, selectedStudyId) {
     const width = document.getElementById("map").clientWidth;
     const height = document.getElementById("map").clientHeight;
@@ -421,10 +439,21 @@ function updateD3Visualization(data, selectedStudyId) {
     // Clear the existing SVG for updates
     d3.select("#map").select("svg").remove();
 
+    // Create SVG element
     const svg = d3.select("#map").append("svg")
         .attr("width", width)
-        .attr("height", height)
-        .append("g");
+        .attr("height", height);
+
+    // Add zoom behavior
+    const zoom = d3.zoom()
+        .scaleExtent([0.5, 5])  // Control min/max zoom levels
+        .on("zoom", function(event) {
+            svg.select("g").attr("transform", event.transform);  // Apply zoom and pan transformations
+        });
+
+    svg.call(zoom);  // Activate zoom behavior on the SVG
+
+    const g = svg.append("g"); // Grouping element to hold nodes and links
 
     // Create tooltip for hover
     const tooltip = d3.select("body").append("div")
@@ -437,7 +466,7 @@ function updateD3Visualization(data, selectedStudyId) {
     }));
 
     // Draw links
-    const link = svg.selectAll(".link")
+    const link = g.selectAll(".link")
         .data(formattedCitations)
         .enter().append("line")
         .attr("class", "link")
@@ -445,7 +474,7 @@ function updateD3Visualization(data, selectedStudyId) {
         .style("stroke-width", 1.5);
 
     // Draw nodes
-    const node = svg.selectAll(".node")
+    const node = g.selectAll(".node")
         .data(data.literature)
         .enter().append("g")
         .attr("class", "node")
@@ -472,31 +501,31 @@ function updateD3Visualization(data, selectedStudyId) {
             // Hide tooltip explicitly when clicking the node
             tooltip.style("opacity", 0);
 
-           // Populate the modal with study details
+            // Populate the modal with study details
             document.getElementById("modalTitle").innerText = d.title || "No Title Available";
             document.getElementById("modalAuthors").innerText = d.authors || "Unknown Author(s)";
             document.getElementById("modalAbstract").innerText = d.abstract || "No Abstract Available";
             document.getElementById("modalYear").innerText = d.year || d.publication_year || "Unknown Year";
-
+            document.getElementById('modalCitations').textContent = d.citation_count; // Display citation count
+            
             // Show the modal
             const modal = document.getElementById("studyModal");
             modal.style.display = "block";
         });
 
+// Append circles with conditional shading and size based on citation count
+node.append("circle")
+    .attr("r", d => 8 + Math.min(d.citation_count * 5, 100)) // Make the node size grow faster with citation count
+    .attr("fill", d => d.id === selectedStudyId ? "gray" : "white") // Highlight only the selected node
+    .attr("stroke", "black") // Stroke for all nodes
+    .attr("stroke-width", 1.5);
 
-    // Append circles with conditional shading
-    node.append("circle")
-        .attr("r", 8)
-        .attr("fill", d => d.id === selectedStudyId ? "gray" : "white") // Highlight only the selected node
-        .attr("stroke", "black") // Stroke for all nodes
-        .attr("stroke-width", 1.5);
 
     // Add labels for the nodes
     node.append("text")
-    .attr("x", 12)
-    .attr("dy", ".35em")
-    .text(d => `${d.primary_author || "Unknown Primary Author"} (${d.year || d.publication_year || "Unknown Year"})`);
-
+        .attr("x", 12)
+        .attr("dy", ".35em")
+        .text(d => `${d.primary_author || "Unknown Primary Author"} (${d.year || d.publication_year || "Unknown Year"})`);
 
     const simulation = d3.forceSimulation(data.literature)
         .force("link", d3.forceLink(formattedCitations).id(d => d.id).distance(200))
@@ -511,9 +540,46 @@ function updateD3Visualization(data, selectedStudyId) {
 
         node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
+
+    // Add recenter button functionality
+    const recenterButton = document.getElementById("recenterMap");
+    if (recenterButton) {
+        recenterButton.addEventListener('click', () => {
+            zoom.transform(svg, d3.zoomIdentity);  // Reset zoom and pan to original position
+        });
+    }
+
+    // Add zoom in button functionality
+    const zoomInButton = document.getElementById("zoomIn");
+    zoomInButton.addEventListener('click', () => {
+        zoom.scaleBy(svg, 1.2); // Zoom in by 20%
+    });
+
+    // Add zoom out button functionality
+    const zoomOutButton = document.getElementById("zoomOut");
+    zoomOutButton.addEventListener('click', () => {
+        zoom.scaleBy(svg, 0.8); // Zoom out by 20%
+    });
 }
 
+// Toggle pan functionality and cursor change
+let isPanning = false;
+document.getElementById("togglePan").addEventListener("click", () => {
+    isPanning = !isPanning;
+    const mapContainer = document.getElementById("map");
+
+    if (isPanning) {
+        // Enable panning (hand cursor)
+        mapContainer.style.cursor = "grab";
+        d3.select("svg").style("pointer-events", "all"); // Allow pan interaction
+    } else {
+        // Disable panning (pointer cursor)
+        mapContainer.style.cursor = "pointer";
+        d3.select("svg").style("pointer-events", "none"); // Disable pan interaction
+    }
+});
 </script>
+
 
 </body>
 </html>

@@ -41,7 +41,7 @@ $archives = $conn->query("
     SELECT a.*, 
            (SELECT COUNT(*) FROM archive_reads WHERE archive_id = a.id) AS `reads`,
            (SELECT COUNT(*) FROM archive_downloads WHERE archive_id = a.id) AS downloads,
-           (SELECT COUNT(*) FROM archive_citation WHERE archive_id = a.id) AS citations,
+           (SELECT COUNT(*) FROM citation_relationships cr WHERE cr.cited_paper_id = a.id) AS citations,
            (SELECT COUNT(*) FROM favorites WHERE student_id = {$_SESSION['student_id']} AND archive_id = a.id) AS is_favorite
     FROM archive_list a
     WHERE a.status = 1 {$search}
@@ -81,153 +81,184 @@ if ($archive_ids) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library - Research Projects</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        #content {
-            transition: margin-left 0.3s;
-            margin-left: 250px;
+        body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    
         }
-        body.sidebar-collapsed #content {
-            margin-left: 50px;
-        }
-        .star-btn-wrapper {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-        .star-btn {
-            color: gray;
-            font-size: 24px;
-        }
-        .star-btn.red {
-            color: red;
-        }
-        .archive-item {
-            position: relative;
-            padding: 15px;
-            border: 1px solid #ddd;
+        .list-group-item {
+            border: 1px solid #ccc;
             margin-bottom: 10px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-        }
-        .stats {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 0;
-            font-size: 0.75rem;
-        }
-        .stats span {
-            display: flex;
-            align-items: center;
-            margin-left: 9px;
-            font-weight: bold;
+            height: 220px;
+            overflow: hidden;
+            text-decoration: none;
             color: black;
         }
-        .fa-eye, .fa-download, .fa-quote-left {
-            margin-right: 4px;
-            color: #696969;
-            font-size: 0.70rem;
+        .list-group-item:hover {
+            background-color: #f8f9fa;
         }
+        .title {
+            font-size: 22px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .authors {
+            font-size: 14px;
+            color: #007bff;
+            margin-bottom: 6px;
+        }
+        .details {
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+        .stats {
+    align-self: flex-end; /* Aligns stats to the right (flex-end of the flex container) */
+    margin-top: auto; /* Pushes it to the bottom */
+    font-size: 12px;
+    color: #666;
+}
+
+
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            
+        }
+        #search-form {
+            margin-top: -10px;
+        }
+        #search-input {
+            width: 250px;
+        }
+        #search-form {
+            
+            display: flex;
+            justify-content: right;
+            margin-top: 20px;
+            margin-bottom: 10px
+        }
+        #search-input, .btn-primary {
+            height: 38px;
+            border-radius: 4px;
+        }
+        #search-input {
+            border: 1px solid #ced4da;
+            width: 50%;
+            padding: 8px 12px;
+        }
+
+.card-title {
+    font-size: 22px; /* Increase from the previous size, adjust based on preference */
+    color: #333; /* Dark color for better readability */
+    transform: translateY(90%); /* Moves the container up by 10% of its height */
+    margin-left: 5px
+}
+.star-btn-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100; /* Make sure it's on top and clickable */
+}
+
+.star-btn {
+    color: gray; /* Default state */
+    cursor: pointer;
+}
+
+.star-btn.red {
+    color: red; /* Favorite state */
+}
+.archive-item {
+    position: relative;
+
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures space distribution */
+}
+
+/* Style for the pagination container */
+.pagination-wrapper {
+    display: flex;
+    justify-content: flex-end; /* Align pagination to the right */
+    align-items: flex-end; /* Align pagination to the bottom */
+    height: 100%; /* Full height of the container */
+    padding: 10px; /* Optional padding */
+}
+
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div class="container-fluid content-container">
-        <div class="col-12">
-            <div class="card card-outline card-primary shadow rounded-0">
-                <div class="card-body rounded-0">
-                    <div class="header-wrapper">
-                        <h2>Research List</h2>
-                        <form id="search-form" class="d-flex align-items-center" action="projects.php" method="GET">
-                            <input type="search" id="search-input" class="form-control rounded-0" name="q" required placeholder="Search..." value="<?= isset($_GET['q']) ? htmlspecialchars($_GET['q']) : '' ?>">
-                            <button type="submit" class="btn btn-primary ms-2"><i class="fa fa-search"></i></button>
-                        </form>
-                    </div>
+<div class="wrapper" class="container-fluid content-container" class="card card-outline card-primary shadow" class="card-header bg-white">
+        <div class="card card-outline card-primary shadow" class="card-header bg-white">
+    <div class="card-header bg-white">
+        <h3 class="card-title text-center text-dark header-title"><b>Research List</b></h3>
+                    <form id="search-form" class="d-flex" action="search_results.php" method="GET">
+                        <input type="search" id="search-input" class="form-control rounded-0" name="q" required placeholder="Search..." value="<?= isset($_GET['q']) ? $_GET['q'] : '' ?>">
+                        <button type="submit" class="btn btn-primary ms-2"><i class="fa fa-search"></i></button>
+                    </form>
                     <hr class="bg-navy">
-                    
-                    <!-- Display Search Header if Query Exists -->
-                    <?php if (isset($_GET['q'])): ?>
-                        <div class="search-header mb-3">
-                            <p>Search Results for: <strong><?= htmlspecialchars($_GET['q']) ?></strong></p>
-                        </div>
-                    <?php endif; ?>
-
                     <div class="list-group">
-                        <!-- Iterate Through Archive Data -->
-                        <?php foreach ($archive_data as $id => $row): ?>
-                            <div class="archive-item" data-id="<?= $id ?>">
-                                <div class="star-btn-wrapper">
-                                    <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $id ?>"></i>
-                                </div>
-                                <div class="row clickable-row">
-                                    <div class="col-lg-12 col-md-12 col-sm-12">
-                                        <h3 class="text-navy"><b><?= htmlspecialchars($row['title']) ?></b></h3>
-                                        <small class="text-muted">By: <b class="text-info"><?= !empty($row['authors']) ? implode(', ', $row['authors']) : "N/A" ?></b></small>
-                                        <p class="truncate-5"><?= htmlspecialchars(strip_tags(html_entity_decode($row['abstract']))) ?></p>
-                                    </div>
-                                </div>
-                                <div class="stats">
-                                    <span><i class="fa fa-eye"></i> <?= $row['reads'] ?></span>
-                                    <span><i class="fa fa-download"></i> <?= $row['downloads'] ?></span>
-                                    <span><i class="fa fa-quote-left"></i> <?= $row['citations'] ?></span>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-
-                        <!-- Handle Empty Search Results -->
-                        <?php if (empty($archive_data)): ?>
-                            <div class="text-center text-muted">
-                                <p>No research projects found for the search term <strong><?= htmlspecialchars($_GET['q'] ?? '') ?></strong>.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Pagination -->
-                <div class="card-footer clearfix rounded-0">
-                    <div class="col-12">
-                        <div class="row">
-                            <div class="col-md-6"><span class="text-muted">Display Items: <?= count($archive_data) ?></span></div>
-                            <div class="col-md-6">
-                                <ul class="pagination pagination-sm m-0 float-right">
-                                    <li class="page-item <?= $page == 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $page > 1 ? 'projects.php?p=' . ($page - 1) . $isSearch : '#' ?>">«</a>
-                                    </li>
-                                    <?php for ($i = 1; $i <= $pages; $i++): ?>
-                                        <li class="page-item <?= $page == $i ? 'active' : '' ?>">
-                                            <a class="page-link" href="projects.php?p=<?= $i . $isSearch ?>"><?= $i ?></a>
-                                        </li>
-                                    <?php endfor; ?>
-                                    <li class="page-item <?= $page == $pages ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $page < $pages ? 'projects.php?p=' . ($page + 1) . $isSearch : '#' ?>">»</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- End Pagination -->
-            </div>
+                    <?php foreach ($archive_data as $id => $row): ?>
+    <div class="archive-item" data-id="<?= $id ?>">
+        <div class="star-btn-wrapper">
+            <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $id ?>"></i>
         </div>
-    </div>
+                <a href="view_archive.php?id=<?= $id ?>" class="list-group-item">
+                    <h5 class="mb-1 title"><b><?= $row['title'] ?></b></h5>
+                    <div class="authors">By: <?= !empty($row['authors']) ? implode(', ', $row['authors']) : "N/A" ?></div>
+                    <p class="mb-1 details"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
+                    <div class="stats">
+                        <small>Views: <?= $row['reads'] ?></small>
+                        <small>Downloads: <?= $row['downloads'] ?></small>
+                        <small>Citations: <?= $row['citations'] ?></small>
+                    </div>
+                    
+                </a>
+            </div>
+            <?php endforeach; ?>
+            <div class="pagination-wrapper">
+    <ul class="pagination pagination-sm m-0">
+        <li class="page-item <?= $page == 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $page > 1 ? './?page=projects' . $isSearch . '&p=' . ($page - 1) : '#' ?>">«</a></li>
+        <?php for ($i = 1; $i <= $pages; $i++): ?>
+            <li class="page-item <?= $page == $i ? 'active' : '' ?>"><a class="page-link" href="./?page=projects<?= $isSearch ?>&p=<?= $i ?>"><?= $i ?></a></li>
+        <?php endfor; ?>
+        <li class="page-item <?= $page == $pages ? 'disabled' : '' ?>"><a class="page-link" href="<?= $page < $pages ? './?page=projects' . $isSearch . '&p=' . ($page + 1) : '#' ?>">»</a></li>
+    </ul>
 </div>
-
+</body>
+</html>
 
 <script>
     $(document).ready(function() {
