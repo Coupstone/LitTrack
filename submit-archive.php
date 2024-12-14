@@ -15,11 +15,30 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 }
 ?>
 
+
 <!-- Include SweetAlert Library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update or Upload Research</title>
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 
     <style>
+html, body {
+    height: 100%; /* Ensure the full height of the viewport */
+    margin: 0; /* Reset default margin */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    padding: 0; /* Ensure no padding is affecting layout */
+    overflow: hidden; /* Prevents scroll bars if not necessary */
+}
+
             #title-label,
     #abstract-label,
     #pdf-label {
@@ -30,9 +49,13 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         width: 100%; /* Ensure it takes up all available width within its container */
     }
 
-    .container {
-        max-width: 1600px; /* Keep the container wide as previously set */
-    }
+.container {
+    max-width: 2000px; /* Adjust width as necessary */
+    width: 103%; /* Use full width for smaller screens */
+    margin: 10px; /* Reduced margin around the container */
+    padding: 10px; /* Reduced padding inside the container for a compact look */
+    transform: translateY(-10%); /* Moves the container up by 10% of its height */
+}
     .form-control, .form-control:focus {
         border-color: #ced4da; /* Consistent with the design */
         box-shadow: none; /* No focus shadow */
@@ -117,69 +140,68 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 </style>
 
-
-<div class="content py-4">
-    <div class="card card-outline card-primary shadow rounded-0">
-        <div class="card-header rounded-0">
-            <h5 class="card-title"><?= isset($id) ? "Update Archive - {$archive_code} Details" : "Upload Research" ?></h5>
+</head>
+<body>
+<div class="container h-100 d-flex justify-content-center align-items-center mt-5">
+    <div class="card card-outline card-primary shadow-lg col-lg-10 col-md-10 col-sm-12">
+        <div class="card-header bg-white">
+            <h3 class="card-title text-center text-dark mt-3" style="font-size: 20px;">
+                <b><?= isset($id) ? "Submit Research " . htmlspecialchars($archive_code ?? '')  : "Upload Research" ?></b>
+            </h3>
         </div>
-        <div class="card-body rounded-0">
-            <div class="container-fluid">
-                <form action="" id="archive-form" enctype="multipart/form-data" method="POST">
-                    <input type="hidden" name="id" value="<?= isset($id) ? $id : "" ?>">
-
-                    <!-- Research Title -->
-                    <div class="form-group">
-                        <label for="title" class="control-label text-navy">Research Title</label>
-                        <input type="text" name="title" id="title" placeholder="Project Title" class="form-control form-control-border" value="<?= isset($title) ? $title : "" ?>" required>
+        <div class="card-body">
+            <form action="" id="archive-form" enctype="multipart/form-data" method="POST" class="needs-validation" novalidate>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
+                    <label for="title" id="title-label">Research Title</label>
+                </div>
+                <div class="form-floating mb-3">
+    <select class="form-control" id="year" name="year" required>
+        <?php for ($i = 0; $i < 51; $i++): ?>
+            <option value="<?= date("Y", strtotime(date("Y")." -{$i} years")) ?>" <?= isset($year) && $year == date("Y", strtotime(date("Y")." -{$i} years")) ? 'selected' : '' ?>>
+                <?= date("Y", strtotime(date("Y")." -{$i} years")) ?>
+            </option>
+        <?php endfor; ?>
+    </select>
+    <label for="year">Year</label>
+</div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" id="abstract" name="abstract" placeholder="Abstract" required rows="5"><?= isset($abstract) ? html_entity_decode($abstract) : '' ?></textarea>
+                    <label for="abstract" id="abstract-label">Abstract</label>
+                </div>
+                <div id="author-container">
+                    <h6><strong>Authors</strong></h6>
+                    <div class="author-row d-flex align-items-center mb-2">
+                        <input type="text" class="form-control" name="author_firstname[]" placeholder="First Name" required>
+                        <input type="text" class="form-control" name="author_lastname[]" placeholder="Last Name" required>
+                        <button type="button" class="btn btn-success btn-sm" onclick="addAuthorRow()">+</button>
                     </div>
-
-                    <!-- Year -->
-                    <div class="form-group">
-                        <label for="year" class="control-label text-navy">Year</label>
-                        <select name="year" id="year" class="form-control form-control-border" required>
-                            <?php for ($i = 0; $i < 51; $i++): ?>
-                            <option <?= isset($year) && $year == date("Y", strtotime(date("Y")." -{$i} years")) ? "selected" : "" ?>>
-                                <?= date("Y", strtotime(date("Y")." -{$i} years")) ?>
-                            </option>
-                            <?php endfor; ?>
-                        </select>
+                </div>
+                    <!-- Project Document -->
+                    <div class="form-group mb-3">
+                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)</label>
+                        <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
                     </div>
-
-                    <!-- Abstract -->
-                    <div class="form-group">
-                        <label for="abstract" class="control-label text-navy">Abstract</label>
-                        <textarea rows="3" name="abstract" id="abstract" placeholder="abstract" class="form-control form-control-border summernote" required><?= isset($abstract) ? html_entity_decode($abstract) : "" ?></textarea>
-                    </div>
-
-                    <!-- Authors -->
-                    <div class="form-group">
-                        <h6 class="bold">Authors</h6>
-                        <div id="author-container">
-                            <div class="author-row d-flex align-items-center mb-2">
-                                <input type="text" name="author_firstname[]" class="form-control" placeholder="First Name" required>
-                                <input type="text" name="author_lastname[]" class="form-control" placeholder="Last Name" required>
-                                <button type="button" class="btn btn-success btn-sm" onclick="addAuthorRow()">+</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    
-<!-- Visibility -->
+<!-- Visibility Options -->
 <div class="form-group">
     <label for="visibility" class="control-label text-navy">Visibility</label>
-    <select name="visibility" id="visibility" class="form-control form-control-border" required>
-        <option value="public" <?= isset($visibility) && $visibility == 'public' ? "selected" : "" ?>>Public</option>
-        <option value="private" <?= isset($visibility) && $visibility == 'private' ? "selected" : "" ?>>Private</option>
-    </select>
-</div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="visibility" id="public" value="public" <?= isset($visibility) && $visibility == 'public' ? "checked" : "" ?>>
+        <label class="form-check-label" for="public">Public</label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="visibility" id="private" value="private" <?= isset($visibility) && $visibility == 'private' ? "checked" : "" ?>>
+        <label class="form-check-label" for="private">Private</label>
+    </div>
+                </div>
 <!-- Publication Details -->
 <div class="mb-3">
     <label class="form-label">Publication Details</label>
     <button type="button" class="btn btn-info" onclick="togglePublicationDetails()">+ Add</button>
     <span class="optional-text">(Optional)</span>
 </div>
-<div id="publication-details" style="display: none;">
+                <!-- Publication Details Form (initially hidden) -->
+                <div id="publication-details" style="display: none;">
     <div class="form-group mb-3">
         <input type="text" class="form-control" id="journal" name="journal" placeholder="Journal" value="<?= isset($journal) ? $journal : '' ?>">
     </div>
@@ -197,14 +219,6 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     </div>
 </div>
 
-
-
-                    <!-- Project Document -->
-                    <div class="form-group">
-                        <label for="pdf" class="control-label text-muted">Project Document (PDF File Only, maximum of 25MB)</label>
-                        <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
-                    </div>
-
                     <!-- Submit Button -->
                     <div class="form-group text-center">
                         <button class="btn btn-default bg-navy btn-flat">Upload</button>
@@ -215,9 +229,10 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    function togglePublicationDetails() {
+        function togglePublicationDetails() {
         const detailsDiv = document.getElementById('publication-details');
         detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
     }
@@ -349,7 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 icon: 'success',
                 confirmButtonText: 'OK'
             }).then(() => {
-                location.href = './?page=view_archive&id=$id';
+                location.href = './?page=submit-archive';
             });
         </script>";
     } else {

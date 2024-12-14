@@ -13,7 +13,8 @@ if ($db->connect_error) {
     die("Database connection failed: " . $db->connect_error);
 }
 
-// Fetch all nodes (citing and cited papers) and include all authors and primary author
+
+// Fetch all nodes (citing and cited papers), including authors, primary author, and citation count
 $literature_query = "
     SELECT al.id, 
            COALESCE(al.title, 'Unknown Title') AS title, 
@@ -22,7 +23,11 @@ $literature_query = "
            GROUP_CONCAT(CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) SEPARATOR ', ') AS authors,
            (SELECT CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) 
             FROM archive_authors aa 
-            WHERE aa.archive_id = al.id AND aa.author_order = 1 LIMIT 1) AS primary_author
+            WHERE aa.archive_id = al.id AND aa.author_order = 1 LIMIT 1) AS primary_author,
+           -- Citation count
+           (SELECT COUNT(*) 
+            FROM citation_relationships cr 
+            WHERE cr.cited_paper_id = al.id) AS citation_count
     FROM archive_list al
     LEFT JOIN archive_authors aa ON al.id = aa.archive_id
     WHERE al.status = 1 
@@ -42,7 +47,16 @@ $literature_result = $stmt->get_result();
 
 $literature = [];
 while ($row = $literature_result->fetch_assoc()) {
-    $literature[] = $row;
+    // Add the row to the $literature array
+    $literature[] = [
+        'id' => $row['id'],
+        'title' => $row['title'],
+        'year' => $row['publication_year'],
+        'abstract' => $row['abstract'],
+        'authors' => $row['authors'],
+        'primary_author' => $row['primary_author'],
+        'citation_count' => $row['citation_count'] // Add citation count here
+    ];
 }
 $stmt->close();
 

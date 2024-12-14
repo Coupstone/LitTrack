@@ -1,10 +1,59 @@
 <?php
-require_once('./config.php'); 
-require_once('inc/topBarNav.php'); 
-require_once('inc/header.php'); 
+require_once('config.php'); 
 
-if (!isset($_SESSION['student_id'])) {
-    die("Student is not logged in.");
+$limit = 10;
+$page = isset($_GET['p']) ? $_GET['p'] : 1;
+$offset = 10 * ($page - 1);
+$paginate = "LIMIT {$limit} OFFSET {$offset}";
+
+$count_all = $conn->query("SELECT * FROM archive_list a WHERE a.is_favorite = 1");
+if (!$count_all) {
+    echo "Error in count_all query: " . $conn->error;
+    exit;
+}
+$pages = ceil($count_all->num_rows / $limit);
+
+$favorites_query = $conn->query("SELECT a.*, 
+           (SELECT COUNT(*) FROM archive_reads WHERE archive_id = a.id) AS `reads`,
+           (SELECT COUNT(*) FROM archive_downloads WHERE archive_id = a.id) AS downloads,
+           (SELECT COUNT(*) FROM archive_citation WHERE archive_id = a.id) AS citations
+    FROM archive_list a
+    WHERE a.is_favorite = 1
+    ORDER BY UNIX_TIMESTAMP(a.date_created) DESC 
+    {$paginate}
+");
+
+if (!$favorites_query) {
+    echo "Error in fetching favorites: " . $conn->error;
+    exit;
+}
+
+$favorites_data = [];
+while ($row = $favorites_query->fetch_assoc()) {
+    $favorites_data[$row['id']] = $row;
+    $favorites_data[$row['id']]['authors'] = []; // Placeholder for authors
+}
+
+$archive_ids = implode(',', array_keys($favorites_data));
+if ($archive_ids) {
+    $authors = $conn->query("SELECT au.archive_id, CONCAT(au.first_name, ' ', au.last_name) AS full_name
+        FROM archive_authors au
+        WHERE au.archive_id IN ({$archive_ids})
+        ORDER BY au.author_order
+    ");
+
+    if (!$authors) {
+        echo "Error in fetching authors: " . $conn->error;
+        exit;
+    }
+
+    while ($author = $authors->fetch_assoc()) {
+        $favorites_data[$author['archive_id']]['authors'][] = $author['full_name'];
+    }
+
+    if (!isset($_SESSION['student_id'])) {
+        die("Student is not logged in.");
+    }
 }
 
 $student_id = $_SESSION['student_id'];
@@ -31,164 +80,195 @@ if ($result === false) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library - Favorite Research</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" integrity="sha384-DyZ88mC6Up2uqSXA8WCDmj6jHznz2pHABZfEkKY9BlHfuivZx05BrF4CP9Au8b/4" crossorigin="anonymous"></script> -->
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        #content {
-            transition: margin-left 0.3s;
-            margin-left: 250px;
-            overflow-y: auto;
-            height: 100vh; 
+/* General body styling */
+body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    
         }
-        body.sidebar-collapsed #content {
-            margin-left: 100px;
-        }
-        .star-btn-wrapper {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-        .star-btn {
-            color: gray;
-            font-size: 24px;
-        }
-        .star-btn.red {
-            color: red;
-        }
-        .archive-item {
-            position: relative;
-            padding: 15px;
-            border: 1px solid #ddd;
+        .list-group-item {
+            border: 1px solid #ccc;
             margin-bottom: 10px;
-        }
-        .content-container {
-            margin-top: 20px;
-        }
-         /* Sidebar styling */
-         .sidebar {
-            overflow: hidden; /* Hide scrollbar */
-            /* other styling like width, height, background color, etc. */
-        }
-        .main-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            transition: width 0.3s ease-in-out; 
-            overflow-y: auto; 
-            overflow-x: hidden; 
-            background-color: white;
-        }
-        .main-sidebar::-webkit-scrollbar {
-            display: none;
-        }
-        .main-sidebar {
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-        }
-        body.sidebar-collapsed .main-sidebar {
-            width: 70px;
-        }
-        .main-sidebar .nav-link p {
-            display: inline;
-        }
-        body.sidebar-collapsed .main-sidebar .nav-link p {
-            display: none;
-        }
-        .main-sidebar .nav-link i {
-            font-size: 1.2rem;
-            margin-right: 10px;
-        }
-        body.sidebar-collapsed .main-sidebar .nav-link i {
-            text-align: center;
-            margin-right: 0;
-            width: 100%;
-        }
-        .content-wrapper {
-            margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
-            height: 100%;
-            overflow: hidden;
-        }
-        body.sidebar-collapsed .content-wrapper {
-            margin-left: 60px;
-        }
-        .brand-link {
+            padding: 20px;
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 220px;
+            overflow: hidden;
+            text-decoration: none;
+            color: black;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        .title {
+            font-size: 22px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .authors {
+            font-size: 14px;
+            color: #007bff;
+            margin-bottom: 6px;
+        }
+        .details {
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+        .stats {
+    align-self: flex-end; /* Aligns stats to the right (flex-end of the flex container) */
+    margin-top: auto; /* Pushes it to the bottom */
+    font-size: 12px;
+    color: #666;
+}
+
+
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 0.5rem;
-            transition: padding 0.3s ease;
-            height: 3.5rem;
-            overflow: hidden;
+            padding-bottom: 10px;
+            
         }
-        .brand-link .brand-image {
-            width: 2.5rem;
-            height: 2.5rem;
-            transition: width 0.3s ease, height 0.3s ease;
-            margin-right: 0.5rem;
+        #search-form {
+            margin-top: -10px;
         }
-        body.sidebar-collapsed .brand-link .brand-image {
-            width: 2rem;
-            height: 2rem;
-            margin-right: 0; 
+        #search-input {
+            width: 250px;
         }
-        .brand-link .brand-text {
-            font-size: 1rem;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
+        #search-form {
+            
+            display: flex;
+            justify-content: right;
+            margin-top: 20px;
+            margin-bottom: 10px
         }
-        body.sidebar-collapsed .brand-link .brand-text {
-            opacity: 0;
-            overflow: hidden;
+        #search-input, .btn-primary {
+            height: 38px;
+            border-radius: 4px;
         }
-    </style>
+        #search-input {
+            border: 1px solid #ced4da;
+            width: 50%;
+            padding: 8px 12px;
+        }
+
+        .card-title {
+    font-size: 22px; /* Increase from the previous size, adjust based on preference */
+    color: #333; /* Dark color for better readability */
+    transform: translateX(-0%); /* Moves the container up by 10% of its height */
+    transform: translateY(-30%); /* Moves the container up by 10% of its height */
+    margin-left: 5px
+}
+
+.star-btn-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100; /* Make sure it's on top and clickable */
+}
+
+.star-btn {
+    color: gray; /* Default state */
+    cursor: pointer;
+}
+
+.star-btn.red {
+    color: red; /* Favorite state */
+}
+.archive-item {
+    position: relative;
+
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures space distribution */
+}
+
+/* Style for the pagination container */
+.pagination-wrapper {
+    display: flex;
+    justify-content: flex-end; /* Align pagination to the right */
+    align-items: flex-end; /* Align pagination to the bottom */
+    height: 100%; /* Full height of the container */
+    padding: 10px; /* Optional padding */
+}
+.card-header {
+margin-top: 32px;
+
+}
+</style>
+
 </head>
 <body>
-
-<div id="content" class="content py-2">
-    <div class="container-fluid content-container">
-        <div class="col-12">
-            <div class="card card-outline card-primary shadow rounded-0">
-                <div class="card-body rounded-0">
-                    <h2>My Library - Favorite Researches</h2>
-                    <hr class="bg-navy">
-                    <div class="list-group">
-                        <?php if ($result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <div class="archive-item" data-id="<?= $row['id'] ?>">
-                                    <div class="star-btn-wrapper">
-                                        <i class="fas fa-star star-btn red" data-id="<?= $row['id'] ?>"></i>
-                                    </div>
-                                    <div class="row clickable-row">
-                                        <div class="col-lg-8 col-md-7 col-sm-12">
-                                            <h3 class="text-navy"><b><?= htmlspecialchars($row['title']) ?></b></h3>
-                                            <small class="text-muted">Added on: <b><?= htmlspecialchars($row['favorite_date']) ?></b></small>
-                                            <!-- <p><?= htmlspecialchars(strip_tags($row['abstract'])) ?></p> -->
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No favorite research projects yet!</p>
-                        <?php endif; ?>
+<!-- Single container for the content -->
+<div class="wrapper container-fluid content-container card card-outline card-primary shadow">
+        <div class="card-header bg-white">
+            <h3 class="card-title text-center text-dark header-title"><b>Favorites</b></h3>
+            <form id="search-form" class="d-flex" action="favorites_search.php" method="GET">
+            </form>
+            <hr class="bg-navy">
+    </div>
+    
+    <!-- List group for displaying favorite research items -->
+    <div class="list-group">
+        <?php if ($result->num_rows > 0): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
+                <div class="archive-item" data-id="<?= $row['id'] ?>">
+                    <div class="star-btn-wrapper">
+                        <i class="fas fa-star star-btn red" data-id="<?= $row['id'] ?>"></i>
                     </div>
+                    <a href="view_archive.php?id=<?= $row['id'] ?>" class="list-group-item">
+                        <h5 class="mb-1 title"><b><?= htmlspecialchars($row['title']) ?></b></h5>
+                        <!-- <div class="authors">By: <?= !empty($favorites_data[$row['id']]['authors']) ? implode(', ', $favorites_data[$row['id']]['authors']) : "N/A" ?></div> -->
+                    <p class="mb-1 details"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
+                            <div class="stats">
+                                <small>Views: <?= $row['reads'] ?></small>
+                                <small>Downloads: <?= $row['downloads'] ?></small>
+                                <small>Citations: <?= $row['citations'] ?></small>
+                            </div>
+                    </a>
                 </div>
-            </div>
-        </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>No favorite research projects yet!</p>
+        <?php endif; ?>
+    </div>
+    
+    <!-- Pagination section -->
+    <div class="pagination-wrapper">
+        <ul class="pagination pagination-sm m-0">
+            <li class="page-item <?= $page == 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $page > 1 ? './?page=library' . $isSearch . '&p=' . ($page - 1) : '#' ?>">«</a></li>
+            <?php for ($i = 1; $i <= $pages; $i++): ?>
+                <li class="page-item <?= $page == $i ? 'active' : '' ?>"><a class="page-link" href="./?page=library<?= $isSearch ?>&p=<?= $i ?>"><?= $i ?></a></li>
+            <?php endfor; ?>
+            <li class="page-item <?= $page == $pages ? 'disabled' : '' ?>"><a class="page-link" href="<?= $page < $pages ? './?page=library' . $isSearch . '&p=' . ($page + 1) : '#' ?>">»</a></li>
+        </ul>
     </div>
 </div>
-
+</body>
+</html>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
         $('.star-btn-wrapper').on('click', function(e) {
             e.stopPropagation();
             const star = $(this).find('.star-btn');
@@ -223,6 +303,3 @@ if ($result === false) {
     });
 
 </script>
-
-</body>
-</html>

@@ -1,3 +1,4 @@
+<?php require_once('./config.php'); ?>
 <!-- <style>
     .car-cover{
         width:10em;
