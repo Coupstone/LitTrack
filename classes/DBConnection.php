@@ -25,7 +25,6 @@ class DBConnection{
         
     }
     public function __destruct(){
-        $this->conn->close();
     }
 }
 ?>
