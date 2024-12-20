@@ -148,12 +148,31 @@ class SystemSettings extends DBConnection {
     }
 
     function sess_des() {
-        if(isset($_SESSION['userdata'])) {
-            unset($_SESSION['userdata']);
-            return true;
+        // Start the session if it's not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
+    
+        // Check if `$_SESSION['userdata']` exists and unset it
+        if (isset($_SESSION['userdata'])) {
+            unset($_SESSION['userdata']);
+        }
+    
+        // Unset all other session variables
+        $_SESSION = [];
+    
+        // Destroy the session cookie
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 3600, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+        }
+    
+        // Destroy the session
+        session_destroy();
+    
         return true;
     }
+    
 
     function info($field='') {
         if(!empty($field)) {

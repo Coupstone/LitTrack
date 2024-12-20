@@ -1,5 +1,6 @@
 <?php
 require_once('config.php'); 
+check_login(); 
 
 $limit = 10;
 $page = isset($_GET['p']) ? $_GET['p'] : 1;

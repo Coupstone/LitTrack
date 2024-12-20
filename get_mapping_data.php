@@ -13,9 +13,51 @@ if ($db->connect_error) {
     die("Database connection failed: " . $db->connect_error);
 }
 
+// Recursive function to fetch all related nodes up to a certain depth
+function fetchRelatedNodes($db, $study_id, $depth = 2, $seen = []) {
+    if ($depth == 0 || in_array($study_id, $seen)) {
+        return [];
+    }
 
-// Fetch all nodes (citing and cited papers), including authors, primary author, and citation count
-$literature_query = "
+    $seen[] = $study_id;
+
+    $query = "
+        SELECT cr.citing_paper_id, cr.cited_paper_id
+        FROM citation_relationships cr
+        WHERE cr.citing_paper_id = ? OR cr.cited_paper_id = ?
+    ";
+
+    $stmt = $db->prepare($query);
+    $stmt->bind_param("ii", $study_id, $study_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $related = [];
+    while ($row = $result->fetch_assoc()) {
+        $related[] = $row;
+        $related = array_merge($related, fetchRelatedNodes($db, $row['citing_paper_id'], $depth - 1, $seen));
+        $related = array_merge($related, fetchRelatedNodes($db, $row['cited_paper_id'], $depth - 1, $seen));
+    }
+    $stmt->close();
+
+    return $related;
+}
+
+// Fetch all related nodes and citations
+$citations = fetchRelatedNodes($db, $study_id, 2);
+
+// Fetch literature details for all related nodes
+$node_ids = array_unique(array_merge(
+    array_column($citations, 'citing_paper_id'),
+    array_column($citations, 'cited_paper_id')
+));
+
+if (empty($node_ids)) {
+    $node_ids = [$study_id]; // Ensure the main node is included
+}
+
+$placeholders = implode(',', array_fill(0, count($node_ids), '?'));
+$query = "
     SELECT al.id, 
            COALESCE(al.title, 'Unknown Title') AS title, 
            COALESCE(al.year, 'Unknown Year') AS publication_year, 
@@ -24,61 +66,22 @@ $literature_query = "
            (SELECT CONCAT(COALESCE(aa.first_name, ''), ' ', COALESCE(aa.last_name, '')) 
             FROM archive_authors aa 
             WHERE aa.archive_id = al.id AND aa.author_order = 1 LIMIT 1) AS primary_author,
-           -- Citation count
            (SELECT COUNT(*) 
             FROM citation_relationships cr 
             WHERE cr.cited_paper_id = al.id) AS citation_count
     FROM archive_list al
     LEFT JOIN archive_authors aa ON al.id = aa.archive_id
-    WHERE al.status = 1 
-    AND al.id IN (
-        SELECT cited_paper_id FROM citation_relationships WHERE citing_paper_id = ? 
-        UNION 
-        SELECT citing_paper_id FROM citation_relationships WHERE cited_paper_id = ? 
-        UNION 
-        SELECT ?
-    )
+    WHERE al.id IN ($placeholders)
     GROUP BY al.id";
 
-$stmt = $db->prepare($literature_query);
-$stmt->bind_param("iii", $study_id, $study_id, $study_id);
+$stmt = $db->prepare($query);
+$stmt->bind_param(str_repeat('i', count($node_ids)), ...$node_ids);
 $stmt->execute();
-$literature_result = $stmt->get_result();
+$result = $stmt->get_result();
 
 $literature = [];
-while ($row = $literature_result->fetch_assoc()) {
-    // Add the row to the $literature array
-    $literature[] = [
-        'id' => $row['id'],
-        'title' => $row['title'],
-        'year' => $row['publication_year'],
-        'abstract' => $row['abstract'],
-        'authors' => $row['authors'],
-        'primary_author' => $row['primary_author'],
-        'citation_count' => $row['citation_count'] // Add citation count here
-    ];
-}
-$stmt->close();
-
-// Fetch citation relationships
-$citation_query = "
-    SELECT citing_paper_id, cited_paper_id 
-    FROM citation_relationships 
-    WHERE citing_paper_id IN (
-        SELECT id FROM archive_list WHERE status = 1
-    ) 
-    AND cited_paper_id IN (
-        SELECT id FROM archive_list WHERE status = 1
-    ) 
-    AND (citing_paper_id = ? OR cited_paper_id = ?)";
-$stmt = $db->prepare($citation_query);
-$stmt->bind_param("ii", $study_id, $study_id);
-$stmt->execute();
-$citation_result = $stmt->get_result();
-
-$citations = [];
-while ($row = $citation_result->fetch_assoc()) {
-    $citations[] = $row;
+while ($row = $result->fetch_assoc()) {
+    $literature[] = $row;
 }
 $stmt->close();
 

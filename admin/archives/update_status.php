@@ -1,49 +1,69 @@
+
+
 <div class="container-fluid">
     <form action="" id="update_status_form">
         <input type="hidden" name="id" value="<?= isset($_GET['id']) ? $_GET['id'] : "" ?>">
         <div class="form-group">
             <label for="status" class="control-label text-navy">Status</label>
             <select name="status" id="status" class="form-control form-control-border" required>
-                <option value="0" <?= isset($_GET['status']) && $_GET['status'] == 0 ? "selected" : "" ?>>UnPublish</option>
-                <option value="1" <?= isset($_GET['status']) && $_GET['status'] == 1 ? "selected" : "" ?>>Publish</option>
+                <option value="2" <?= isset($_GET['status']) && $_GET['status'] == 2 ? "selected" : "" ?>>Reject</option>
+                <option value="1" <?= isset($_GET['status']) && $_GET['status'] == 1 ? "selected" : "" ?>>Approved</option>
             </select>
         </div>
     </form>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.js"></script>
 <script>
     $(function(){
         $('#update_status_form').submit(function(e){
-            e.preventDefault()
-            start_loader()
-            var el = $('<div>')
-                el.addClass("pop-msg alert")
-                el.hide()
+            e.preventDefault();
+            start_loader(); // Start preloader
+            var el = $('<div>');
+            el.addClass("pop-msg alert");
+            el.hide();
+            
+            // AJAX request to send email
             $.ajax({
-                url:_base_url_+"classes/Master.php?f=update_status",
-                method:"POST",
-                data:$(this).serialize(),
-                dataType:"json",
-                error:err=>{
-                    console.log(err)
-                    alert_taost("An error occured while saving the data,", "error")
-                    end_loader()
+                url: _base_url_ + "admin/archives/send_email.php",
+                method: "POST",
+                data: $(this).serialize(),
+                dataType: "json",
+                error: err => {
+                    console.log(err);
+                    alert("An error occurred while saving the data.", "error");
+                    end_loader(); // End preloader even on error
                 },
-                success:function(resp){
-                    if(resp.status == 'success'){
-                        location.reload()
-                    }else if(!!resp.msg){
-                        el.addClass("alert-danger")
-                        el.text(resp.msg)
-                        _this.prepend(el)
-                    }else{
-                        el.addClass("alert-danger")
-                        el.text("An error occurred due to unknown reason.")
-                        _this.prepend(el)
+                success: function(resp){
+                    if(resp.status === 'success'){
+                        location.reload(); // Reload page on success
+                    } else {
+                        el.addClass("alert-danger");
+                        el.text(resp.msg || "An error occurred due to unknown reason.");
+                        $('#update_status_form').prepend(el); // Add message at the top of the form
+                        el.show('slow'); // Show alert smoothly
                     }
-                    el.show('slow')
-                    end_loader();
+                    end_loader(); // End preloader after response
                 }
-            })
-        })
-    })
+            });
+        });
+    });
+
+    function start_loader() {
+     Swal.fire({
+         title: 'Processing, please wait...',
+         html: 'This may take a moment.',
+         didOpen: () => {
+             Swal.showLoading()
+         },
+         allowOutsideClick: false,
+         showConfirmButton: false
+     });
+ }
+
+
+    function end_loader() {
+        $('#preloader').fadeOut('fast', function () {
+            $(this).remove();
+        });
+    }
 </script>

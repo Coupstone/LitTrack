@@ -4,6 +4,11 @@ ini_set('date.timezone','Asia/Manila');
 date_default_timezone_set('Asia/Manila');
 session_start();
 
+// Prevent caching of pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 require_once('initialize.php');
 require_once('classes/DBConnection.php');
 require_once('classes/SystemSettings.php');
@@ -13,6 +18,14 @@ function redirect($url=''){
 	if(!empty($url))
 	echo '<script>location.href="'.base_url .$url.'"</script>';
 }
+
+// Function to check if a user is logged in
+function check_login(){
+    if(!isset($_SESSION['user_id']) && !isset($_SESSION['student_id'])){
+        redirect('login.php'); // Redirect to login page if not logged in
+    }
+}
+
 function validate_image($file){
 	if(!empty($file)){
 			// exit;
@@ -51,6 +64,13 @@ function isMobileDevice(){
 // Check if the current URL is the root URL and redirect
 if ($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '/LitTrack/') {
     redirect('homepage.php');
+}
+
+// Redirect logged-in users away from the login page
+if (basename($_SERVER['PHP_SELF']) === 'login.php') {
+    if (isset($_SESSION['user_id']) || isset($_SESSION['student_id'])) {
+        redirect('index.php'); // Redirect to homepage or dashboard
+    }
 }
 ob_end_flush();
 ?>

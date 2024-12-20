@@ -1,3 +1,7 @@
+<?php
+require_once('config.php');
+check_login(); // Ensure the user is logged in before accessing this page
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -99,7 +103,7 @@
                 <h4 class="card-title">Submitted Projects</h4>
             </div>
             <div class="card-body rounded-0">
-                <div class="container-fluid">
+                <div class="table-responsive">
                     <table class="table table-hover table-striped">
                         <colgroup>
                             <col width="5%">

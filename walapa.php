@@ -231,6 +231,21 @@ echo "
             opacity: 0;
             overflow: hidden;
         }
+            /* Additional spacing to move the content lower */
+.card-body {
+    padding-top: 30px; /* Adjust this value to your preference */
+}
+
+/* Adjust the content-container to create more space */
+.content-container {
+    margin-top: 65px; /* Adjust this value to move the table further down */
+}
+
+/* Optional: Add more space if the content is too close to the header */
+#content {
+    padding-top: 30px; /* Increase or decrease for further spacing */
+}
+
     </style>
 
 <!-- Main Content -->
@@ -244,163 +259,162 @@ echo "
                     <div class='list-group'>";
 
                     // Retrieve search inputs
-                    $searchTitle = isset($_GET['title']) ? trim($_GET['title']) : '';
-                    $searchAuthor = isset($_GET['author']) ? trim($_GET['author']) : '';
-                    $yearFrom = isset($_GET['year_from']) ? trim($_GET['year_from']) : '';
-                    $yearTo = isset($_GET['year_to']) ? trim($_GET['year_to']) : '';
-                    $searchKeyword = isset($_GET['topic_keyword']) ? trim($_GET['topic_keyword']) : '';
+$searchTitle = isset($_GET['title']) ? trim($_GET['title']) : '';
+$searchAuthor = isset($_GET['author']) ? trim($_GET['author']) : '';
+$yearFrom = isset($_GET['year_from']) ? trim($_GET['year_from']) : '';
+$yearTo = isset($_GET['year_to']) ? trim($_GET['year_to']) : '';
+$searchKeyword = isset($_GET['topic_keyword']) ? trim($_GET['topic_keyword']) : '';
 
-                    // Step 1: Search for keywords in lda_topics table if provided
-                    $paper_ids = [];
-                    if (!empty($searchKeyword)) {
-                        $keywords = preg_split('/[\s,]+/', $searchKeyword);
-                        $query = "SELECT paper_id FROM lda_topics WHERE ";
-                        $keywordConditions = [];
-                        $params = [];
+// Step 1: Search for keywords in lda_topics table if provided
+$paper_ids = [];
+if (!empty($searchKeyword)) {
+    $keywords = preg_split('/[\s,]+/', $searchKeyword);
+    $query = "SELECT paper_id FROM lda_topics WHERE ";
+    $keywordConditions = [];
+    $params = [];
 
-                        foreach ($keywords as $keyword) {
-                            $keywordConditions[] = "topic_keywords LIKE ?";
-                            $params[] = "%" . $keyword . "%";
-                        }
-                        $query .= implode(" OR ", $keywordConditions);
+    foreach ($keywords as $keyword) {
+        $keywordConditions[] = "topic_keywords LIKE ?";
+        $params[] = "%" . $keyword . "%";
+    }
+    $query .= implode(" OR ", $keywordConditions);
 
-                        $stmt = $conn->prepare($query);
-                        $types = str_repeat("s", count($params));
-                        $stmt->bind_param($types, ...$params);
-                        $stmt->execute();
-                        $lda_result = $stmt->get_result();
+    $stmt = $conn->prepare($query);
+    $types = str_repeat("s", count($params));
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $lda_result = $stmt->get_result();
 
-                        while ($row = $lda_result->fetch_assoc()) {
-                            $paper_ids[] = $row['paper_id'];
-                        }
+    while ($row = $lda_result->fetch_assoc()) {
+        $paper_ids[] = $row['paper_id'];
+    }
 
-                        $stmt->close();
-                    }
+    $stmt->close();
+}
 
-                    // If no keywords matched in lda_topics, show the "No Results Found" modal
-                    if (!empty($searchKeyword) && empty($paper_ids)) {
-                        echo "
-                            <script>
-                                window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
-                            </script>";
-                    } else {
-                        // Step 2: Build the query for archive_list using direct filters and, if available, paper_ids
-                        $query = "SELECT archive_list.id, archive_list.title, archive_list.abstract, 
-                                  GROUP_CONCAT(CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) SEPARATOR ', ') AS authors, 
-                                  archive_list.year
-                                  FROM archive_list
-                                  LEFT JOIN archive_authors ON archive_list.id = archive_authors.archive_id
-                                  WHERE 1=1";
+// If no keywords matched in lda_topics, show the "No Results Found" modal
+if (!empty($searchKeyword) && empty($paper_ids)) {
+    echo "
+        <script>
+            window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
+        </script>";
+} else {
+    // Step 2: Build the query for archive_list using direct filters and, if available, paper_ids
+    $query = "SELECT archive_list.id, archive_list.title, archive_list.abstract, 
+              GROUP_CONCAT(CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) SEPARATOR ', ') AS authors, 
+              archive_list.year,
+              (SELECT COUNT(*) FROM archive_citation WHERE archive_id = archive_list.id) AS citation_count
+              FROM archive_list
+              LEFT JOIN archive_authors ON archive_list.id = archive_authors.archive_id
+              LEFT JOIN lda_topics lt ON archive_list.id = lt.paper_id
+              WHERE 1=1";
 
-                        $params = [];
-                        $types = "";
+    $params = [];
+    $types = "";
 
-                        // Only add paper_ids filter if there are matches from the keyword search
-                        if (!empty($paper_ids)) {
-                            $placeholders = implode(',', array_fill(0, count($paper_ids), '?'));
-                            $query .= " AND archive_list.id IN ($placeholders)";
-                            $types .= str_repeat("i", count($paper_ids));
-                            $params = array_merge($params, $paper_ids);
-                        }
+    // Only add paper_ids filter if there are matches from the keyword search
+    if (!empty($paper_ids)) {
+        $placeholders = implode(',', array_fill(0, count($paper_ids), '?'));
+        $query .= " AND archive_list.id IN ($placeholders)";
+        $types .= str_repeat("i", count($paper_ids));
+        $params = array_merge($params, $paper_ids);
+    }
 
-                        if (!empty($searchTitle)) {
-                            $query .= " AND archive_list.title LIKE ?";
-                            $params[] = "%" . $searchTitle . "%";
-                            $types .= "s";
-                        }
-                        if (!empty($searchAuthor)) {
-                            $query .= " AND CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) LIKE ?";
-                            $params[] = "%" . $searchAuthor . "%";
-                            $types .= "s";
-                        }
-                        if (!empty($yearFrom) && !empty($yearTo)) {
-                            $query .= " AND archive_list.year BETWEEN ? AND ?";
-                            $params[] = $yearFrom;
-                            $params[] = $yearTo;
-                            $types .= "ss";
-                        } elseif (!empty($yearFrom)) {
-                            $query .= " AND archive_list.year >= ?";
-                            $params[] = $yearFrom;
-                            $types .= "s";
-                        } elseif (!empty($yearTo)) {
-                            $query .= " AND archive_list.year <= ?";
-                            $params[] = $yearTo;
-                            $types .= "s";
-                        }
+    if (!empty($searchTitle)) {
+        $query .= " AND archive_list.title LIKE ?";
+        $params[] = "%" . $searchTitle . "%";
+        $types .= "s";
+    }
+    if (!empty($searchAuthor)) {
+        $query .= " AND CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) LIKE ?";
+        $params[] = "%" . $searchAuthor . "%";
+        $types .= "s";
+    }
+    if (!empty($yearFrom) && !empty($yearTo)) {
+        $query .= " AND archive_list.year BETWEEN ? AND ?";
+        $params[] = $yearFrom;
+        $params[] = $yearTo;
+        $types .= "ss";
+    } elseif (!empty($yearFrom)) {
+        $query .= " AND archive_list.year >= ?";
+        $params[] = $yearFrom;
+        $types .= "s";
+    } elseif (!empty($yearTo)) {
+        $query .= " AND archive_list.year <= ?";
+        $params[] = $yearTo;
+        $types .= "s";
+    }
 
-                        // Group by archive_list.id to consolidate authors for each paper
-                        $query .= " GROUP BY archive_list.id";
+    // Group by archive_list.id to consolidate authors for each paper
+    $query .= " GROUP BY archive_list.id ORDER BY UNIX_TIMESTAMP(archive_list.date_created) DESC";
 
-                        $stmt = $conn->prepare($query);
-                        if (!empty($params)) {
-                            $stmt->bind_param($types, ...$params);
-                        }
-                        $stmt->execute();
-                        $result = $stmt->get_result();
+    // Apply pagination
+    if (isset($limit) && isset($offset)) {
+        $query .= " LIMIT {$limit} OFFSET {$offset}";
+    }
 
-                        if ($result && $result->num_rows > 0) {
-                            while ($row = $result->fetch_assoc()) {
-                                $title = htmlspecialchars($row['title'] ?? 'No Title Available');
-                                $abstract = html_entity_decode($row['abstract'] ?? 'No Abstract Available');
-                                $members = htmlspecialchars($row['authors'] ?? 'No Authors Available'); // Use concatenated authors
-                                $year = htmlspecialchars($row['year'] ?? 'N/A');
-                                $id = $row['id'];
+    $stmt = $conn->prepare($query);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-                                // Track reads (increased view count)
-                                $stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
-                                $stmt->bind_param("i", $id);
-                                $stmt->execute();
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $title = htmlspecialchars($row['title'] ?? 'No Title Available');
+            $abstract = html_entity_decode($row['abstract'] ?? 'No Abstract Available');
+            $members = htmlspecialchars($row['authors'] ?? 'No Authors Available'); // Use concatenated authors
+            $year = htmlspecialchars($row['year'] ?? 'N/A');
+            $id = $row['id'];
+            $citation_count = $row['citation_count'] ?? 0;
 
-                                // Fetch read count
-                                $stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
-                                $stmt->bind_param("i", $id);
-                                $stmt->execute();
-                                $read_result = $stmt->get_result();
-                                $read_data = $read_result->fetch_assoc();
-                                $read_count = $read_data['read_count'];
+            // Track reads (increased view count)
+            $stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
 
-                                // Fetch download count
-                                $stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
-                                $stmt->bind_param("i", $id);
-                                $stmt->execute();
-                                $download_result = $stmt->get_result();
-                                $download_data = $download_result->fetch_assoc();
-                                $download_count = $download_data['download_count'];
+            // Fetch read count
+            $stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $read_result = $stmt->get_result();
+            $read_data = $read_result->fetch_assoc();
+            $read_count = $read_data['read_count'];
 
-                                // Fetch citation count
-                                $stmt = $conn->prepare("SELECT COUNT(*) AS citation_count FROM archive_citation WHERE archive_id = ?");
-                                $stmt->bind_param("i", $id);
-                                $stmt->execute();
-                                $citation_result = $stmt->get_result();
-                                $citation_data = $citation_result->fetch_assoc();
-                                $citation_count = $citation_data['citation_count'];
+            // Fetch download count
+            $stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $download_result = $stmt->get_result();
+            $download_data = $download_result->fetch_assoc();
+            $download_count = $download_data['download_count'];
 
-                                echo "
-                                    <a href='{$base_url}details.php?id={$id}' class='archive-item'>
-                                        <div class='text-container'>
-                                            <h3>{$title}</h3>
-                                            <small class='author'>By {$members}</small>
-                                            <div class='stats'>
-                                                <div><i class='fa fa-eye'></i> Reads: {$read_count}</div>
-                                                <div><i class='fa fa-download'></i> Downloads: {$download_count}</div>
-                                                <div><i class='fa fa-quote-left'></i> Citations: {$citation_count}</div>
-                                            </div>
-                                            <p>{$abstract}</p>
-                                            <small>Year: {$year}</small>
-                                        </div>
-                                    </a>";
-                            }
-                        } else {
-                            // Trigger the modal for no results found
-                            echo "
-                                <script>
-                                    window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
-                                </script>";
-                        }
-                    }
+            echo "
+                <a href='{$base_url}details.php?id={$id}' class='archive-item'>
+                    <div class='text-container'>
+                        <h3>{$title}</h3>
+                        <small class='author'>By {$members}</small>
+                        <div class='stats'>
+                            <div><i class='fa fa-eye'></i> Reads: {$read_count}</div>
+                            <div><i class='fa fa-download'></i> Downloads: {$download_count}</div>
+                            <div><i class='fa fa-quote-left'></i> Citations: {$citation_count}</div>
+                        </div>
+                        <p>{$abstract}</p>
+                        <small>Year: {$year}</small>
+                    </div>
+                </a>";
+        }
+    } else {
+        // Trigger the modal for no results found
+        echo "
+            <script>
+                window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
+            </script>";
+    }
+}
 
 echo "
-                </div>
             </div>
         </div>
     </div>

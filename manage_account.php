@@ -1,4 +1,5 @@
 <?php 
+check_login();
 $user = $conn->query("SELECT s.*,d.name as department, c.name as curriculum,CONCAT(lastname,', ',firstname,' ',middlename) as fullname FROM student_list s inner join department_list d on s.department_id = d.id inner join curriculum_list c on s.curriculum_id = c.id where s.id ='{$_settings->userdata('id')}'");
 foreach($user->fetch_array() as $k =>$v){
     $$k = $v;
@@ -22,12 +23,10 @@ foreach($user->fetch_array() as $k =>$v){
     background-color: var(--bs-body-bg);
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        min-height: 100vh;
-        padding-left: 0;
-        
+    
         }
         .content {
-            margin-left: 40px;
+
             margin-top: 10px;
             transform: translateY(-3%); /* Moves the container up by 10% of its height */
         }
@@ -147,7 +146,11 @@ foreach($user->fetch_array() as $k =>$v){
     filter: brightness(1.1) !important; /* Brighten on hover */
 }
 .card-header{
-    background-color:#C4D7F1;
+    background-color: #fff;
+}
+.card-title{
+    font-weight: bold;
+    transform: translateY(20%); /* Moves the container up by 10% of its height */
 }
 </style>
 <!DOCTYPE html>
@@ -160,8 +163,8 @@ foreach($user->fetch_array() as $k =>$v){
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
     </body>
 <div class="content py-4">
-    <div class="card card-outline card-primary shadow rounded-0">
-        <div class="card-header rounded-0">
+    <div class="card card-outline card-primary shadow rounded-0 ">
+        <div class="card-header rounded-0" style="background-color: white">
             <h5 class="card-title">Update Details</h5>
         </div>
         <div class="card-body rounded-0">
@@ -171,13 +174,13 @@ foreach($user->fetch_array() as $k =>$v){
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <label for="firstname" class="control-label text-navy">FirstName</label>
+                                <label for="firstname" class="control-label text-navy">First Name</label>
                                 <input type="text" name="firstname" id="firstname" autofocus placeholder="Firstname" class="form-control form-control-border" value="<?= isset($firstname) ?$firstname : "" ?>" required>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <label for="middlename" class="control-label text-navy">MiddleName</label>
+                                <label for="middlename" class="control-label text-navy">Middle Name</label>
                                 <input type="text" name="middlename" id="middlename" placeholder="Middlename (optional)" class="form-control form-control-border" value="<?= isset($middlename) ?$middlename : "" ?>">
                             </div>
                         </div>
@@ -185,7 +188,7 @@ foreach($user->fetch_array() as $k =>$v){
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <label for="lastname" class="control-label text-navy">LastName</label>
+                                <label for="lastname" class="control-label text-navy">Last Name</label>
                                 <input type="text" name="lastname" id="lastname" placeholder="Lastname" class="form-control form-control-border" value="<?= isset($lastname) ?$lastname : "" ?>" required>
                             </div>
                         </div>
@@ -197,13 +200,13 @@ foreach($user->fetch_array() as $k =>$v){
                         <div class="form-group col-auto">
                             <div class="custom-control custom-radio">
                                 <input class="custom-control-input" type="radio" id="genderMale" name="gender" value="Male" required  <?= isset($gender) && $gender == "Male" ? "checked" : "" ?>>
-                                <label for="genderMale" class="custom-control-label">Male</label>
+                                <label for="genderMale" class="custom-control-label" style="font-weight: normal">Male</label>
                             </div>
                         </div>
                         <div class="form-group col-auto">
                             <div class="custom-control custom-radio">
                                 <input class="custom-control-input" type="radio" id="genderFemale" name="gender" value="Female" <?= isset($gender) && $gender == "Female" ? "checked" : "" ?>>
-                                <label for="genderFemale" class="custom-control-label">Female</label>
+                                <label for="genderFemale" class="custom-control-label" style="font-weight: normal">Female</label>
                             </div>
                         </div>
                     </div>
@@ -248,7 +251,7 @@ foreach($user->fetch_array() as $k =>$v){
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group text-center">
-                                <button class="btn btn-default bg-navy btn-flat"> Update</button>
+                                <button class="btn btn-default bg-blue btn-flat"> Update</button>
                                 <a href="./?page=profile" class="btn btn-light border btn-flat"> Cancel</a>
                             </div>
                         </div>
@@ -350,4 +353,3 @@ foreach($user->fetch_array() as $k =>$v){
 });
 });
 </script>
-

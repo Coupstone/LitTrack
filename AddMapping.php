@@ -1,6 +1,7 @@
 <?php
 $page = isset($_GET['page']) ? $_GET['page'] : 'Litmaps';
 require_once('./config.php');
+check_login();
 require_once('inc/topBarNav.php');
 require_once('inc/header.php');
 

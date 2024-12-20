@@ -3,6 +3,7 @@
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'view_archive';
 require_once('./config.php');
+check_login(); 
 require_once('inc/topBarNav.php');
 require_once('inc/header.php');
 
@@ -155,19 +156,19 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     $general_authors_formatted = implode(", ", $general_authors);
 
 
-    // Fetch the student's email who submitted the archive
-    $submitted = "N/A";
-    if (isset($student_id)) {
-        $student_stmt = $conn->prepare("SELECT email FROM student_list WHERE id = ?");
-        $student_stmt->bind_param("i", $student_id);
-        $student_stmt->execute();
-        $student_result = $student_stmt->get_result();
-        if ($student_result->num_rows > 0) {
-            $student = $student_result->fetch_assoc();
-            $submitted = $student['email'];
-        }
-    }
-}
+     // Fetch the student's email who submitted the archive
+     $submitted = "N/A";
+     if (isset($student_id)) {
+         $student_stmt = $conn->prepare("SELECT firstname, lastname FROM student_list WHERE id = ?");
+         $student_stmt->bind_param("i", $student_id);
+         $student_stmt->execute();
+         $student_result = $student_stmt->get_result();
+         if ($student_result->num_rows > 0) {
+             $student = $student_result->fetch_assoc();
+             $submitted = $student['firstname'] . ' ' . $student['lastname'];
+         }
+     }
+ }
 
 
 // Check if user_id exists in the session before using it
@@ -890,6 +891,5 @@ window.onclick = function(event) {
 </script>
 
 </script>
-
 
 

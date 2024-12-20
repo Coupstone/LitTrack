@@ -1,3 +1,10 @@
+<head>
+
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSRC LitTrack</title>
+    <link rel="icon" href="uploads/LitTrack.png" type="image/png">
+
 <style>
     /* Overlay for the pop-up */
     .popup-overlay {
@@ -83,7 +90,12 @@
     .popup button:hover {
         background-color: #0056b3;
     }
+    .hidden-output {
+    display: none;
+}
+
 </style>
+</head>
 
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
@@ -98,6 +110,19 @@ require_once('./config.php'); // Database connection
 
 if (isset($_POST['email'])) {
     $email = $_POST['email'];
+    
+        // Sanitize email input to prevent SQL injection
+        $email = $conn->real_escape_string($email);
+
+        // Query to check if the email exists in the student table
+        $query = "SELECT * FROM student_list WHERE email = '$email'";
+        $result = $conn->query($query);
+    
+        if ($result && $result->num_rows > 0) {
+            echo '<div class="hidden-output">exists</div>';
+        } else {
+            echo '<div class="hidden-output">not_exists</div>';
+        }
 
     // Query to find the user by email
     $query = $conn->prepare("SELECT * FROM student_list WHERE email = ?");
@@ -146,22 +171,19 @@ if (isset($_POST['email'])) {
 
             $mail->send();
 
-            // Custom popup message design with transition and OK button
-            echo "<div id='popup-message' class='popup-overlay'>
-                    <div class='popup'>
-                        <h4>Reset password link sent successfully!</h4>
-                        <p>Please check your email to proceed with the password reset.</p>
-                        <button id='emailButton'>OK</button>
-                    </div>
-                </div>
-                <script>
-                    document.getElementById('popup-message').classList.add('visible');
-                    
-                    // Redirect based on email provider when OK is clicked
-                    document.getElementById('emailButton').onclick = function() {
+            // Success message with SweetAlert2
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+            <script>
+                Swal.fire({
+                    title: 'Reset Link Sent!',
+                    text: 'Please check your email to proceed with the password reset.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirect based on email provider
                         var email = '$email';
                         var emailDomain = email.split('@')[1];
-
                         var emailProviders = {
                             'gmail.com': 'https://mail.google.com/',
                             'yahoo.com': 'https://mail.yahoo.com/',
@@ -169,18 +191,46 @@ if (isset($_POST['email'])) {
                             'hotmail.com': 'https://outlook.live.com/mail/',
                         };
 
-                        // If email provider is found in the list, redirect, otherwise go to Google Mail
+                        // Default to Gmail if email provider not matched
                         var redirectUrl = emailProviders[emailDomain] || 'https://mail.google.com/';
                         window.location.href = redirectUrl;
-                    };
-                </script>";
+                    }
+                });
+            </script>";
         } catch (Exception $e) {
-            echo "Failed to send reset email. Mailer Error: {$mail->ErrorInfo}";
+            // Error message with SweetAlert2
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+            <script>
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to send the reset email. Please try again later.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            </script>";
         }
     } else {
-        echo "No user found with that email address.";
+        // If no user exists with that email, display error
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+            Swal.fire({
+                title: 'No User Found',
+                text: 'No account exists with the provided email address.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        </script>";
     }
 } else {
-    echo "Email is required!";
+    // If email is not provided
+    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    <script>
+        Swal.fire({
+            title: 'Input Required',
+            text: 'Please provide your email address.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    </script>";
 }
 ?>

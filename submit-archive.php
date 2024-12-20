@@ -1,4 +1,5 @@
 <?php 
+check_login();
 if (isset($_GET['id']) && $_GET['id'] > 0) {
     $qry = $conn->query("SELECT * FROM `archive_list` WHERE id = '{$_GET['id']}'");
     if ($qry->num_rows) {
@@ -31,15 +32,14 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 
     <style>
 html, body {
-    height: 100%; /* Ensure the full height of the viewport */
-    margin: 0; /* Reset default margin */
-    align-items: center; /* Center content vertically */
-    justify-content: center; /* Center content horizontally */
-    padding: 0; /* Ensure no padding is affecting layout */
-    overflow: hidden; /* Prevents scroll bars if not necessary */
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
-
-            #title-label,
+#title-label,
     #abstract-label,
     #pdf-label {
         font-weight: normal; /* Ensures text is not bold */
@@ -50,95 +50,102 @@ html, body {
     }
 
 .container {
-    max-width: 2000px; /* Adjust width as necessary */
-    width: 103%; /* Use full width for smaller screens */
-    margin: 10px; /* Reduced margin around the container */
-    padding: 10px; /* Reduced padding inside the container for a compact look */
-    transform: translateY(-10%); /* Moves the container up by 10% of its height */
+    max-width: 2000px;
+    width: 103%;
+    margin: 10px;
+    padding: 10px;
+    transform: translateY(-10%);
 }
-    .form-control, .form-control:focus {
-        border-color: #ced4da; /* Consistent with the design */
-        box-shadow: none; /* No focus shadow */
-    }
-    .form-floating {
-        margin-bottom: 16px; /* Space between fields */
-    }
-    .card {
-        border-radius: 0; /* Flat design */
-    }
-    .card-header {
-        border-bottom: 2px solid #007bff; /* Stylish blue border top on card header */
-    }
 
-    /* Smaller button styles */
+/* Form and Labels */
+#title-label, #abstract-label, #pdf-label {
+    font-weight: normal;
+}
+#abstract {
+    min-height: 150px;
+    width: 100%;
+}
+.form-control, .form-control:focus {
+    border-color: #ced4da;
+    box-shadow: none;
+}
+.form-floating {
+    margin-bottom: 16px;
+}
+.form-label {
+    font-weight: normal;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Card and Publication Details */
+.card {
+    border-radius: 0;
+}
+.card-header {
+    border-bottom: 2px solid #007bff;
+}
+
+/* Author Row */
+.author-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.author-row .form-control {
+    margin-right: 15px;
+}
+.author-row .form-control:last-child {
+    margin-right: 0;
+}
+
+/* Publication Details Section */
+#publication-details {
+    display: none;
+    transition: max-height 0.3s ease-in-out;
+    overflow: hidden;
+    margin-top: 10px; /* Adds space from above fields */
+}
+
+/* Optional Text */
+.optional-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+/* Buttons for Publication Details */
+.btn-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+.btn-info:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #publication-details {
+        max-height: 200px; /* Restrict height for smaller screens */
+        overflow-y: auto; /* Add scroll if content overflows */
+    }
+    .form-floating label {
+        font-size: 0.9rem;
+    }
+    .form-control {
+        font-size: 0.9rem;
+    }
     .btn {
-        padding: 0.375rem 0.75rem; /* Reduced padding */
-        font-size: 0.875rem; /* Smaller font size */
-        line-height: 1.5; /* Standard line height */
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
     }
-    .author-row .form-control {
-        margin-right: 15px; /* Adds space to the right of each input field except the last in the row */
-    }
-    .author-row .form-control:last-child {
-        margin-right: 0; /* Ensures the last input in the row does not have extra space on the right */
-    }
-    .author-row {
-        display: flex; /* Ensures the input fields are aligned in a row */
-        align-items: center; /* Aligns items vertically */
-        margin-bottom: 15px; /* Adds space below each author row for better separation */
-    }
-    #pdf-label {
-        display: block; /* Ensures the label takes up the full width and behaves like a block element */
-        margin-bottom: 8px; /* Adds some space below the label before the input field */
-        font-weight: normal; /* Keeps the label text normal, non-bold */
-    }
-    .form-control {
-        display: block;
-        width: 100%; /* Ensures the input takes full width of its container */
-        padding: 0.375rem 0.75rem; /* Standard padding for Bootstrap form controls */
-        font-size: 1rem; /* Standard font size for input text */
-        line-height: 1.5; /* Standard line height for readability */
-        color: #495057; /* Default text color */
-        background-color: #fff; /* White background */
-        background-clip: padding-box; /* Ensures background extends to the borders */
-        border: 1px solid #ced4da; /* Standard border styling */
-        border-radius: 0.25rem; /* Rounded borders for aesthetics */
-        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Smooth transition for focus effects */
-    }
-    .btn-info {
-        color: #fff;
-        background-color: #17a2b8;
-        border-color: #17a2b8;
-    }
-    .btn-info:hover {
-        background-color: #138496;
-        border-color: #117a8b;
-    }
-    .form-control {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-    }
-    .form-label {
-        font-weight: normal; /* Ensures the label text is not bold */
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    .optional-text {
-        font-size: 0.875rem; /* Slightly smaller than button text */
-        color: #6c757d; /* Muted text color for secondary information */
-        margin-left: 2px; /* Space between button and text */
-        vertical-align: middle; /* Align text vertically with the button */
-    }
+}
 </style>
+
 
 </head>
 <body>
@@ -220,9 +227,9 @@ html, body {
 </div>
 
                     <!-- Submit Button -->
-                    <div class="form-group text-center">
-                        <button class="btn btn-default bg-navy btn-flat">Upload</button>
-                        <a href="./?page=profile" class="btn btn-light border btn-flat">Cancel</a>
+                    <div class="form-group text-center mt-2">
+                        <button class="btn btn-default bg-navy btn-flat" type="submit" id="submit-button" disabled>Upload</button>
+                        <a type="button" id="cancel-button" class="btn btn-light border btn-flat">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -232,31 +239,140 @@ html, body {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-        function togglePublicationDetails() {
+    function togglePublicationDetails() {
         const detailsDiv = document.getElementById('publication-details');
-        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+        if (detailsDiv) {
+            detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+        }
     }
 
-document.getElementById('pdf').addEventListener('change', function () {
-        const file = this.files[0];
-        if (file) {
-            const fileType = file.type;
-            if (fileType !== 'application/pdf') {
-                Swal.fire({
-                    title: 'Invalid File',
-                    text: 'Only PDF files are allowed. Please upload a valid PDF file.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                this.value = ''; // Clear the invalid file
+    document.addEventListener('DOMContentLoaded', function () {
+        const requiredFields = [
+            'title',
+            'year',
+            'abstract',
+            'author-container',
+            'pdf',
+            'visibility'
+        ];
+        const submitButton = document.querySelector('button[type="submit"]');
+        const cancelButton = document.getElementById('cancel-button');
+        const visibilityInputs = document.querySelectorAll('input[name="visibility"]');
+        const pdfInput = document.getElementById('pdf');
+        const authorContainer = document.getElementById('author-container');
+        const form = document.getElementById('archive-form'); // Replace with your form's ID
+
+        function checkFormValidity() {
+            let isValid = true;
+
+            requiredFields.forEach((field) => {
+                if (field === 'author-container') {
+                    if (authorContainer) {
+                        const authors = document.querySelectorAll('#author-container .author-row input');
+                        if (authors.length === 0 || [...authors].some(author => !author.value.trim())) {
+                            isValid = false;
+                        }
+                    } else {
+                        console.warn(`Element with ID '${field}' is missing.`);
+                    }
+                } else if (field === 'visibility') {
+                    if (visibilityInputs.length === 0 || ![...visibilityInputs].some(input => input.checked)) {
+                        isValid = false;
+                    }
+                } else if (field === 'pdf') {
+                    if (!pdfInput || !pdfInput.files || pdfInput.files.length === 0) {
+                        isValid = false;
+                    }
+                } else {
+                    const fieldElement = document.getElementById(field);
+                    if (fieldElement) {
+                        if (!fieldElement.value.trim()) {
+                            isValid = false;
+                        }
+                    } else {
+                        console.warn(`Element with ID '${field}' is missing.`);
+                    }
+                }
+            });
+
+            if (submitButton) {
+                submitButton.disabled = !isValid;
+            } else {
+                console.warn("Submit button is missing.");
             }
         }
+
+        function validatePdf() {
+            if (!pdfInput) return;
+
+            const file = pdfInput.files[0];
+            if (file) {
+                const fileType = file.type;
+                if (fileType !== 'application/pdf') {
+                    Swal.fire({
+                        title: 'Invalid File',
+                        text: 'Only PDF files are allowed. Please upload a valid PDF file.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    pdfInput.value = ''; // Clear the invalid file
+                }
+            }
+            checkFormValidity();
+        }
+
+        // Cancel button logic
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function () {
+                if (form) {
+                    // Reset the entire form
+                    form.reset();
+
+                    // Clear the input fields in the author rows, but keep the structure intact
+                    const authorRows = document.querySelectorAll('#author-container .author-row input');
+                    authorRows.forEach((input) => (input.value = ''));
+
+                    // Clear the PDF file input manually (form.reset() doesn't clear files)
+                    if (pdfInput) {
+                        pdfInput.value = '';
+                    }
+
+                    // Re-check form validity
+                    checkFormValidity();
+                }
+            });
+        }
+
+        // Attach event listeners to all fields
+        requiredFields.forEach((field) => {
+            if (field === 'author-container') {
+                if (authorContainer) {
+                    authorContainer.addEventListener('input', checkFormValidity);
+                }
+            } else if (field === 'visibility') {
+                visibilityInputs.forEach(input => input.addEventListener('change', checkFormValidity));
+            } else if (field === 'pdf') {
+                if (pdfInput) {
+                    pdfInput.addEventListener('change', validatePdf);
+                }
+            } else {
+                const fieldElement = document.getElementById(field);
+                if (fieldElement) {
+                    fieldElement.addEventListener('input', checkFormValidity);
+                    fieldElement.addEventListener('change', checkFormValidity);
+                }
+            }
+        });
+
+        // Initial check
+        checkFormValidity();
     });
 
     function addAuthorRow() {
         const authorContainer = document.getElementById("author-container");
-        const authorRows = authorContainer.getElementsByClassName("author-row");
+        if (!authorContainer) return;
 
+        const authorRows = authorContainer.getElementsByClassName("author-row");
         if (authorRows.length >= 6) {
             Swal.fire({
                 title: 'Limit Reached',
@@ -275,12 +391,26 @@ document.getElementById('pdf').addEventListener('change', function () {
             </div>
         `;
         authorContainer.insertAdjacentHTML("beforeend", authorRow);
+
+        // Disable the submit button after adding a new author
+        const event = new Event('input');
+        authorContainer.dispatchEvent(event);
     }
 
     function removeAuthorRow(button) {
         button.parentElement.remove();
+        // Re-check form validity after removing a row
+        const event = new Event('input');
+        const authorContainer = document.getElementById('author-container');
+        if (authorContainer) {
+            authorContainer.dispatchEvent(event);
+        }
     }
 </script>
+
+
+
+
 
 
 <?php
