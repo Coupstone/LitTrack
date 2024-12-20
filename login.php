@@ -22,29 +22,31 @@
 <body class="bg-image">
   
   <!-- Forgot Password Modal -->
-  <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Forgot Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="forgot_password.php" method="POST">
-                <div class="modal-body">
-                    <p>Please enter your registered email address.</p>
-                    <div class="form-floating mb-3">
-                        <input type="email" class="form-control" name="email" placeholder="Email Address" required>
-                        <label for="email">Email Address</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Send Reset Link</button>
-                </div>
-            </form>
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Forgot Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="forgot_password.php" method="POST" id="forgotPasswordForm">
+        <div class="modal-body">
+          <p>Please enter your registered email address.</p>
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Email Address" required>
+            <label for="email">Email Address</label>
+              <!-- Validation feedback -->
+              <div id="email-error" class="invalid-feedback"></div>
+          </div>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelSendEmailBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="sendEmailBtn" disabled>Send Reset Link</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
   <div class="container-fluid position-absolute top-50 start-50 translate-middle">
     <div class="row justify-content-center align-items-center">
@@ -126,53 +128,170 @@
 
   <!-- AJAX Login Script -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var form = document.getElementById('slogin-form');
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('slogin-form');
+    var emailInput = form.querySelector('input[name="email"]');
+    var passwordInput = form.querySelector('input[name="password"]');
+    var emailInputForgotPassword = forgotPasswordForm.querySelector('input[name="email"]');
+    
+    // Regular expression for allowed email domains
+    var emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|iskolarngbayan\.pup\.edu\.ph)$/;
 
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            var emailInput = form.querySelector('input[name="email"]');
-            var passwordInput = form.querySelector('input[name="password"]');
-
+    // Validate email when the user leaves the field (on blur)
+    emailInput.addEventListener('blur', function () {
+        if (!emailPattern.test(emailInput.value) && emailInput.value.trim() !== "") {
+            emailInput.classList.add('is-invalid');
+        } else {
             emailInput.classList.remove('is-invalid');
-            passwordInput.classList.remove('is-invalid');
-
-            var isValid = true;
-
-            if (!emailInput.value) {
-                emailInput.classList.add('is-invalid');
-                isValid = false;
-            }
-            if (!passwordInput.value) {
-                passwordInput.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            if (isValid) {
-                $.ajax({
-                    url: _base_url_ + "classes/Login.php?f=student_login",
-                    method: 'POST',
-                    data: $(form).serialize(),
-                    dataType: 'json',
-                    error: function () {
-                        var errorMsg = $("<div>").addClass("alert alert-danger my-2").text("An error occurred.");
-                        $(form).prepend(errorMsg);
-                    },
-                    success: function (resp) {
-                        if (resp.status === 'success') {
-                            location.href = "./index.php";
-                        } else {
-                            var errorMsg = $("<div>").addClass("alert alert-danger my-2").text(resp.msg || "Invalid email or password.");
-                            $(form).prepend(errorMsg);
-                            $('html, body').animate({ scrollTop: 0 }, 'fast');
-                        }
-                    }
-                });
-            }
-        });
+        }
     });
-  </script>
+
+        // Prevent spaces in the email input field
+        emailInput.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.keyCode === 32) {
+            e.preventDefault(); // Prevent space bar input
+        }
+    });
+
+            // Prevent spaces in the email input field
+            emailInputForgotPassword.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.keyCode === 32) {
+            e.preventDefault(); // Prevent space bar input
+        }
+    });
+
+    // Validate password input dynamically
+    passwordInput.addEventListener('input', function () {
+        if (passwordInput.value.trim() !== "") {
+            passwordInput.classList.remove('is-invalid');
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        // Clear any existing error messages dynamically
+        $('.alert-danger').remove();
+
+        emailInput.classList.remove('is-invalid');
+        passwordInput.classList.remove('is-invalid');
+
+        var isValid = true;
+
+        // Email validation on submit
+        if (!emailInput.value || !emailPattern.test(emailInput.value)) {
+            emailInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Password validation on submit
+        if (!passwordInput.value) {
+            passwordInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Proceed with AJAX request if inputs are valid
+        if (isValid) {
+            $.ajax({
+                url: _base_url_ + "classes/Login.php?f=student_login",
+                method: 'POST',
+                data: $(form).serialize(),
+                dataType: 'json',
+                error: function () {
+                    var errorMsg = `
+                        <div class="alert alert-danger my-2 text-center fw-medium font-13" role="alert">
+                            An error occurred. Please try again.
+                        </div>
+                    `;
+                    $(form).prepend(errorMsg);
+                },
+                success: function (resp) {
+                    if (resp.status === 'success') {
+                        location.href = "./index.php";
+                    } else {
+                        // Show dynamic error message
+                        var errorMsg = `
+                            <div class="alert alert-danger my-2 text-center fw-medium font-13" role="alert">
+                                Invalid password or email.
+                            </div>
+                        `;
+                        $(form).prepend(errorMsg);
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+
+<script>
+  $(document).ready(function () {
+    // Initially disable the Send button
+    $('#sendEmailBtn').prop('disabled', true);
+
+    // Email validation regex for specific domains
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|iskolarngbayan\.pup\.edu\.ph)$/;
+
+    // Reset the form and error message when modal is closed
+    const resetForgotPasswordForm = () => {
+      $("#email-error").hide();
+      $("#email-valid").hide();
+      $("#email").removeClass("is-invalid is-valid");
+      $("#forgotPasswordForm")[0].reset();
+      $('#sendEmailBtn').prop('disabled', true);
+    };
+
+    // Validate email input and check existence in the system
+    $('#email').on('input', function () {
+      const email = $('#email').val();
+
+      // Check if the email matches the regex
+      if (emailRegex.test(email)) {
+        $("#email").removeClass("is-invalid").addClass("is-valid");
+        $("#email-error").hide();
+
+        // AJAX call to check if email exists in the database
+        $.ajax({
+          url: 'check_email.php', // Server-side script
+          type: 'POST',
+          data: { email: email },
+          success: function(response) {
+            const data = JSON.parse(response);
+
+            if (data.status === 'exists') {
+              // Email exists, enable the Send button
+              $('#sendEmailBtn').prop('disabled', false);
+              $("#email-valid").show(); // Optionally show a valid message
+              $("#email-error").hide(); // Hide error message if exists
+            } else if (data.status === 'not_exists') {
+              // Email does not exist, disable the Send button
+              $('#sendEmailBtn').prop('disabled', true);
+              $("#email-error").show().text('We couldn\'t find your email address.');
+              $("#email-valid").hide();
+            }
+          },
+          error: function() {
+            alert('Error checking email existence');
+          }
+        });
+
+      } else {
+        // Invalid email format
+        $('#sendEmailBtn').prop('disabled', true);
+        $("#email").removeClass("is-valid").addClass("is-invalid");
+        $("#email-error").show().text('Please provide a valid email address');
+        $("#email-valid").hide();
+      }
+    });
+
+    // Reset the form when modal is closed
+    $('#forgotPasswordForm').on('reset', resetForgotPasswordForm);
+  });
+</script>
+
+
+
+
 
 </body>
 </html>

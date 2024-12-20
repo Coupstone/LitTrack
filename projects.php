@@ -1,5 +1,6 @@
 <?php
-require_once('config.php'); // Database connection
+require_once('config.php');
+check_login();  // Database connection
 
 $limit = 10;
 $page = isset($_GET['p']) ? intval($_GET['p']) : 1;

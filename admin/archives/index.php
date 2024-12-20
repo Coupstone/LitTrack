@@ -118,7 +118,6 @@
                     <col width="15%">
                     <col width="20%">
                     <col width="20%">
-                    <!-- <col width="10%"> -->
                     <col width="10%">
                 </colgroup>
                 <thead>
@@ -127,7 +126,6 @@
                         <th>Date Created</th>
                         <th>Archive Code</th>
                         <th>Project Title</th>
-                        <!-- <th>Curriculum</th> -->
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -135,8 +133,6 @@
                 <tbody>
                     <?php 
                         $i = 1;
-                        $curriculum = $conn->query("SELECT * FROM curriculum_list where id in (SELECT curriculum_id from archive_list)");
-                        $cur_arr = array_column($curriculum->fetch_all(MYSQLI_ASSOC),'name','id');
                         $qry = $conn->query("SELECT * from archive_list order by year desc, title desc ");
                         while($row = $qry->fetch_assoc()):
                     ?>
@@ -145,7 +141,6 @@
                         <td data-label="Date Created"><?php echo date("Y-m-d H:i",strtotime($row['date_created'])) ?></td>
                         <td data-label="Archive Code"><?php echo ($row['archive_code']) ?></td>
                         <td data-label="Project Title"><?php echo ucwords($row['title']) ?></td>
-                        <!-- <td data-label="Curriculum"><?php echo $cur_arr[$row['curriculum_id']] ?></td> -->
                         <td data-label="Status" class="text-center">
                             <?php
                                 switch($row['status']){
@@ -155,22 +150,42 @@
                                     case '0':
                                         echo "<span class='badge badge-secondary badge-pill'>Not Published</span>";
                                         break;
+                                        case '2':
+                                            echo "<span class='badge badge-danger badge-pill'>Rejected</span>";
+                                            break;
                                 }
                             ?>
                         </td>
                         <td data-label="Action" align="center">
-                            <button type="button" class="btn btn-flat btn-default btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown">
-                                Action
-                                <span class="sr-only">Toggle Dropdown</span>
-                            </button>
-                            <div class="dropdown-menu" role="menu">
-                                <a class="dropdown-item" href="<?= base_url ?>admin/?page=view_research&id=<?php echo $row['id'] ?>"><span class="fa fa-external-link-alt text-gray"></span> View</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item update_status" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>" data-status="<?php echo $row['status'] ?>"><span class="fa fa-check text-dark"></span> Update Status</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item delete_data" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>"><span class="fa fa-trash text-danger"></span> Delete</a>
-                            </div>
-                        </td>
+    <button type="button" class="btn btn-flat btn-default btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown">
+        Action
+        <span class="sr-only">Toggle Dropdown</span>
+    </button>
+    <div class="dropdown-menu" role="menu">
+        <a class="dropdown-item" href="<?= base_url ?>admin/?page=view_research&id=<?php echo $row['id'] ?>"><span class="fa fa-external-link-alt text-gray"></span> View</a>
+        <div class="dropdown-divider"></div>
+
+        <?php
+            // Calculate if the research is recently uploaded (adjust threshold as needed)
+            $time_diff = time() - strtotime($row['date_created']);
+            $is_recently_uploaded = $time_diff < 86400; // 86400 seconds = 1 day
+
+            // Check if the status is either 0 (Not Published) or 1 (Published) and allow updates only for recent uploads
+            if ($row['status'] == 0 && $is_recently_uploaded): ?>
+                <!-- Newly uploaded research, allow status update -->
+                <a class="dropdown-item update_status" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>" data-status="<?php echo $row['status'] ?>"><span class="fa fa-check text-dark"></span> Update Status</a>
+            <?php elseif ($row['status'] == 1 || $row['status'] == 2): ?>
+                <!-- Status is locked, display a message indicating that it can't be updated -->
+                <span class="dropdown-item text-muted"><span class="fa fa-lock text-warning"></span> Status Locked</span>
+            <?php endif; ?>
+
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item delete_data" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>"><span class="fa fa-trash text-danger"></span> Delete</a>
+    </div>
+</td>
+
+
+
                     </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -183,37 +198,40 @@
     $(document).ready(function(){
         $('.delete_data').click(function(){
             _conf("Are you sure to delete this project permanently?","delete_archive",[$(this).attr('data-id')])
-        })
+        });
         $('.update_status').click(function(){
-            uni_modal("Update Details","archives/update_status.php?id="+$(this).attr('data-id')+"&status="+$(this).attr('data-status'))
-        })
-        $('.table td,.table th').addClass('py-2 px-3 align-middle')
+            uni_modal("Update Details","archives/update_status.php?id="+$(this).attr('data-id')+"&status="+$(this).attr('data-status'));
+        });
+        
+        $('.table td,.table th').addClass('py-2 px-3 align-middle');
         $('.table').dataTable({
             columnDefs: [
-                { orderable: false, targets: 5 }
+                { orderable: false, targets: [5] }
             ],
         });
-    })
-    function delete_archive($id){
+    });
+
+    function delete_archive(id){
         start_loader();
         $.ajax({
-            url:_base_url_+"classes/Master.php?f=delete_archive",
-            method:"POST",
-            data:{id: $id},
-            dataType:"json",
-            error:err=>{
-                console.log(err)
-                alert_toast("An error occurred.",'error');
+            url: _base_url_+"classes/Master.php?f=delete_archive",
+            method: "POST",
+            data: {id: id},
+            dataType: "json",
+            error: function(err){
+                console.log(err);
+                alert("An error occurred while deleting the archive.");
                 end_loader();
             },
-            success:function(resp){
-                if(typeof resp== 'object' && resp.status == 'success'){
+            success: function(resp){
+                if(resp.status == 'success'){
+                    alert("Project successfully deleted.");
                     location.reload();
-                }else{
-                    alert_toast("An error occurred.",'error');
-                    end_loader();
+                } else {
+                    alert("Failed to delete project. Please try again.");
                 }
+                end_loader();
             }
-        })
+        });
     }
 </script>

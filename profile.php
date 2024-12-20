@@ -1,5 +1,6 @@
 <?php
 require_once './config.php';
+check_login();
 
 // Retrieve user data, including the avatar image
 if (isset($_settings) && method_exists($_settings, 'userdata')) {
@@ -141,35 +142,39 @@ foreach ($user->fetch_array() as $k => $v) {
     </style>
 </head>
 <body class="sidebar-expanded">
-<div id="content" class="content-container container py-4">
+<div class="container mt-4 mr-4">
     <div class="card card-outline card-primary shadow rounded-0">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
             <h5 class="card-title m-0"><b>Student Profile</b></h5>
-            <div class="card-tools">
-        <a href="./?page=my_archives" class="btn btn-default bg-primary btn-flat">
-            <i class="fa fa-archive"></i> My Archives
-        </a>
-        <a href="./?page=manage_account" class="btn btn-default bg-navy btn-flat">
-            <i class="fa fa-edit"></i> Update Account
-        </a>
+            <div class="card-tools mt-2 mt-md-0">
+                <a href="./?page=my_archives" class="btn btn-default bg-primary btn-flat mb-2 mb-md-0">
+                    <i class="fa fa-archive"></i> My Archives
+                </a>
+                <a href="./?page=manage_account" class="btn btn-default bg-navy btn-flat">
+                    <i class="fa fa-edit"></i> Update Account
+                </a>
             </div>
         </div>
         <div class="card-body rounded-0">
             <div class="container-fluid">
                 <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-lg-4 col-sm-12 text-center mb-3">
-                        <img src="<?= validate_image(isset($avatar) ? $avatar : 'uploads/default.png') ?>" alt="Student Image" class="img-fluid student-img bg-gradient-dark">
+                    <!-- Image Section -->
+                    <div class="col-lg-4 col-md-6 col-sm-12 text-center mb-3">
+                        <img src="<?= validate_image(isset($avatar) ? $avatar : 'uploads/default.png') ?>" 
+                             alt="Student Image" 
+                             class="img-fluid student-img bg-gradient-dark rounded-circle">
                     </div>
-                    <div class="col-lg-8 col-sm-12">
-                        <dl>
-                            <dt>Student Name:</dt>
-                            <dd><?= ucwords($fullname) ?></dd>
-                            <dt>Gender:</dt>
-                            <dd><?= ucwords($gender) ?></dd>
-                            <dt>Email:</dt>
-                            <dd><?= $email ?></dd>
-                            <dt>Department:</dt>
-                            <dd><?= ucwords($department) ?></dd>
+                    <!-- Information Section -->
+                    <div class="col-lg-8 col-md-6 col-sm-12">
+                        <dl class="row">
+                            <dt class="col-5 text-primary">Student Name:</dt>
+                            <dd class="col-7"><?= ucwords($fullname) ?></dd>
+                            <dt class="col-5 text-primary">Gender:</dt>
+                            <dd class="col-7"><?= ucwords($gender) ?></dd>
+                            <dt class="col-5 text-primary">Email:</dt>
+                            <dd class="col-7"><?= $email ?></dd>
+                            <dt class="col-5 text-primary">Department:</dt>
+                            <dd class="col-7"><?= ucwords($department) ?></dd>
                         </dl>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
-<?php require_once('./config.php'); ?>
+<?php require_once('./config.php');
+check_login(); ?>
 <!DOCTYPE html>
 <html lang="en" class="" style="height: auto;">
 <?php require_once('inc/header.php') ?>

@@ -55,7 +55,7 @@ require_once('./config.php');
       <!-- Left Column -->
       <div class="col-sm-6 text-center">
         <!-- Logo above text -->
-        <!-- <img src="uploads/LitLogo.png" class="img-fluid mb-4" style="max-width: 40%; height: auto;" alt="LitTrack Logo"> -->
+        <img src="uploads/LITTRACKLOGO.png" class="img-fluid mb-4" style="max-width: 40%; height: auto;" alt="LitTrack Logo">
         <!-- Smaller 'About LitTrack' text -->
         <h5 class="fw-semibold">About Us</h5>
         <p>Welcome to PUPSRC LitTrack, the official research repository and literature mapping system of PUP Santa Rosa Campus.
@@ -145,7 +145,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
         <h4 class="display-5 fw-bold mb-4 text-center" style="margin-top: 20px;">Researches</h4>
         <div class="mb-3 d-flex justify-content-center">
             <div class="input-group" style="width: 50%;">
-                <input type="text" id="searchInput" class="form-control" placeholder="Search..." onkeyup="filterTable()">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by title or year.." onkeyup="filterTable()">
                 <button class="btn btn-primary" onclick="filterTable()">Search</button>
             </div>
         </div>
@@ -606,8 +606,8 @@ section.services i {
 }
 /* .table-container {
     width: 1000px; /* Adjust this value to make it smaller or larger */
-    margin: 0 auto; /* Centers the table */
-  } */
+; /* Centers the table */
+
   .table {
     width:1000px;
     margin-left: -80px;
