@@ -22,7 +22,7 @@ if (isset($_GET['q'])) {
             AND (
                 au.first_name LIKE '%{$keyword}%' OR 
                 au.last_name LIKE '%{$keyword}%' OR 
-                CONCAT(au.first_name, ' ', au.last_name) LIKE '%{$keyword}%'
+                                CONCAT(au.first_name, ' ', au.last_name) LIKE '%{$keyword}%'
             )
         )
     )";
@@ -234,9 +234,9 @@ if ($archive_ids) {
                     <?php foreach ($archive_data as $id => $row): ?>
     <div class="archive-item" data-id="<?= $id ?>">
         <div class="star-btn-wrapper">
-            <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $id ?>"></i>
+            <i class="fas fa-star star-btn <?= $row['is_favorite'] ? 'red' : '' ?>" data-id="<?= $row['id'] ?>"></i>
         </div>
-                <a href="view_archive.php?id=<?= $id ?>" class="list-group-item">
+        <a href="view_archive.php?id=<?= $row['id'] ?>&uuid=<?= $row['uuid'] ?>" class="list-group-item">
                     <h5 class="mb-1 title"><b><?= $row['title'] ?></b></h5>
                     <div class="authors">By: <?= !empty($row['authors']) ? implode(', ', $row['authors']) : "N/A" ?></div>
                     <p class="mb-1 details"><?= strip_tags(html_entity_decode($row['abstract'])) ?></p>
@@ -245,7 +245,6 @@ if ($archive_ids) {
                         <small>Downloads: <?= $row['downloads'] ?></small>
                         <small>Citations: <?= $row['citations'] ?></small>
                     </div>
-                    
                 </a>
             </div>
             <?php endforeach; ?>
@@ -290,7 +289,8 @@ if ($archive_ids) {
 
         $('.clickable-row').on('click', function() {
             var id = $(this).closest('.archive-item').data('id');
-            window.location.href = './?page=view_archive&id=' + id;
+            var uuid = $(this).closest('.archive-item').data('uuid');
+            window.location.href = './?page=view_archive&id=' + id + '&uuid=' + uuid;
         });
     });
 </script>

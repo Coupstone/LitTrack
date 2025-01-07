@@ -62,7 +62,17 @@ require_once('inc/header.php');
         .card-body {
             color:#5D5D5D;
         }
-       
+       /* Adjust button and container spacing */
+button.btn-primary {
+    width: auto; /* Allow the button to adjust to its content */
+    padding: 10px 20px; /* Add more padding for better appearance */
+    margin-top: 10px; /* Space above the button */
+}
+
+.form-group.text-center {
+    margin-top: 20px; /* Add spacing above the entire button group */
+}
+
     </style>
 
 </head>
@@ -113,19 +123,41 @@ require_once('inc/header.php');
                         </div>
                     </div>
                 </div>
-                <!-- Keywords Input -->
                 <div class="form-group mb-3">
-                    <label for="topic_keyword">Keywords:</label>
-                    <input type="text" class="form-control" id="topic_keyword" name="topic_keyword" placeholder="Enter keywords">
-                </div>
-                <!-- Submit Button -->
-<div class="form-group text-center">
+    <div class="form-row align-items-center">
+        <div class="col-md-6">
+            <label for="topic_keyword" class="mr-2">Keywords:</label>
+            <input type="text" class="form-control" id="topic_keyword" name="topic_keyword" placeholder="Enter keywords">
+        </div>
+        <div class="col-md-6">
+    <label for="Select_Course" class="mr-2">Courses:</label>
+    <select class="form-control" id="Select_Course" name="Select_Course">
+        <option value="" selected disabled>Select Course</option>
+        <?php
+        
+        // Fetch courses from the curriculum_list table
+        $sql = "SELECT id, name FROM curriculum_list";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                echo '<option value="' . $row['id'] . '">' . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . '</option>';
+            }
+        } 
+        ?>
+    </select>
+</div>
+
+</div>
+
+               <div class="form-group text-center">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-6 col-md-4">
             <button type="submit" class="btn btn-primary w-100" id="searchButton" disabled>Search</button>
         </div>
     </div>
 </div>
+
 
                     </div>
                 </div>
@@ -161,11 +193,12 @@ function validateForm() {
     const author = document.getElementById('author').value.trim();
     const yearFrom = document.getElementById('year_from').value;
     const yearTo = document.getElementById('year_to').value;
+    const Select_Course = document.getElementById('Select_Course').value.trim();
     const topicKeyword = document.getElementById('topic_keyword').value.trim();
     const searchButton = document.getElementById('searchButton'); // Get the search button
 
     // Check if at least one field is filled
-    if (title || author || yearFrom || yearTo || topicKeyword) {
+    if (title || author || yearFrom || yearTo || topicKeyword || Select_Course) {
         searchButton.disabled = false; // Enable the search button if valid
         return true; // Allow form submission
     } else {
@@ -179,8 +212,8 @@ document.getElementById('title').addEventListener('input', validateForm);
 document.getElementById('author').addEventListener('input', validateForm);
 document.getElementById('year_from').addEventListener('change', validateForm);
 document.getElementById('year_to').addEventListener('change', validateForm);
+document.getElementById('Select_Course').addEventListener('input', validateForm);
 document.getElementById('topic_keyword').addEventListener('input', validateForm);
-
 // Initialize validation on page load
 document.addEventListener('DOMContentLoaded', validateForm);
 

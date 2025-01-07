@@ -1,5 +1,18 @@
 <?php 
+require_once('config.php');
 check_login();
+
+function generate_uuid() {
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+
 if (isset($_GET['id']) && $_GET['id'] > 0) {
     $qry = $conn->query("SELECT * FROM `archive_list` WHERE id = '{$_GET['id']}'");
     if ($qry->num_rows) {
@@ -160,7 +173,7 @@ html, body {
             <form action="" id="archive-form" enctype="multipart/form-data" method="POST" class="needs-validation" novalidate>
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
-                    <label for="title" id="title-label">Research Title</label>
+                    <label for="title" id="title-label">Research Title<span style="color: red;"> *</span></label>
                 </div>
                 <div class="form-floating mb-3">
     <select class="form-control" id="year" name="year" required>
@@ -170,14 +183,14 @@ html, body {
             </option>
         <?php endfor; ?>
     </select>
-    <label for="year">Year</label>
+    <label for="year">Year<span style="color: red;"> *</span></label>
 </div>
                 <div class="form-floating mb-3">
                     <textarea class="form-control" id="abstract" name="abstract" placeholder="Abstract" required rows="5"><?= isset($abstract) ? html_entity_decode($abstract) : '' ?></textarea>
-                    <label for="abstract" id="abstract-label">Abstract</label>
+                    <label for="abstract" id="abstract-label">Abstract<span style="color: red;"> *</span></label>
                 </div>
                 <div id="author-container">
-                    <h6><strong>Authors</strong></h6>
+                    <h6><strong>Authors<span style="color: red;"> *</span></strong></h6>
                     <div class="author-row d-flex align-items-center mb-2">
                         <input type="text" class="form-control" name="author_firstname[]" placeholder="First Name" required>
                         <input type="text" class="form-control" name="author_lastname[]" placeholder="Last Name" required>
@@ -186,12 +199,12 @@ html, body {
                 </div>
                     <!-- Project Document -->
                     <div class="form-group mb-3">
-                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)</label>
+                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)<span style="color: red;"> *</span></label>
                         <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
                     </div>
 <!-- Visibility Options -->
 <div class="form-group">
-    <label for="visibility" class="control-label text-navy">Visibility</label>
+    <label for="visibility" class="control-label text-navy">Visibility<span style="color: red;"> *</span></label>
     <div class="form-check">
         <input class="form-check-input" type="radio" name="visibility" id="public" value="public" <?= isset($visibility) && $visibility == 'public' ? "checked" : "" ?>>
         <label class="form-check-label" for="public">Public</label>
@@ -429,6 +442,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pages = !empty($_POST['pages']) ? $conn->real_escape_string($_POST['pages']) : null;
     $doi = !empty($_POST['doi']) ? $conn->real_escape_string($_POST['doi']) : null;
     $publication_date = !empty($_POST['publicationDate']) ? $conn->real_escape_string($_POST['publicationDate']) : null;
+    $uuid = generate_uuid(); // Generate a unique identifier
 
     if (empty($id)) {
         $yearCode = date("Y");
@@ -443,14 +457,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $archive_code = $yearCode . str_pad($increment, 4, '0', STR_PAD_LEFT);
         // Insert the new record including publication details
         $qry = $conn->query("INSERT INTO archive_list 
-            (title, year, abstract, archive_code, student_id, curriculum_id, visibility, journal, volume, pages, doi, publication_date) 
+            (title, year, abstract, archive_code, student_id, curriculum_id, visibility, journal, volume, pages, doi, publication_date, uuid) 
             VALUES 
             ('$title', '$year', '$abstract', '$archive_code', '$student_id', '$curriculum_id', '$visibility', 
             " . ($journal ? "'$journal'" : "NULL") . ", 
             " . ($volume ? "'$volume'" : "NULL") . ", 
             " . ($pages ? "'$pages'" : "NULL") . ", 
             " . ($doi ? "'$doi'" : "NULL") . ", 
-            " . ($publication_date ? "'$publication_date'" : "NULL") . ")");
+            " . ($publication_date ? "'$publication_date'" : "NULL") . ", 
+            '$uuid')");
         
         $id = $conn->insert_id; // Get the inserted ID
     } else {

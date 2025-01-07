@@ -29,7 +29,7 @@ if (isset($_POST['action'], $_POST['id'], $_POST['email'])) {
                 $response['message'] = 'Student approved successfully.';
 
                 // Send email notification
-                sendEmail($email, 'Account Approved', 'Your account has been approved. Welcome to the system!');
+                sendEmail($email, 'Account Approved', 'Your account has been approved. Welcome to the system! You can now access the system using the link: http://localhost/LitTrack/login.php');
             } else {
                 // Error executing the query
                 $response['status'] = 'error';

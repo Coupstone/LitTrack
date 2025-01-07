@@ -1,4 +1,3 @@
-87% of storage used … If you run out, you can't create, edit and upload files. Get 100 GB of storage for ₱89.00 ₱0 for 1 month.
 <?php
 // Include database configuration
 require_once('./config.php'); // Assuming you have a connection variable $conn

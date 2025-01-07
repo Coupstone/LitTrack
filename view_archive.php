@@ -8,16 +8,37 @@ require_once('inc/topBarNav.php');
 require_once('inc/header.php');
 
 
+
 if (isset($_GET['id']) && $_GET['id'] > 0) {
     $id = intval($_GET['id']);
     $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
     $stmt->bind_param("i", $id);
+} elseif (isset($_GET['uuid'])) {
+    $uuid = $conn->real_escape_string($_GET['uuid']);
+    $stmt = $conn->prepare("SELECT * FROM archive_list WHERE uuid = ?");
+    $stmt->bind_param("s", $uuid);
+} else {
+    // Handle the case where neither id nor uuid is provided
+    die("Invalid request.");
+}
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         extract($row);
 
+        // Fetch topic keywords from lda_topics table using paper_id
+        $lda_stmt = $conn->prepare("SELECT topic_keywords FROM lda_topics WHERE paper_id = ?");
+        $lda_stmt->bind_param("i", $id);
+        $lda_stmt->execute();
+        $lda_result = $lda_stmt->get_result();
+        $lda_keywords = [];
+        if ($lda_result->num_rows > 0) {
+            while ($lda_row = $lda_result->fetch_assoc()) {
+                $lda_keywords[] = $lda_row['topic_keywords'];
+            }
+        }
+        $lda_keywords_formatted = implode(', ', $lda_keywords);
 
         // Insert a new read record
         $insert_read_stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
@@ -168,7 +189,6 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
              $submitted = $student['firstname'] . ' ' . $student['lastname'];
          }
      }
- }
 
 
 // Check if user_id exists in the session before using it
@@ -194,6 +214,7 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         $access_granted = ($access_result->num_rows > 0) ? true : false;
     }
 }
+
 
 
 ?>
@@ -614,6 +635,10 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
             <legend class="legend">Authors:</legend>
             <div><?= $general_authors_formatted ?></div>
         </fieldset>
+        <fieldset class="fieldset">
+    <legend class="legend">Topic Keywords:</legend>
+    <div><?= htmlspecialchars($lda_keywords_formatted) ?></div>
+</fieldset>
 <!-- Modal for publicaton details -->
 <div id="publicationDetailsModal" class="modal">
     <div class="modal-content">
@@ -705,6 +730,7 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
 </div>
 
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 
 
@@ -712,18 +738,79 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
     <div class="modal-content">
         <span class="close" onclick="closeCitationModal()">&times;</span>
         <h2>Cite</h2>
-        <div class="citation-style"><strong>MLA:</strong> <span id="mlaCitation"></span></div>
-        <div class="citation-style"><strong>APA:</strong> <span id="apaCitation"></span></div>
-        <div class="citation-style"><strong>Chicago:</strong> <span id="chicagoCitation"></span></div>
-        <div class="citation-style"><strong>Harvard:</strong> <span id="harvardCitation"></span></div>
-        <div class="citation-style"><strong>Vancouver:</strong> <span id="vancouverCitation"></span></div>
-       
-        <!-- Download Citation Button -->
-        <div style="text-align: center; margin-top: 20px;">
-            <!-- <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button> -->
+        
+        
+        <div class="citation-style">
+            <strong>MLA:</strong> <span id="mlaCitation">Sample MLA Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('mlaCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        
+        <div class="citation-style">
+            <strong>APA:</strong> <span id="apaCitation">Sample APA Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('apaCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        
+        <div class="citation-style">
+            <strong>Chicago:</strong> <span id="chicagoCitation">Sample Chicago Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('chicagoCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        
+        <div class="citation-style">
+            <strong>Harvard:</strong> <span id="harvardCitation">Sample Harvard Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('harvardCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        
+        <div class="citation-style">
+            <strong>Vancouver:</strong> <span id="vancouverCitation">Sample Vancouver Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('vancouverCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
         </div>
     </div>
 </div>
+
+
+<script>
+    function copyToClipboard(elementId) {
+        const citationText = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(citationText).then(() => {
+            showPopupMessage('Copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    function showPopupMessage(message) {
+        const popup = document.createElement('div');
+        popup.innerText = message;
+        popup.style.position = 'fixed';
+        popup.style.top = '20px'; /* Center-top position */
+        popup.style.left = '50%'; /* Center horizontally */
+        popup.style.transform = 'translateX(-50%)'; /* Adjust for true center */
+        popup.style.padding = '10px 20px';
+        popup.style.backgroundColor = '#28a745'; /* Success color */
+        popup.style.color = 'white';
+        popup.style.fontSize = '14px';
+        popup.style.borderRadius = '5px';
+        popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        popup.style.zIndex = '1000';
+        popup.style.opacity = '1';
+        popup.style.transition = 'opacity 0.5s ease';
+
+        document.body.appendChild(popup);
+
+        // Remove the popup after 3 seconds
+        setTimeout(() => {
+            popup.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 500);
+        }, 1000);
+    }
+</script>
+
+
+
+
+
 
 
 
@@ -737,8 +824,7 @@ function generateCitations() {
     const harvardAuthors = "<?= $harvard_authors_formatted ?>";
     const vancouverAuthors = "<?= $vancouver_authors_formatted ?>";
     const year = "<?= htmlspecialchars($year ?? '----') ?>";
-    const title = "<?= htmlspecialchars($title ?? 'No Title') ?>";
-
+    const title = "<?= htmlspecialchars($title ?? 'No Title') ?>".toUpperCase(); // Convert title to uppercase
 
     // Format citations
     document.getElementById('mlaCitation').innerText = `${mlaAuthors}. "${title}." (${year}).`;
@@ -747,24 +833,21 @@ function generateCitations() {
     document.getElementById('harvardCitation').innerText = `${harvardAuthors}, ${year}. ${title}.`;
     document.getElementById('vancouverCitation').innerText = `${vancouverAuthors}. ${title}. ${year}.`;
 
-
     // Show the citation modal
     document.getElementById("citationModal").style.display = "block";
 }
-
 
 function closeCitationModal() {
     // Hide the citation modal
     document.getElementById("citationModal").style.display = "none";
 }
 
-
 // Attach event listener to the Cite button to open the citation modal
 document.getElementById("citeButton").addEventListener("click", generateCitations);
 
-
 // Attach event listener to the close button to close the citation modal
 document.querySelector(".close").addEventListener("click", closeCitationModal);
+
 
 
 function downloadCitation() {

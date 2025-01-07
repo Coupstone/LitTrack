@@ -1,10 +1,9 @@
-<?php 
+<?php
 // Include the database connection and necessary files
 $page = isset($_GET['page']) ? $_GET['page'] : 'advance-search';
 require_once('./config.php');
 require_once('inc/topBarNav.php');
 require_once('inc/header.php');
-
 
 // Define base URL
 $base_url = "http://localhost/LitTrack/"; // Update this if your URL is different
@@ -14,14 +13,14 @@ echo "
     <style>
         /* Responsive content shift when sidebar is collapsed */
         #content {
-            margin-left: 250px;
+            margin-left: 50px;
             padding: 20px;
             overflow-y: auto; /* Enable scrolling for main content */
             height: 100vh;
             transition: margin-left 0.3s;
         }
         body.sidebar-collapsed #content {
-            margin-left: 50px;
+            margin-left: 5px;
         }
 
         body {
@@ -144,13 +143,12 @@ echo "
         }
 
         .stats i {
-            margin-right: 5px;
+            margin-right: 5px ```php
             font-size: 1.2rem;
         }
-                    /* Sidebar styling */
+        /* Sidebar styling */
         .sidebar {
             overflow: hidden; /* Hide scrollbar */
-            /* other styling like width, height, background color, etc. */
         }
         html, body {
             height: 100%;
@@ -231,21 +229,20 @@ echo "
             opacity: 0;
             overflow: hidden;
         }
-            /* Additional spacing to move the content lower */
-.card-body {
-    padding-top: 30px; /* Adjust this value to your preference */
-}
+        /* Additional spacing to move the content lower */
+        .card-body {
+            padding-top: 30px; /* Adjust this value to your preference */
+        }
 
-/* Adjust the content-container to create more space */
-.content-container {
-    margin-top: 65px; /* Adjust this value to move the table further down */
-}
+        /* Adjust the content-container to create more space */
+        .content-container {
+            margin-top: 65px; /* Adjust this value to move the table further down */
+        }
 
-/* Optional: Add more space if the content is too close to the header */
-#content {
-    padding-top: 30px; /* Increase or decrease for further spacing */
-}
-
+        /* Optional: Add more space if the content is too close to the header */
+        #content {
+            padding-top: 30px; /* Increase or decrease for further spacing */
+        }
     </style>
 
 <!-- Main Content -->
@@ -258,12 +255,34 @@ echo "
                     <hr class='bg-navy'>
                     <div class='list-group'>";
 
-                    // Retrieve search inputs
+                   // Retrieve search inputs
 $searchTitle = isset($_GET['title']) ? trim($_GET['title']) : '';
 $searchAuthor = isset($_GET['author']) ? trim($_GET['author']) : '';
 $yearFrom = isset($_GET['year_from']) ? trim($_GET['year_from']) : '';
 $yearTo = isset($_GET['year_to']) ? trim($_GET['year_to']) : '';
 $searchKeyword = isset($_GET['topic_keyword']) ? trim($_GET['topic_keyword']) : '';
+$selectedCourse = isset($_GET['Select_Course']) ? intval($_GET['Select_Course']) : 0;
+
+// Initialize an empty results array
+$results = [];
+
+// Check if a curriculum_id filter has been set for course filtering
+if ($selectedCourse > 0) {
+    // Modify the query to include a filter for matching curriculum_id
+    $sql = "SELECT * FROM archive_list 
+            WHERE curriculum_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $selectedCourse);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch all matching rows
+    while ($row = $result->fetch_assoc()) {
+        $results[] = $row;
+    }
+}
+
+// Proceed with the rest of your filtering for keywords, title, author, etc.
 
 // Step 1: Search for keywords in lda_topics table if provided
 $paper_ids = [];
@@ -294,10 +313,7 @@ if (!empty($searchKeyword)) {
 
 // If no keywords matched in lda_topics, show the "No Results Found" modal
 if (!empty($searchKeyword) && empty($paper_ids)) {
-    echo "
-        <script>
-            window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
-        </script>";
+    echo "<p>No Results Found</p>";
 } else {
     // Step 2: Build the query for archive_list using direct filters and, if available, paper_ids
     $query = "SELECT archive_list.id, archive_list.title, archive_list.abstract, 
@@ -320,6 +336,14 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
         $params = array_merge($params, $paper_ids);
     }
 
+    // Apply course filtering
+    if ($selectedCourse > 0) {
+        $query .= " AND archive_list.curriculum_id = ?";
+        $params[] = $selectedCourse;
+        $types .= "i";
+    }
+
+    // Apply other filters (title, author, year)
     if (!empty($searchTitle)) {
         $query .= " AND archive_list.title LIKE ?";
         $params[] = "%" . $searchTitle . "%";
@@ -353,6 +377,7 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
         $query .= " LIMIT {$limit} OFFSET {$offset}";
     }
 
+    // Prepare and execute the query
     $stmt = $conn->prepare($query);
     if (!empty($params)) {
         $stmt->bind_param($types, ...$params);
@@ -364,7 +389,7 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
         while ($row = $result->fetch_assoc()) {
             $title = htmlspecialchars($row['title'] ?? 'No Title Available');
             $abstract = html_entity_decode($row['abstract'] ?? 'No Abstract Available');
-            $members = htmlspecialchars($row['authors'] ?? 'No Authors Available'); // Use concatenated authors
+            $members = htmlspecialchars($row['authors'] ?? 'No Authors Available');
             $year = htmlspecialchars($row['year'] ?? 'N/A');
             $id = $row['id'];
             $citation_count = $row['citation_count'] ?? 0;
@@ -391,7 +416,7 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $download_count = $download_data['download_count'];
 
             echo "
-                <a href='{$base_url}details.php?id={$id}' class='archive-item'>
+                <a href='{$base_url}view_archive.php?id={$id}' class='archive-item'>
                     <div class='text-container'>
                         <h3>{$title}</h3>
                         <small class='author'>By {$members}</small>
@@ -406,38 +431,41 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
                 </a>";
         }
     } else {
-        // Trigger the modal for no results found
         echo "
-            <script>
-                window.onload = function() { document.getElementById('noResultsModal').style.display = 'flex'; };
-            </script>";
-    }
-}
-
-echo "
+        <div class='no-results-container' style='display: flex; justify-content: center; align-items: center; height: 70vh; background-color: #f8f9fa;'>
+            <div class='no-results-box' style='text-align: center; background-color: #ffffff; padding: 50px 70px; border-radius: 25px; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2); opacity: 0; animation: fadeInUp 1s ease-out forwards; transform: translateY(50px);'>
+                <i class='fa fa-times-circle' style='font-size: 80px; color: #ff6b6b; margin-bottom: 30px; animation: bounce 1.5s infinite;'></i>
+                <h3 style='color: #2f3542; font-family: Roboto, sans-serif; font-size: 36px; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;'>Sorry, No Results Found</h3>
+                <p style='color: #636e72; font-size: 20px; font-family: Arial, sans-serif; line-height: 1.7; font-weight: 400; max-width: 400px; margin: 0 auto;'>We couldn't find any matches for your search. Please try again.</p>
+                <a href='http://localhost/LitTrack/advance-search.php' style='margin-top: 30px; display: inline-block; padding: 12px 30px; background-color: #ff6b6b; color: white; font-size: 16px; border-radius: 30px; text-decoration: none; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;'>Refine Search</a>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Modal for No Results Found -->
-<div id='noResultsModal' class='modal'>
-    <div class='modal-content'>
-        <h3>No Results Found</h3>
-        <p>Your search did not match any records. Please try again with different keywords.</p>
-        <a href='advance-search.php' class='retry-button'>Retry</a>
-    </div>
-</div>
-
-<script>
-    // Add or remove sidebar-collapsed class on body
-    function toggleSidebar() {
-        document.body.classList.toggle('sidebar-collapsed');
+    
+        <style>
+            @keyframes fadeInUp {
+                0% {
+                    opacity: 0;
+                    transform: translateY(50px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+    
+            @keyframes bounce {
+                0%, 100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-20px);
+                }
+            }
+    
+            .no-results-box a:hover {
+                background-color: #ff4d4d;
+            }
+        </style>
+        ";
     }
-
-    // Close the modal
-    function closeModal() {
-        document.getElementById('noResultsModal').style.display = 'none';
-    }
-</script>";
-?>
+}    
