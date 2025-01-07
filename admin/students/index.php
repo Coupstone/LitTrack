@@ -196,6 +196,10 @@
 <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">List of Students</h3>
+            <!-- Button to open the modal -->
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-danger" data-toggle="modal" data-target="#archiveModal">View Archived Students</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -209,13 +213,19 @@
                             <th>Student Number</th> <!-- New Column for Student Number -->
                             <th>Status</th>
                             <!-- <th>COR</th> New Column for COR link -->
+                            <th>Date Created</th> <!-- New Column -->
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
+                    <?php 
                             $i = 1;
-                            $qry = $conn->query("SELECT *, concat(lastname,', ',firstname,' ', middlename) as name from `student_list` order by concat(lastname,', ',firstname,' ', middlename) asc ");
+                            // Updated query to exclude students with status = 3 (soft-deleted students)
+                            $qry = $conn->query("SELECT *, concat(lastname,', ',firstname,' ', middlename) as name 
+                                                FROM `student_list` 
+                                                WHERE status != 3   -- Exclude soft-deleted students
+                                                ORDER BY concat(lastname,', ',firstname,' ', middlename) ASC");
+
                             while($row = $qry->fetch_assoc()):
                         ?>
                         <tr>
@@ -233,6 +243,7 @@
                                     <span class="badge badge-pill badge-primary">Not Verified</span>
                                 <?php endif; ?>
                             </td>
+                            <td><?php echo $row['date_created'] ? date('Y-m-d H:i:s', strtotime($row['date_created'])) : 'N/A'; ?></td> <!-- Date Created -->
                             <!-- <td class="text-center">
                             <button type="button" class="btn btn-link view_cor" data-toggle="modal" data-target="#corModal" data-id="<?php echo $row['id']; ?>">View COR</button>
                             </td> -->
@@ -330,6 +341,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Archive Modal -->
+<div class="modal fade" id="archiveModal" tabindex="-1" role="dialog" aria-labelledby="archiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="archiveModalLabel">Archived Students</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Table to display archived students -->
+                <table class="table table-hover table-striped" id="archiveTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Student Number</th>
+                            <th>Date Deleted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveList">
+                        <!-- Archived students will be loaded here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
     
@@ -552,11 +596,14 @@ try {
 
 // Delete user action
 $('.delete_data').click(function () {
-    console.log('Delete button clicked for Student ID:', $(this).attr('data-id'));
+    var studentId = $(this).attr('data-id');
+    var studentEmail = $(this).attr('data-name');
+    
+    // Ask for confirmation before proceeding with the soft delete
     _conf(
-        "Are you sure to delete <b>" + $(this).attr('data-name') + "</b>?",
-        'delete_user',
-        [$(this).attr('data-id')]
+        "Are you sure you want to soft delete <b>" + studentEmail + "</b>?",
+        'delete_student',
+        [studentId]
     );
 });
 
@@ -576,6 +623,31 @@ $('.view_details').click(function () {
     uni_modal('Student Details', 'students/view_details.php?id=' + studentId, 'mid-large');
 });
 });
+
+
+// Soft delete function using AJAX
+function delete_student($id){
+    start_loader();
+    $.ajax({
+        url: _base_url_ + "classes/Users.php?f=delete_student",  // Make sure this URL is correct
+        method: "POST",
+        data: { id: $id },
+        dataType: "json",
+        success: function (resp) {
+            if (resp.status == 'success') {
+                location.reload();  // Reload the page to reflect the soft delete
+            } else {
+                alert_toast("An error occurred.", 'error');
+                end_loader();
+            }
+        },
+        error: function (err) {
+            console.log(err);
+            alert_toast("An error occurred.", 'error');
+            end_loader();
+        }
+    });
+}
 
 
 
@@ -626,6 +698,86 @@ $('.view_details').click(function () {
             }
         })
     }
+
+    $('#archiveModal').on('show.bs.modal', function () {
+    // Fetch archived students via AJAX
+    $.ajax({
+        url: _base_url_ + "classes/Users.php?f=get_archived_students",
+        method: "GET",
+        dataType: "json",
+        success: function (response) {
+            // Clear the previous data
+            $('#archiveList').empty();
+
+            // Check if the response has a 'status' indicating error
+            if (response.status === "error") {
+                $('#archiveList').append('<tr><td colspan="6" class="text-center">' + response.message + '</td></tr>');
+                return;
+            }
+
+            // Loop through the archived students and append them to the table
+            if (response.length > 0) {
+                response.forEach(function (student, index) {
+                    $('#archiveList').append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${student.name}</td>
+                            <td>${student.email}</td>
+                            <td>${student.student_number}</td>
+                            <td>${student.deleted_at}</td>
+                            <td>
+                                <button class="btn btn-info restore_student" data-id="${student.id}">Restore</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } else {
+                $('#archiveList').append('<tr><td colspan="6" class="text-center">No archived students.</td></tr>');
+            }
+        },
+        error: function (err) {
+            console.log(err);
+            alert_toast("An error occurred while fetching archived students.", 'error');
+        }
+    });
+});
+
+// Restore user function (using AJAX)
+function restore_user($id) {
+    start_loader();  // Start the loading animation or spinner
+
+    $.ajax({
+        url: _base_url_ + "classes/Users.php?f=restore_user",  // Ensure this URL is correct
+        method: "POST",
+        data: { id: $id },  // Pass the student ID to the PHP function
+        dataType: "json",
+        success: function (resp) {
+            if (resp.status == 'success') {
+                Swal.fire("Restored!", "The student account has been restored.", "success");
+                location.reload();  // Reload the page to reflect the restoration
+            } else {
+                Swal.fire("Error!", "An error occurred while restoring the student.", "error");
+            }
+        },
+        error: function (err) {
+            console.log(err);
+            alert_toast("An error occurred.", 'error');
+            end_loader();
+        }
+    });
+}
+
+
+
+    // Handle restore button click in the modal
+    $('#archiveTable').on('click', '.restore_student', function () {
+        var studentId = $(this).data('id');
+        _conf(
+            "Are you sure you want to restore this student?",
+            'restore_user',
+            [studentId]
+        );
+    });
 </script>
 
     

@@ -302,19 +302,93 @@ if ($chk && $chk->num_rows > 0) {
 	
 	public function delete_student(){
 		extract($_POST);
-		$avatar = $this->conn->query("SELECT avatar FROM student_list where id = '{$id}'")->fetch_array()['avatar'];
-		$qry = $this->conn->query("DELETE FROM student_list where id = $id");
-		if($qry){
-			$avatar = explode("?",$avatar)[0];
-			$this->settings->set_flashdata('success','Student User Details successfully deleted.');
-			if(is_file(base_app.$avatar))
-				unlink(base_app.$avatar);
+		
+		// Get the current avatar and status for the student
+		$qry = $this->conn->query("SELECT avatar, status FROM student_list WHERE id = '{$id}'");
+		$student = $qry->fetch_array();
+		$avatar = $student['avatar'];
+		$current_status = $student['status'];
+	
+		// Soft delete the student by setting 'deleted_at' field to NOW() and saving the current status in 'previous_status'
+		$delete_query = $this->conn->query("UPDATE student_list 
+											SET deleted_at = NOW(), 
+												status = 3, 
+												previous_status = '{$current_status}' 
+											WHERE id = $id");
+	
+		if ($delete_query) {
+			// If there is an avatar and the file exists, delete the avatar file
+			$avatar = explode("?", $avatar)[0];
+			$this->settings->set_flashdata('success', 'Student account successfully moved to archived students.');
+			
+			if (is_file(base_app.$avatar)) {
+				unlink(base_app.$avatar); // Delete the avatar image if exists
+			}
+	
+			// Respond with success status
 			$resp['status'] = 'success';
-		}else{
+		} else {
+			// Respond with failed status if query fails
 			$resp['status'] = 'failed';
 		}
+	
+		// Return JSON response to indicate success or failure
 		return json_encode($resp);
 	}
+	
+
+	public function get_archived_students() {
+		// Add debugging to check for any query issues
+		$qry = $this->conn->query("SELECT id, concat(lastname, ', ', firstname, ' ', middlename) as name, email, student_number, deleted_at 
+								   FROM student_list 
+								   WHERE deleted_at IS NOT NULL 
+								   ORDER BY deleted_at DESC");
+	
+		// Debugging: Check if the query executed successfully
+		if ($qry === false) {
+			// Output the error message if the query failed
+			echo json_encode(["status" => "error", "message" => "Query failed: " . $this->conn->error]);
+			return;
+		}
+	
+		// Check if there are results
+		if ($qry->num_rows > 0) {
+			$students = [];
+			while ($row = $qry->fetch_assoc()) {
+				$students[] = $row;
+			}
+			echo json_encode($students);  // Return the data as JSON
+		} else {
+			echo json_encode(["status" => "error", "message" => "No archived students found"]);
+		}
+	}
+
+	public function restore_user(){
+		extract($_POST);
+	
+		// Restore the record by setting 'deleted_at' to NULL and 'status' to 'previous_status'
+		$restore_query = $this->conn->query("UPDATE student_list 
+											 SET deleted_at = NULL, 
+												 status = previous_status, 
+												 previous_status = NULL 
+											 WHERE id = $id");
+	
+		if ($restore_query) {
+			// If restoration was successful, return success status
+			$resp['status'] = 'success';
+			$this->settings->set_flashdata('success', 'Student account successfully restored.');
+		} else {
+			// If restoration failed, return failure status
+			$resp['status'] = 'failed';
+		}
+	
+		// Return the response as JSON
+		return json_encode($resp);
+	}
+	
+	
+	
+
 	public function verify_student(){
 		extract($_POST);
 		$update = $this->conn->query("UPDATE `student_list` set `status` = 1 where id = $id");
@@ -343,6 +417,12 @@ switch ($action) {
 	break;
 	case 'delete_student':
 		echo $users->delete_student();
+	break;
+	case 'get_archived_students':
+		echo $users->get_archived_students();
+	break;
+	case 'restore_user':
+		echo $users->restore_user();
 	break;
 	case 'verify_student':
 		echo $users->verify_student();

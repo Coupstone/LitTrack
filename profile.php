@@ -148,7 +148,7 @@ foreach ($user->fetch_array() as $k => $v) {
             <h5 class="card-title m-0"><b>Student Profile</b></h5>
             <div class="card-tools mt-2 mt-md-0">
                 <a href="./?page=my_archives" class="btn btn-default bg-primary btn-flat mb-2 mb-md-0">
-                    <i class="fa fa-archive"></i> My Archives
+                    <i class="fa fa-archive"></i> My Researches
                 </a>
                 <a href="./?page=manage_account" class="btn btn-default bg-navy btn-flat">
                     <i class="fa fa-edit"></i> Update Account

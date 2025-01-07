@@ -15,12 +15,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.js"></script>
 <script>
     $(function(){
+
         $('#update_status_form').submit(function(e){
             e.preventDefault();
             start_loader(); // Start preloader
-            var el = $('<div>');
-            el.addClass("pop-msg alert");
-            el.hide();
+            // var el = $('<div>');
+            // el.addClass("pop-msg alert");
+            // el.hide();
             
             // AJAX request to send email
             $.ajax({
@@ -34,8 +35,16 @@
                     end_loader(); // End preloader even on error
                 },
                 success: function(resp){
+                    end_loader(); // End preloader even on error
                     if(resp.status === 'success'){
-                        location.reload(); // Reload page on success
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Status updated successfully!',
+                            showConfirmButton: true
+                        }).then(() => {
+                            location.reload(); // Reload page on success
+                        });
                     } else {
                         el.addClass("alert-danger");
                         el.text(resp.msg || "An error occurred due to unknown reason.");

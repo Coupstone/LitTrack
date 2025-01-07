@@ -15,8 +15,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <!-- Site Icon -->
     <link rel="icon" href="uploads/LitTrack.png" type="image/png"/>
+
+    <style>
+          /* Remove box shadow when input is focused */
+    input:focus {
+      outline: none; /* Remove default outline */
+      box-shadow: none !important; /* Remove any box-shadow */
+    }
+
+    /* Optionally, add a border color for focus for better UX */
+    input:focus {
+      border-color: #5875B5; /* Optional - Set a custom border color on focus */
+    }
+    </style>
 </head>
 
 <body class="bg-image">
@@ -34,7 +50,7 @@
           <p>Please enter your registered email address.</p>
           <div class="form-floating mb-3">
             <input type="email" class="form-control" id="email" name="email" placeholder="Email Address" required>
-            <label for="email">Email Address</label>
+            <label for="email">Email Address<span style="color: red;"> *</span></label>
               <!-- Validation feedback -->
               <div id="email-error" class="invalid-feedback"></div>
           </div>
@@ -132,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('slogin-form');
     var emailInput = form.querySelector('input[name="email"]');
     var passwordInput = form.querySelector('input[name="password"]');
+    var forgotPasswordForm = document.getElementById('forgotPasswordForm');
     var emailInputForgotPassword = forgotPasswordForm.querySelector('input[name="email"]');
     
     // Regular expression for allowed email domains
@@ -221,11 +238,37 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+    forgotPasswordForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Get the Bootstrap modal instance
+        var forgotPasswordModal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
+
+        // Hide the Bootstrap modal to ensure SweetAlert appears on top
+        forgotPasswordModal.hide();
+
+        // Show SweetAlert loading indicator
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Please wait while we process your request.',
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Submit the form to the server
+        setTimeout(() => {
+            forgotPasswordForm.submit(); // Submit the form after showing the preloader
+        }, 500); // Optional delay to ensure the SweetAlert appears properly
+    });
 });
 </script>
 
 <script>
-  $(document).ready(function () {
+$(document).ready(function () {
     // Initially disable the Send button
     $('#sendEmailBtn').prop('disabled', true);
 
@@ -234,59 +277,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Reset the form and error message when modal is closed
     const resetForgotPasswordForm = () => {
-      $("#email-error").hide();
-      $("#email-valid").hide();
-      $("#email").removeClass("is-invalid is-valid");
-      $("#forgotPasswordForm")[0].reset();
-      $('#sendEmailBtn').prop('disabled', true);
+        $("#email-error").hide();
+        $("#email").removeClass("is-invalid is-valid");
+        $("#forgotPasswordForm")[0].reset();
+        $('#sendEmailBtn').prop('disabled', true);
     };
 
     // Validate email input and check existence in the system
     $('#email').on('input', function () {
-      const email = $('#email').val();
+        const email = $('#email').val();
 
-      // Check if the email matches the regex
-      if (emailRegex.test(email)) {
-        $("#email").removeClass("is-invalid").addClass("is-valid");
-        $("#email-error").hide();
+        // Check if the email matches the regex
+        if (emailRegex.test(email)) {
+            // AJAX call to check if email exists in the database
+            $.ajax({
+                url: 'check_email.php', // Server-side script
+                type: 'POST',
+                data: { email: email },
+                success: function (response) {
+                    const data = JSON.parse(response);
 
-        // AJAX call to check if email exists in the database
-        $.ajax({
-          url: 'check_email.php', // Server-side script
-          type: 'POST',
-          data: { email: email },
-          success: function(response) {
-            const data = JSON.parse(response);
-
-            if (data.status === 'exists') {
-              // Email exists, enable the Send button
-              $('#sendEmailBtn').prop('disabled', false);
-              $("#email-valid").show(); // Optionally show a valid message
-              $("#email-error").hide(); // Hide error message if exists
-            } else if (data.status === 'not_exists') {
-              // Email does not exist, disable the Send button
-              $('#sendEmailBtn').prop('disabled', true);
-              $("#email-error").show().text('We couldn\'t find your email address.');
-              $("#email-valid").hide();
-            }
-          },
-          error: function() {
-            alert('Error checking email existence');
-          }
-        });
-
-      } else {
-        // Invalid email format
-        $('#sendEmailBtn').prop('disabled', true);
-        $("#email").removeClass("is-valid").addClass("is-invalid");
-        $("#email-error").show().text('Please provide a valid email address');
-        $("#email-valid").hide();
-      }
+                    if (data.status === 'exists') {
+                        // Email exists, set green border
+                        $('#sendEmailBtn').prop('disabled', false);
+                        $("#email").removeClass("is-invalid").addClass("is-valid");
+                        $("#email-error").hide();
+                    } else if (data.status === 'not_exists') {
+                        // Email does not exist, set red border
+                        $('#sendEmailBtn').prop('disabled', true);
+                        $("#email").removeClass("is-valid").addClass("is-invalid");
+                        $("#email-error").show().text("");
+                    }
+                },
+                error: function () {
+                    alert('Error checking email existence');
+                }
+            });
+        } else {
+            // Invalid email format
+            $('#sendEmailBtn').prop('disabled', true);
+            $("#email").removeClass("is-valid").addClass("is-invalid");
+            $("#email-error").show().text('Please provide a valid email address');
+        }
     });
 
     // Reset the form when modal is closed
     $('#forgotPasswordForm').on('reset', resetForgotPasswordForm);
-  });
+});
 </script>
 
 

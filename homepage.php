@@ -152,7 +152,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
 
         <div class="card card-outline card-primary shadow rounded-0 table-container">
             <div class="card-body rounded-0">
-                <div class=" table-content">
+                <div class="table-content">
                     <table class="table table-hover table-striped" id="researchTable">
                         <thead>
                             <tr>
@@ -163,27 +163,8 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
                         </thead>
                         <tbody>
                         <?php 
-                        $qry = $conn->query("
-                        SELECT 
-                            al.*, 
-                            -- Concatenate all authors' names
-                            GROUP_CONCAT(CONCAT(aa.first_name, ' ', aa.last_name) SEPARATOR ', ') AS authors,
-                            -- Citation count as a subquery
-                            (SELECT COUNT(*) 
-                            FROM citation_relationships cr 
-                            WHERE cr.cited_paper_id = al.id) AS citation_count
-                        FROM 
-                            archive_list al
-                        LEFT JOIN 
-                            archive_authors aa ON al.id = aa.archive_id
-                        WHERE 
-                            al.status = 1  -- Only approved studies (status = 1)
-                        GROUP BY 
-                            al.id
-                        ORDER BY 
-                            unix_timestamp(al.date_created) DESC
-                        ");
-                  while($row = $qry->fetch_assoc()):
+                        $qry = $conn->query("SELECT al.*, GROUP_CONCAT(CONCAT(aa.first_name, ' ', aa.last_name) SEPARATOR ', ') AS authors, (SELECT COUNT(*) FROM citation_relationships cr WHERE cr.cited_paper_id = al.id) AS citation_count FROM archive_list al LEFT JOIN archive_authors aa ON al.id = aa.archive_id WHERE al.status = 1 GROUP BY al.id ORDER BY unix_timestamp(al.date_created) DESC");
+                        while($row = $qry->fetch_assoc()):
                         ?>
                         <tr>
                             <td><?php echo date("Y", strtotime($row['date_created'])); ?></td>
@@ -197,6 +178,11 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
                         <?php endwhile; ?>
                       </tbody>
                     </table>
+                </div>
+                <div class="pagination d-flex justify-content-end mt-3">
+                    <button class="btn btn-secondary" id="prevPage" onclick="changePage(-1)">Previous</button>
+                    <span id="pageInfo" class="mx-3 mt-2"></span>
+                    <button class="btn btn-secondary" id="nextPage" onclick="changePage(1)">Next</button>
                 </div>
             </div>
         </div>
@@ -304,6 +290,32 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
 </body>
 
 <script>
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    const table = document.getElementById("researchTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
+    const pageInfo = document.getElementById("pageInfo");
+
+    function renderTable() {
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        rows.forEach((row, index) => {
+            row.style.display = index >= start && index < end ? "" : "none";
+        });
+        pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(rows.length / rowsPerPage)}`;
+    }
+
+    function changePage(direction) {
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        currentPage = Math.min(Math.max(1, currentPage + direction), totalPages);
+        renderTable();
+    }
+
+    renderTable(); // Initial render
+</script>
+
+<script>
 function showModal(d) {
     console.log(d); // This will show the entire data object, so you can inspect the fields
     document.getElementById("modalTitle").innerText = d.title || "No Title Available";
@@ -328,29 +340,41 @@ window.onclick = function(event) {
     }
 }
 
-// Function to filter the research table based on search input
 function filterTable() {
     var input = document.getElementById("searchInput");
     var filter = input.value.toLowerCase();
     var table = document.getElementById("researchTable");
     var tr = table.getElementsByTagName("tr");
 
-    for (var i = 1; i < tr.length; i++) {
-        var tdTitle = tr[i].getElementsByTagName("td")[1]; // Title column
-        var tdDate = tr[i].getElementsByTagName("td")[0]; // Date column (assuming date is in the first column)
+    if (filter === "") {
+        // If search field is empty, show all rows
+        for (var i = 1; i < tr.length; i++) {
+            tr[i].style.display = "";
+        }
 
-        if (tdTitle || tdDate) {
-            var titleValue = tdTitle.textContent || tdTitle.innerText;
-            var dateValue = tdDate.textContent || tdDate.innerText;
+        // Reset the rows array and render the table with pagination
+        const rows = Array.from(tr).slice(1); // Re-fetch all rows
+        renderTable(); // Ensure pagination works after clearing search
+    } else {
+        // If search field is not empty, filter based on title or year
+        for (var i = 1; i < tr.length; i++) {
+            var tdTitle = tr[i].getElementsByTagName("td")[1]; // Title column
+            var tdDate = tr[i].getElementsByTagName("td")[0]; // Date column
 
-            if (titleValue.toLowerCase().indexOf(filter) > -1 || dateValue.toLowerCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+            if (tdTitle || tdDate) {
+                var titleValue = tdTitle.textContent || tdTitle.innerText;
+                var dateValue = tdDate.textContent || tdDate.innerText;
+
+                if (titleValue.toLowerCase().indexOf(filter) > -1 || dateValue.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
     }
 }
+
 </script>
 
 <footer class="text-center p-3 bg-body-tertiary">
