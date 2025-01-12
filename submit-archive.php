@@ -44,15 +44,39 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 
     <style>
-html, body {
-    height: 100%;
-    margin: 0;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+/* Modal Responsiveness */
+@media (max-width: 768px) {
+    .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+    }
+    .modal-content {
+        border-radius: 0;
+    }
+    .modal-header, .modal-body, .modal-footer {
+        padding: 1rem;
+    }
+    .modal-header .close {
+        padding: 0.5rem;
+        margin: 0;
+    }
 }
-#title-label,
+/* General body styling */
+body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    overflow: hidden;  /* This will hide both vertical and horizontal scrollbars */
+
+        }
+
+            #title-label,
     #abstract-label,
     #pdf-label {
         font-weight: normal; /* Ensures text is not bold */
@@ -62,101 +86,95 @@ html, body {
         width: 100%; /* Ensure it takes up all available width within its container */
     }
 
-.container {
-    max-width: 2000px;
-    width: 103%;
-    margin: 10px;
-    padding: 10px;
-    transform: translateY(-10%);
+    .container {
+    max-width: 2000px; /* Adjust width as necessary */
+    width: 103%; /* Use full width for smaller screens */
+    margin: 10px; /* Reduced margin around the container */
+    padding: 10px; /* Reduced padding inside the container for a compact look */
+    transform: translateY(-7%); /* Moves the container up by 10% of its height */
 }
-
-/* Form and Labels */
-#title-label, #abstract-label, #pdf-label {
-    font-weight: normal;
-}
-#abstract {
-    min-height: 150px;
-    width: 100%;
-}
-.form-control, .form-control:focus {
-    border-color: #ced4da;
-    box-shadow: none;
-}
-.form-floating {
-    margin-bottom: 16px;
-}
-.form-label {
-    font-weight: normal;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-/* Card and Publication Details */
-.card {
-    border-radius: 0;
-}
-.card-header {
-    border-bottom: 2px solid #007bff;
-}
-
-/* Author Row */
-.author-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-.author-row .form-control {
-    margin-right: 15px;
-}
-.author-row .form-control:last-child {
-    margin-right: 0;
-}
-
-/* Publication Details Section */
-#publication-details {
-    display: none;
-    transition: max-height 0.3s ease-in-out;
-    overflow: hidden;
-    margin-top: 10px; /* Adds space from above fields */
-}
-
-/* Optional Text */
-.optional-text {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-left: 5px;
-}
-
-/* Buttons for Publication Details */
-.btn-info {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #fff;
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-}
-.btn-info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    #publication-details {
-        max-height: 200px; /* Restrict height for smaller screens */
-        overflow-y: auto; /* Add scroll if content overflows */
+    .form-control, .form-control:focus {
+        border-color: #ced4da; /* Consistent with the design */
+        box-shadow: none; /* No focus shadow */
     }
-    .form-floating label {
-        font-size: 0.9rem;
+    .form-floating {
+        margin-bottom: 16px; /* Space between fields */
+    }
+    .card {
+        border-radius: 0; /* Flat design */
+    }
+    .card-header {
+        border-bottom: 2px solid #007bff; /* Stylish blue border top on card header */
+    }
+
+    /* Smaller button styles */
+    .btn {
+        padding: 0.375rem 0.75rem; /* Reduced padding */
+        font-size: 0.875rem; /* Smaller font size */
+        line-height: 1.5; /* Standard line height */
+    }
+    .author-row .form-control {
+        margin-right: 15px; /* Adds space to the right of each input field except the last in the row */
+    }
+    .author-row .form-control:last-child {
+        margin-right: 0; /* Ensures the last input in the row does not have extra space on the right */
+    }
+    .author-row {
+        display: flex; /* Ensures the input fields are aligned in a row */
+        align-items: center; /* Aligns items vertically */
+        margin-bottom: 15px; /* Adds space below each author row for better separation */
+    }
+    #pdf-label {
+        display: block; /* Ensures the label takes up the full width and behaves like a block element */
+        margin-bottom: 8px; /* Adds some space below the label before the input field */
+        font-weight: normal; /* Keeps the label text normal, non-bold */
     }
     .form-control {
-        font-size: 0.9rem;
+        display: block;
+        width: 100%; /* Ensures the input takes full width of its container */
+        padding: 0.375rem 0.75rem; /* Standard padding for Bootstrap form controls */
+        font-size: 1rem; /* Standard font size for input text */
+        line-height: 1.5; /* Standard line height for readability */
+        color: #495057; /* Default text color */
+        background-color: #fff; /* White background */
+        background-clip: padding-box; /* Ensures background extends to the borders */
+        border: 1px solid #ced4da; /* Standard border styling */
+        border-radius: 0.25rem; /* Rounded borders for aesthetics */
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Smooth transition for focus effects */
     }
-    .btn {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.8rem;
+    .btn-info {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
     }
-}
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-label {
+        font-weight: normal; /* Ensures the label text is not bold */
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .optional-text {
+        font-size: 0.875rem; /* Slightly smaller than button text */
+        color: #6c757d; /* Muted text color for secondary information */
+        margin-left: 2px; /* Space between button and text */
+        vertical-align: middle; /* Align text vertically with the button */
+    }
 </style>
 
 

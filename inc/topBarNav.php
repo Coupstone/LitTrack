@@ -16,6 +16,7 @@ if (isset($_settings) && method_exists($_settings, 'userdata')) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="styles/main.css" rel="stylesheet">
     <title>PUPSRC LitTrack</title>
     <link rel="icon" href="uploads/LitTrack.png" type="image/png">
     <!-- Resources -->
@@ -56,7 +57,20 @@ body {
 a {
     text-decoration: none;
 }
-
+.nav_item-placeholder {
+    display: block; /* Mimic the original display style */
+    height: 2rem; /* Adjust height to match the original size */
+    margin: 1rem 0; /* Adjust spacing as needed */
+}
+/* Remove underline for all states */
+.nav_link:link,
+.nav_link:visited,
+.nav_link:hover,
+.nav_link:focus,
+.nav_link:active {
+    text-decoration: none; /* Ensure underline is removed for all states */
+    outline: none; /* Remove focus outline if any */
+}
 .header {
     width: 100%;
     height: var(--header-height);
@@ -102,6 +116,15 @@ a {
     transition: .5s;
     z-index: var(--z-fixed);
 }
+.l-navbar:hover {
+    width: calc(var(--nav-width) + 156px); /* Adjusted visible sidebar width */
+    padding-right:0px;
+}
+.l-navbar:hover .nav_logo-img {
+    width: 100%; /* Larger size when sidebar is open */
+    height: 100%; /* Larger size when sidebar is open */
+    transform: translateX(0%);
+}
 
 .nav {
     height: 100%;
@@ -124,7 +147,7 @@ a {
 }
 
 .nav_logo-icon {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: var(--white-color);
 }
 
@@ -137,7 +160,7 @@ a {
     position: relative;
     color: var(--white-color); /* Sidebar text color */
     margin-bottom: 1.5rem;
-    font-weight: 700; /* Thicker font for labels */
+    font-weight: 600; /* Thicker font for labels */
     transition: .3s;
 }
 
@@ -146,15 +169,7 @@ a {
 }
 
 .nav_icon {
-    font-size: 1.25rem;
-}
-
-.show {
-    left: 0;
-}
-
-.body-pd {
-    padding-left: calc(var(--nav-width) + 1rem);
+    font-size: 1.4rem;
 }
 
 .active {
@@ -181,14 +196,29 @@ a {
     padding: 10px; /* Padding to ensure there is some space around the logo; adjust as necessary */
     width: 100%; /* Container takes full width */
     margin-bottom: .5rem; /* Adjust or remove as needed */
+    transition: transform 0.3s ease, width 0.3s ease; /* Smooth size transition */
 }
 
 .nav_logo-img {
-    width: 90%; /* Width of the image to fill the container */
-    height: auto; /* Height is auto to maintain aspect ratio */
-    object-fit: contain; /* Ensures the image is scaled properly within the container */
-    transform: translateY(-10%); /* Moves the container up by 10% of its height */
-    transform: translateX(-7%); /* Moves the container up by 10% of its height */
+    width: 85%; /* Default smaller size */
+    height: 85%; /* Default smaller size */
+    object-fit: contain; /* Scale image within the container */
+
+    transform: translateX(-8%); /* Moves the container up by 10% of its height */
+
+}
+
+/* Sidebar Visible State (Larger Logo) */
+.show .nav_logo-img {
+    width: 100%; /* Larger size when sidebar is open */
+    height: 100%; /* Larger size when sidebar is open */
+    transform: translateX(0%); /* Moves the container up by 10% of its height */
+}
+
+
+/* Adjust Body Padding When Sidebar is Visible */
+.body-pd {
+    padding-left: calc(var(--nav-width) + 1rem);
 }
 
 
@@ -224,11 +254,16 @@ a {
     }
 
     .show {
-        width: calc(var(--nav-width) + 156px);
+        width: calc(var(--nav-width) + 156px); /* Adjusted visible sidebar width */
+        padding-right: 0; /* Remove padding/margin on the right */
     }
 
     .body-pd {
         padding-left: calc(var(--nav-width) + 188px);
+    }
+            /* Add padding on hover */
+            .l-navbar:hover + .body {
+        padding-left: calc(var(--nav-width) + 2rem); /* Adjust body padding */
     }
 }
 
@@ -265,7 +300,7 @@ a {
                         <span class="fa fa-user me-2 text-primary"></span> My Account
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <!-- <li><hr class="dropdown-divider"></li> -->
                 <li>
                     <!-- Logout Link -->
                     <a class="dropdown-item d-flex align-items-center" href="<?= base_url.'/classes/Login.php?f=logout' ?>">
@@ -313,48 +348,62 @@ a {
                         <i class='bx bx-upload nav_icon'></i> 
                         <span class="nav_name">Upload Research</span> 
                     <?php endif; ?>
-                </div>
-            </div> 
-<!-- Logout button moved to the bottom -->
-<a >
-</a>
+                    <a href="javascript:void(0);" class="nav_item-placeholder" aria-hidden="true"></a>
 </nav>
 </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function(event) {
-            const showNavbar = (toggleId, navId, bodyId, headerId) => {
-                const toggle = document.getElementById(toggleId),
-                      nav = document.getElementById(navId),
-                      bodypd = document.getElementById(bodyId),
-                      headerpd = document.getElementById(headerId);
-                // Validate that all variables exist
-                if (toggle && nav && bodypd && headerpd) {
-                    toggle.addEventListener("click", () => {
-                        // Toggle sidebar visibility
-                        nav.classList.toggle("show");
-                        // Toggle icon
-                        toggle.classList.toggle("bx-x");
-                        // Adjust padding
-                        bodypd.classList.toggle("body-pd");
-                        headerpd.classList.toggle("body-pd");
-                    });
-                }
-            };
+<script>
+document.addEventListener("DOMContentLoaded", function(event) {
+    const showNavbar = (toggleId, navId, bodyId, headerId) => {
+        const toggle = document.getElementById(toggleId),
+              nav = document.getElementById(navId),
+              bodypd = document.getElementById(bodyId),
+              headerpd = document.getElementById(headerId);
+        // Validate that all variables exist
+        if (toggle && nav && bodypd && headerpd) {
+            // Hover event for opening sidebar
+            nav.addEventListener("mouseenter", () => {
+                // Show the sidebar
+                nav.classList.add("show");
+                // Adjust padding
+                bodypd.classList.add("body-pd");
+                headerpd.classList.add("body-pd");
+            });
 
-            showNavbar("header-toggle", "nav-bar", "body-pd", "header");
+            // Hover event for closing sidebar
+            nav.addEventListener("mouseleave", () => {
+                // Hide the sidebar
+                nav.classList.remove("show");
+                // Remove padding
+                bodypd.classList.remove("body-pd");
+                headerpd.classList.remove("body-pd");
+            });
 
-            /*===== LINK ACTIVE =====*/
-            const linkColor = document.querySelectorAll(".nav_link");
+            // Click event for hamburger button (toggle sidebar visibility)
+            toggle.addEventListener("click", () => {
+                // Toggle sidebar visibility without changing the icon
+                nav.classList.toggle("show");
+                // Adjust padding
+                bodypd.classList.toggle("body-pd");
+                headerpd.classList.toggle("body-pd");
+            });
+        }
+    };
 
-            function colorLink() {
-                if (linkColor) {
-                    linkColor.forEach((l) => l.classList.remove("active"));
-                    this.classList.add("active");
-                }
-            }
+    showNavbar("header-toggle", "nav-bar", "body-pd", "header");
 
-            linkColor.forEach((l) => l.addEventListener("click", colorLink));
-        });
+    /*===== LINK ACTIVE =====*/
+    const linkColor = document.querySelectorAll(".nav_link");
+
+    function colorLink() {
+        if (linkColor) {
+            linkColor.forEach((l) => l.classList.remove("active"));
+            this.classList.add("active");
+        }
+    }
+
+    linkColor.forEach((l) => l.addEventListener("click", colorLink));
+});
+
     </script>
 </body>
 </html>
