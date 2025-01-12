@@ -240,7 +240,7 @@ body {
     }
 }
 .container{
-    transform: translateY(15%); /* Moves the container up by 10% of its height */
+    transform: translateY(16%); /* Moves the container up by 10% of its height */
 }
     </style>
 </head>
