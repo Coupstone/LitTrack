@@ -2,6 +2,7 @@
 check_login(); ?>
 <!DOCTYPE html>
 <html lang="en" class="" style="height: auto;">
+<link href="styles/main.css" rel="stylesheet">
 <?php require_once('inc/header.php') ?>
 <?php $page = isset($_GET['page']) ? $_GET['page'] : 'home';  ?>
      <?php require_once('inc/topBarNav.php') ?>
@@ -35,7 +36,7 @@ check_login(); ?>
                                 display: none;">
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary ms-2"><i class="fa fa-search"></i> Search</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
               </div>
@@ -223,6 +224,19 @@ check_login(); ?>
         margin: 0;
     }
 }
+/* General body styling */
+body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+        }
 
 
 #content {
@@ -315,7 +329,7 @@ body.sidebar-collapsed .main-sidebar .nav-link i {
 
 
 .content-wrapper {
-    margin-left: 250px;
+    /* margin-left: 250px; */
     transition: margin-left 0.3s ease-in-out;
     height: 100vh;
     overflow-y: auto; 

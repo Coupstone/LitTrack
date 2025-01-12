@@ -193,7 +193,7 @@
     </style>
 </head>
 <body>
-<div class="card card-outline card-primary">
+<div class="card card-outline">
         <div class="card-header">
             <h3 class="card-title">List of Students</h3>
             <!-- Button to open the modal -->

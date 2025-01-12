@@ -105,7 +105,7 @@
     }
 </style>
 
-<div class="card card-outline card-primary">
+<div class="card card-outline">
     <div class="card-header">
         <h3 class="card-title">List of Researches</h3>
     </div>

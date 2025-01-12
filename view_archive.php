@@ -227,14 +227,18 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
 .main-sidebar .nav-sidebar .brand-text {
     font-weight: 700;
 }
+body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
-
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background-color: #f9f9f9;
-    }
+        }
     .header {
         display: none;
     }
@@ -267,10 +271,9 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
     }
 
 
-    .card-title {
-        font-size: 1.75rem;
+    card-title {
+        font-size: 1.5rem;
         margin: 0;
-        font-weight: bold;
     }
 
 
@@ -374,6 +377,7 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 15px;
+        transform: translateY(3%); /* Moves the container up by 10% of its height */
     }
 
 
@@ -608,13 +612,26 @@ if (isset($_SESSION['user_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
         flex-basis: 100%; /* Adjusts the width of the value column */
         text-align: start;
     }
+    .close {
+    position: absolute; /* Position the button absolutely within the modal */
+    top: 10px; /* Adjust as needed to move it down from the top */
+    right: 10px; /* Adjust as needed to move it left from the right edge */
+    font-size: 30px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: red; /* Optional: changes color on hover */
+}
     </style>
 
 <div class="card-body rounded-0">
     <div class="container-fluid">
         <fieldset class="fieldset">
             <legend class="legend"></legend>
-            <h2 class="font-weight-bold"><?= $title ?? "" ?></h2>
+            <h2 style="font-weight: 600; text-transform: uppercase;"><?= $title ?? "" ?></h2>
             <small class="text-muted">Submitted by <b class="text-info"><?= $submitted ?></b> on <?= date("F d, Y h:i A", strtotime($date_created)) ?></small>
             <div class="stats">
                 <div><i class="fa fa-eye"></i><span class="stat-value"><?= $reads_count ?? "0" ?></span> Reads</div>

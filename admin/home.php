@@ -88,7 +88,7 @@
 <div class="row">
     <!-- Department List Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="department_list.php" class="info-box department-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box department-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-info text-white square-icon p-3">
                 <i class="fas fa-building fa-lg"></i>
             </span>
@@ -103,7 +103,7 @@
 
     <!-- Curriculum List Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="curriculum_list.php" class="info-box curriculum-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box curriculum-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-gradient-dark text-white square-icon p-3">
                 <i class="fas fa-book-open fa-lg"></i>
             </span>
@@ -118,7 +118,7 @@
 
     <!-- Verified Students Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="verified_students.php" class="info-box verified-students-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box verified-students-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-primary text-white square-icon p-3">
                 <i class="fas fa-user-check fa-lg"></i>
             </span>
@@ -133,7 +133,7 @@
 
     <!-- Not Verified Students Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="not_verified_students.php" class="info-box not-verified-students-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box not-verified-students-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-warning text-dark square-icon p-3">
                 <i class="fas fa-user-times fa-lg"></i>
             </span>
@@ -148,7 +148,7 @@
 
     <!-- Verified Archives Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="verified_archives.php" class="info-box verified-archives-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box verified-archives-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-success text-white square-icon p-3">
                 <i class="fas fa-archive fa-lg"></i>
             </span>
@@ -163,7 +163,7 @@
 
     <!-- Not Verified Archives Box -->
     <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-        <a href="not_verified_archives.php" class="info-box not-verified-archives-box rounded p-2 mb-3 interactive-box">
+        <a href="#" class="info-box not-verified-archives-box rounded p-2 mb-3 interactive-box">
             <span class="info-box-icon bg-dark text-white square-icon p-3">
                 <i class="fas fa-box fa-lg"></i>
             </span>

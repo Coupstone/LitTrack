@@ -38,7 +38,7 @@ require_once('./config.php');
           <a class="nav-link" href="#news">News</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#contact">Contact Us</a>
+          <a class="nav-link" href="#contact">Contact</a>
         </li>
         <li class="nav-item">
           <a class="nav-link d-lg-none" href="#contact">Contact</a>
@@ -57,7 +57,7 @@ require_once('./config.php');
         <!-- Logo above text -->
         <img src="uploads/LITTRACKLOGO.png" class="img-fluid mb-4" style="max-width: 40%; height: auto;" alt="LitTrack Logo">
         <!-- Smaller 'About LitTrack' text -->
-        <h5 class="fw-semibold">About Us</h5>
+        <!-- <h5 class="fw-semibold">About Us</h5> -->
         <p>Welcome to PUPSRC LitTrack, the official research repository and literature mapping system of PUP Santa Rosa Campus.
 
 This platform showcases the academic achievements of our community, offering students exclusive tools for research exploration and management, including literature mapping. Visitors can browse titles and abstracts, while full access is reserved for students.
@@ -78,13 +78,13 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
 
 <section class="services" id="services">
   <div class="container">
-    <h4 class="display-5 fw-bold mb-4 text-center">Services</h4>
+  <h4 class="display-5 fw-bold mb-4 text-center" style="margin-top: 20px;">Services</h4>
     <div class="row">
       <!-- First Row -->
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Centralized Research Storage</h5>
+            <h6 class="card-title fw-bold">Centralized Research Storage</h6>
             <p class="card-text">Offers a secure platform to store, manage, and preserve research outputs for long-term access and use.</p>
           </div>
         </div>
@@ -92,7 +92,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Advanced Search and Retrieval</h5>
+            <h6 class="card-title fw-bold">Advanced Search and Retrieval</h6>
             <p class="card-text">Enables users to quickly locate research papers and related materials through keyword searches and filters.</p>
           </div>
         </div>
@@ -100,7 +100,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Literature Mapping</h5>
+            <h6 class="card-title fw-bold">Literature Mapping</h6>
             <p class="card-text">Visualizes relationships between research topics, keywords, and authors to identify trends, gaps, and connections in the literature.</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">User Access Management</h5>
+            <h6 class="card-title fw-bold">User Access Management</h6>
             <p class="card-text">Provides role-based access, allowing students to upload and download full research files while limiting non-student users to view-only access of abstracts and titles.</p>
           </div>
         </div>
@@ -120,7 +120,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Collaboration and Networking</h5>
+            <h6 class="card-title fw-bold">Collaboration and Networking</h6>
             <p class="card-text">Facilitates collaboration among researchers by linking related works and suggesting similar studies.</p>
           </div>
         </div>
@@ -128,7 +128,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
       <div class="col-lg col-sm-6 mt-4">
         <div class="card shadow">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Research Analytics</h5>
+            <h6 class="card-title fw-bold">Research Analytics</h6>
             <p class="card-text">Generates insights on research trends, frequently explored topics, and areas needing further study.</p>
           </div>
         </div>
@@ -156,9 +156,9 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
                     <table class="table table-hover table-striped" id="researchTable">
                         <thead>
                             <tr>
-                                <th>Year</th>
-                                <th>Title</th>
-                                <th>Action</th>
+                                <th style="width: 10%;">Year</th>
+                                <th style="width: 80%;">Title</th>
+                                <th style="width: 10%;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -180,9 +180,9 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
                     </table>
                 </div>
                 <div class="pagination d-flex justify-content-end mt-3">
-                    <button class="btn btn-secondary" id="prevPage" onclick="changePage(-1)">Previous</button>
+                    <button class="btn btn-outline-dark btn-sm" id="prevPage" onclick="changePage(-1)">Previous</button>
                     <span id="pageInfo" class="mx-3 mt-2"></span>
-                    <button class="btn btn-secondary" id="nextPage" onclick="changePage(1)">Next</button>
+                    <button class="btn btn-outline-dark btn-sm" id="nextPage" onclick="changePage(1)">Next</button>
                 </div>
             </div>
         </div>
@@ -246,19 +246,16 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
   </div>
 </section>
 
-<section class="contact" id="contact">
-<section class="contact-section bg-light text-center py-2">
+<section class="contact-section bg-light text-center py-2" id="contact">
   <div class="container">
     <div class="row">
       <!-- Social Media Icons -->
       <div class="col-12 mb-3">
       <p class="fw-bold">KEEP IN TOUCH</p>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-facebook"></i></a>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-twitter"></i></a>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-youtube"></i></a>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-linkedin"></i></a>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-rss"></i></a>
-        <a href="#" class="social-icon" style="font-size: 2rem;"><i class="bi bi-spotify"></i></a>
+        <a href="https://www.facebook.com/PUPsrcOfficial/" class="social-icon" style="font-size: 2rem;"><i class="bi bi-facebook"></i></a>
+        <a href="https://x.com/ThePUPOfficial/status/1480678838979858434" class="social-icon" style="font-size: 2rem;"><i class="bi bi-twitter"></i></a>
+        <a href="https://www.linkedin.com/school/polytechnic-university-of-the-philippines/" class="social-icon" style="font-size: 2rem;"><i class="bi bi-linkedin"></i></a>
+        <a href="https://www.instagram.com/ThePUPOfficial/" class="social-icon" style="font-size: 2rem;"><i class="bi bi-instagram"></i></a>
       </div>
       <!-- Contact Information -->
       <div class="col-12">
@@ -290,7 +287,7 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
 </body>
 
 <script>
-    const rowsPerPage = 10;
+    const rowsPerPage = 5;
     let currentPage = 1;
     const table = document.getElementById("researchTable");
     const tbody = table.querySelector("tbody");
@@ -378,7 +375,7 @@ function filterTable() {
 </script>
 
 <footer class="text-center p-3 bg-body-tertiary">
-  <div>&copy; 2024. All Rights Reserved.</div>
+  <div>&copy; 2025. All Rights Reserved.</div>
 </footer>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -484,28 +481,21 @@ section.home {
   }
 
 /* SERVICES */
-.services h4 {
-  transform: translateY(70%); /* Moves the container up by 10% of its height */
-  font-size: 45px;
-}
 .services {
   width: 100%; /* Full width */
-  padding: 4rem 0; /* Add vertical spacing */
+  min-height: 100vh; /* Full viewport height */
+  padding: 2rem 0; /* Add vertical spacing */
   background-color: #FFD0D0; /* Optional background color */
+  display: flex; /* Use Flexbox */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  flex-wrap: wrap; /* Allow wrapping of cards */
 }
 
-.services .container-fluid {
-  padding-left: 0; /* Remove container padding */
-  padding-right: 0; /* Remove container padding */
-}
-
-.services h2 {
-  margin-bottom: 2rem; /* Space below heading */
-  text-align: center; /* Center the heading */
-}
-
-.services .row {
-  margin-bottom: 2rem; /* Space between rows */
+.services .col-lg-4, .services .col-sm-6 {
+  padding: 0.5rem; /* Reduce space between columns */
+  flex: 1 1 calc(33.333% - 1rem); /* Make each card take up 1/3 of the row, minus padding */
+  box-sizing: border-box; /* Include padding in the element's total width and height */
 }
 
 .services .card {
@@ -516,19 +506,20 @@ section.home {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for a better look */
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Ensure even space distribution */
-  height: 100%; /* Ensure all cards are the same height */
+  justify-content: center; /* Center content vertically */
+  height: 90%; /* Ensure all cards are the same height */
   max-width: 22rem; /* Set a maximum width */
   margin: 0 auto; /* Center card horizontally */
 }
 
 .services .card-body {
-  flex-grow: 1; /* Allow card body to take available space */
+  flex-grow: 1; 
+  text-align: center; 
 }
 
-.services .card i {
-  font-size: 2rem; /* Icon size */
-  color: #007bff; /* Icon color */
+/* .services .card i {
+  font-size: 2rem; 
+  color: #007bff; 
   margin-bottom: 1rem;
 }
 
@@ -542,70 +533,32 @@ section.services i {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--accent-color); /* Replace with your desired accent color */
+  background-color: var(--accent-color); 
 }
 
 .services .col-lg-4, .services .col-sm-6 {
-  padding: 0.5rem; /* Reduce space between columns */
-}
+  padding: 0.5rem; 
+} */
 
 .services .card-title {
   font-weight: bold;
+  text-align: center; /* Center card title */
 }
 
 .services .card-text {
   font-size: 0.95rem;
   margin-top: 0.5rem;
+  text-align: center; /* Center card text */
 }
 
 /* Optional media queries for responsive adjustments */
 @media (max-width: 768px) {
-  .services .card {
-    max-width: 100%; /* Allow cards to stretch fully on smaller screens */
-    margin-bottom: 1.5rem; /* Add some space between cards in small screens */
+  .services .col-lg-4, .services .col-sm-6 {
+    flex: 1 1 calc(50% - 1rem); /* Make each card take up 1/2 of the row on smaller screens */
   }
-
-  .services h2 {
+  .services h4 {
     font-size: 1.75rem; /* Reduce heading size on small screens */
   }
-}.services {
-    width: 100%; /* Full width */
-    padding: 2rem 0; /* Add vertical spacing */
-    background-color: #FFD0D0; /* Optional background color */
-  }
-
-  .services .container-fluid {
-    padding-left: 0; /* Remove container padding */
-    padding-right: 0; /* Remove container padding */
-  }
-
-  .services .card {
-    text-align: center; /* Center the card content */
-    padding: 1.5rem;
-    border: 1px solid #ddd; /* Add a light border */
-    border-radius: 10px;
-  }
-
-  .services .card i {
-    font-size: 2rem; /* Icon size */
-    color: #007bff; /* Icon color */
-    margin-bottom: 1rem;
-  }
-
-  .services h2 {
-    margin-bottom: 2rem; /* Space below heading */
-  }
-section.services i {
-  font-size: 2rem;
-  margin: 1rem auto 0;
-  border: 2px solid #000000;
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--accent-color);
 }
 
 /* RESEARCHES (formerly ABOUT) */
@@ -628,6 +581,42 @@ section.services i {
         .align-middle {
             vertical-align: middle !important;
 }
+.table-container {
+  width: 100%; /* Full width */
+  max-width: 1500px; /* Set a maximum width */
+  margin: 0 auto; /* Center the table */
+  overflow-x: auto; /* Enable horizontal scrolling if needed */
+  max-height: 400px; /* Set a maximum height */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.table {
+  width: 100%; /* Full width */
+  table-layout: fixed; /* Fixed table layout */
+  border-collapse: collapse; /* Collapse borders */
+  font-size: 0.9rem; /* Slightly smaller font size */
+}
+
+.table th, .table td {
+  padding: 0.75rem; /* Padding for table cells */
+
+  border: 1px solid #ddd; /* Light border */
+}
+
+.table th {
+  background-color: #f8f9fa; /* Optional background color for header */
+}
+
+.pagination-controls {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.pagination-controls button {
+  margin: 0 0.25rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
 /* .table-container {
     width: 1000px; /* Adjust this value to make it smaller or larger */
 ; /* Centers the table */
@@ -638,7 +627,7 @@ section.services i {
     transform: translateY(-59%); /* Moves the container up by 10% of its height */
   }
   #searchInput {
-    width: 30%;
+    width: 10%;
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -728,11 +717,11 @@ section.services i {
 /* FOOTER */
 .contact{
     width: 100%; /* Full width */
-    height: 50%; /* Full viewport height *//
+    height: 10%; /* Full viewport height *//
   }
   .contact-container{
     border-radius: 10px;
-    max-height: 200px;
+    max-height: 100px;
   }
   .contact-section .social-icon {
     font-size: 2rem; /* Adjust size as needed */
