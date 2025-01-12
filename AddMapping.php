@@ -127,19 +127,33 @@ $response = [
 <!DOCTYPE html>
 <html lang="en" style="height: auto;">
 <head>
-    <title>Add New Literature Mapping</title>
-    <!-- Load D3.js -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSRC LitTrack</title>
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <style>
      /* Main content wrapper, responsive to sidebar state */
+     body {
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+}
      .content-wrapper {
-        margin-left: 250px; /* Default margin when sidebar is expanded */
+        transform: translateX(-13%); /* Moves the container up by 10% of its height */
+margin-top: -10px;
+    align-items: center;
         transition: margin-left 0.3s ease-in-out;
         background-color: #ffffff; /* Set background color to white */
-        padding: 20px; /* Add padding for a cleaner look */
-    }
-    body.sidebar-collapsed .content-wrapper {
-        margin-left: 70px; /* Adjust margin when sidebar is collapsed */
+        padding: 60px; /* Add padding for a cleaner look */
     }
 
     .search-container {
@@ -184,13 +198,15 @@ $response = [
 
 
     /* Map container */
-    #map {
-        width: 80%;
-        height: 500px;
-        margin: 0 auto 20px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-    }
+/* Map container (Litmapping section) */
+#map {
+    width: 100%; /* Increased width for a larger display */
+    height: 600px; /* Adjusted height for better visibility */
+    margin: 20px auto; /* Center the map with some spacing */
+    border: 1px solid #ddd; /* Retain border for structure */
+    border-radius: 10px; /* Rounded corners for aesthetics */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+}
 
     /* Tooltip */
     .tooltip {
@@ -210,12 +226,7 @@ $response = [
     overflow: hidden; /* Hide scrollbar */
     /* other styling like width, height, background color, etc. */
 }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; 
-        }
+        
         .main-sidebar {
             position: fixed;
             top: 0;
@@ -253,11 +264,12 @@ $response = [
             width: 100%;
         }
         .content-wrapper {
-            margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
-            height: 100%;
-            overflow: hidden;
-        }
+    margin-left: 250px; /* Align with the sidebar */
+    margin-right: 20px; /* Add spacing on the right side */
+    transition: margin-left 0.3s ease-in-out;
+    padding: 60px 20px; /* Maintain padding for a balanced layout */
+    height: auto; /* Ensure it adjusts with the content */
+}
         body.sidebar-collapsed .content-wrapper {
             margin-left: 60px;
         }
@@ -289,40 +301,185 @@ $response = [
             opacity: 0;
             overflow: hidden;
         }
+/* Position the control buttons outside of the map */
+.control-buttons {
+    position: fixed; /* Attach to the viewport */
+    right: 20px; /* Distance from the right edge of the screen */
+    bottom: 150px; /* Distance from the bottom of the screen */
+    display: flex; /* Stack buttons vertically */
+    flex-direction: column;
+    gap: 10px; /* Spacing between buttons */
+    z-index: 1000; /* Ensure they are above other elements */
+    transform: translateX(150%); /* Moves the container up by 10% of its height */
+}
+
+/* Styling for buttons */
+.control-button {
+    font-size: 16px;
+    width: 40px; /* Adjust width */
+    height: 40px; /* Adjust height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer;
+}
+
+/* Hover effects */
+.control-button:hover {
+    background-color: #f0f0f0;
+}
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+#studyModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    z-index: 1000;
+    padding: 20px;
+    border-radius: 8px;
+    display: none;
+}
+
+.modal-content {
+    position: relative;
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    top: 50%;
+    transform: translate(0%, -50%);
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 1200px;
+    border-radius: 8px;
+    overflow-y: auto;
+    position: relative;
+    max-height: calc(100vh - 100px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: red;
+}
+
+.citation-style {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.citation-style strong {
+    flex-basis: 30%;
+    text-align: left;
+}
+
+.citation-style span {
+    flex-basis: 100%;
+    text-align: start;
+}
+
+/* Close button styling */
+.close {
+    position: absolute; /* Positioned within the modal */
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: red; /* Red highlight on hover */
+}
+
+    .citation-style {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 0;
+        font-size: 14px;
+    }
+
+    .citation-style strong {
+        flex-basis: 30%; /* Adjusts the width of the label column */
+        text-align: left;
+    }
+
+    .citation-style span {
+        flex-basis: 100%; /* Adjusts the width of the value column */
+        text-align: start;
+    }
+
 
     </style>
 </head>
 <body>
-
 <div class="content-wrapper">
     <div class="search-container">
-        <h2>Search Studies</h2>
-        <input type="text" id="searchBar" placeholder="Type to search studies..." autocomplete="off">
+        <input type="text" id="searchBar" placeholder="                    Search by title, keyword, author, or publication year.." autocomplete="off">
         <div class="search-results" id="searchResults"></div>
     </div>
 
     <div id="map"></div>
-        <!-- Control Buttons -->
-        <button class="control-button top-left" id="togglePan">🖱️</button>
-    <button class="control-button top-right" id="recenterMap">🔄</button>
-    <button class="control-button bottom-left" id="zoomIn">🔍+</button>
-    <button class="control-button bottom-right" id="zoomOut">🔍−</button>
+<!-- Control Buttons -->
+<div class="control-buttons">
+    <button class="control-button top-left" id="togglePan">✦</button>
+    <button class="control-button top-right" id="recenterMap">↻</button>
+    <button class="control-button bottom-left" id="zoomIn">+</button>
+    <button class="control-button bottom-right" id="zoomOut">−</button>
 </div>
 
 <!-- Modal Structure -->
-<div id="studyModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
-    <div style="background-color:#fff; margin:2% auto; padding:20px; border-radius:8px; width:80%; max-width:600px; position:relative; box-shadow: 0px 4px 8px rgba(0,0,0,0.2);">
+<div id="studyModal" class="modal" style="display:none; position:fixed; z-index:1000; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+    <div style="background-color:#fff; margin:0 auto; padding:20px; border-radius:8px; width:100%; max-width:1000px; position:relative; top:50%; left:45%; transform:translate(-50%, -50%); box-shadow:0px 4px 8px rgba(0,0,0,0.2);">
         <span id="closeModal" style="position:absolute; top:10px; right:10px; font-size:24px; font-weight:bold; cursor:pointer;">&times;</span>
         <h2 id="modalTitle" style="text-align:center;"></h2>
         <p><strong>Authors:</strong> <span id="modalAuthors"></span></p>
         <p><strong>Year:</strong> <span id="modalYear"></span></p>
-        <p><strong>Citations:</strong> <span id="modalCitations"></span></p> <!-- Citation count added here -->
+        <p><strong>Citations:</strong> <span id="modalCitations"></span></p>
         <p><strong>Abstract:</strong> <span id="modalAbstract"></span></p>
     </div>
 </div>
-
-
-
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -382,7 +539,7 @@ function performSearch(query) {
             resultsDiv.innerHTML = '';
         });
 }
-
+        
 document.getElementById('searchBar').addEventListener('input', function() {
     performSearch(this.value);
 });
@@ -396,7 +553,6 @@ async function loadMapping(studyId) {
             console.error("Invalid data structure:", data);
             return;
         }
-
         const citationNodeIds = new Set(data.citations.flatMap(citation => [citation.citing_paper_id, citation.cited_paper_id]));
         const literatureNodeIds = new Set(data.literature.map(node => node.id));
 
@@ -420,13 +576,12 @@ async function loadMapping(studyId) {
     }
 }
 
-// Close the modal when clicking on the close button
-document.getElementById("closeModal").onclick = function() {
+// Modal and zoom control logic
+document.getElementById("closeModal").onclick = () => {
     document.getElementById("studyModal").style.display = "none";
 };
 
-// Close the modal when clicking outside the modal content
-window.onclick = function(event) {
+window.onclick = event => {
     const modal = document.getElementById("studyModal");
     if (event.target === modal) {
         modal.style.display = "none";
@@ -580,7 +735,6 @@ document.getElementById("togglePan").addEventListener("click", () => {
     }
 });
 </script>
-
 
 </body>
 </html>

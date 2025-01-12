@@ -153,7 +153,7 @@ button.btn-primary {
                <div class="form-group text-center">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-6 col-md-4">
-            <button type="submit" class="btn btn-primary w-100" id="searchButton" disabled>Search</button>
+            <button type="submit" class="btn btn-primary w-20" id="searchButton" disabled>Search</button>
         </div>
     </div>
 </div>
