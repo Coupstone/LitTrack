@@ -1,4 +1,5 @@
 <?php
+check_login();
 if(isset($_GET['id'])){
     $qry = $conn->query("SELECT e.*,CONCAT(lastname, ', ', firstname,' ',middlename) as fullname,p.name,p.description,p.training_duration from `enrollee_list` e inner join package_list p on e.package_id = p.id where e.id = '{$_GET['id']}'");
     if($qry->num_rows > 0){

@@ -65,6 +65,8 @@ $terms = "
     <li>Address: Arambulo Street 4026 Santa Rosa Laguna</li>
 </ul>
 ";
+require_once('./config.php');
+check_active_session();
 ?>
 
 <!DOCTYPE html>

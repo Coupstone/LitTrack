@@ -9,6 +9,7 @@ $qry = $conn->query("SELECT *, concat(lastname,', ',firstname,' ', middlename) a
 
 // Display the list of soft-deleted students
 while ($row = $qry->fetch_assoc()):
+check_login();
 ?>
 <tr>
     <td><?php echo $row['id']; ?></td>

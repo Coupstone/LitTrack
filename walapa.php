@@ -4,286 +4,164 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'advance-search';
 require_once('./config.php');
 require_once('inc/topBarNav.php');
 require_once('inc/header.php');
-
 // Define base URL
 $base_url = "http://localhost/LitTrack/"; // Update this if your URL is different
-
 // Start HTML output
 echo "
     <style>
-        /* Responsive content shift when sidebar is collapsed */
-        #content {
-            margin-left: 50px;
-            padding: 20px;
-            overflow-y: auto; /* Enable scrolling for main content */
-            height: 100vh;
-            transition: margin-left 0.3s;
-        }
-        body.sidebar-collapsed #content {
-            margin-left: 5px;
-        }
-
         body {
-            background-color: #f9f9f9;
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+            font-weight: var(--bs-body-font-weight);
+            line-height: var(--bs-body-line-height);
+            color: var(--bs-body-color);
+            text-align: var(--bs-body-text-align);
+            background-color: var(--bs-body-bg);
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         }
-
-        .content-container {
-            margin-top: 20px;
-            padding: 0 20px;
-        }
-
-        .archive-item {
-            width: 100%;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-            color: inherit;
-            display: block;
-            text-decoration: none;
-        }
-
-        .text-container {
-            flex-grow: 1;
-            display: block;
-            padding: 10px;
-        }
-
-        .text-container h3 {
-            font-size: 1.5rem;
-            color: #003366;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .text-container .author {
-            color: #17a2b8;
-            font-size: 1rem;
+        .list-group-item {
+            border: 1px solid #ccc;
             margin-bottom: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 220px;
+            overflow: hidden;
+            text-decoration: none;
+            color: black;
+            background-color: #fff;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            position: relative;
         }
-
-        .text-container p {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.6;
-            max-height: 6.4em;
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        .title {
+            font-size: 22px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .authors {
+            font-size: 14px;
+            color: #007bff;
+            margin-bottom: 6px;
+        }
+        .details {
+            font-size: 14px;
+            color: #666;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: normal;
             display: -webkit-box;
-            -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
-        }
-
-        /* Modal Styles for No Results Found */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            max-width: 400px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-content h3 {
-            color: #a8001d;
-            font-size: 1.5rem;
+            -webkit-line-clamp: 3;
             margin-bottom: 10px;
         }
-
-        .modal-content p {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .retry-button {
-            background-color: #0066cc;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
-        }
-
-        .retry-button:hover {
-            background-color: #005bb5;
-        }
-
-        /* Additional styling for detailed view */
         .stats {
             display: flex;
-            align-items: center;
-            padding-top: 10px;
-            color: #555;
-            font-size: 0.85rem;
+            justify-content: flex-end;
+            font-size: 12px;
+            color: #999;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
         }
-
         .stats div {
-            margin-right: 20px;
+            margin-left: 10px;
+        }
+        .header-wrapper {
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            padding-bottom: 10px;
         }
-
-        .stats i {
-            margin-right: 5px ```php
-            font-size: 1.2rem;
+        #search-form {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
-        /* Sidebar styling */
-        .sidebar {
-            overflow: hidden; /* Hide scrollbar */
+        #search-input, .btn-primary {
+            height: 38px;
+            border-radius: 4px;
         }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; 
-        }
-        .main-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            transition: width 0.3s ease-in-out; 
-            overflow-y: auto; 
-            overflow-x: hidden; 
-            background-color: white;
-        }
-        .main-sidebar::-webkit-scrollbar {
-            display: none;
-        }
-        .main-sidebar {
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-        }
-        body.sidebar-collapsed .main-sidebar {
-            width: 70px;
-        }
-        .main-sidebar .nav-link p {
-            display: inline;
-        }
-        body.sidebar-collapsed .main-sidebar .nav-link p {
-            display: none;
-        }
-        .main-sidebar .nav-link i {
-            font-size: 1.2rem;
+        #search-input {
+            border: 1px solid #ced4da;
+            width: 50%;
+            padding: 8px 12px;
             margin-right: 10px;
         }
-        body.sidebar-collapsed .main-sidebar .nav-link i {
-            text-align: center;
-            margin-right: 0;
-            width: 100%;
-        }
-        .content-wrapper {
-            margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
-            height: 100%;
-            overflow: hidden;
-        }
-        body.sidebar-collapsed .content-wrapper {
-            margin-left: 60px;
-        }
-        .brand-link {
+.card-title {
+    font-size: 22px; /* Increase from the previous size, adjust based on preference */
+    color: #333; /* Dark color for better readability */
+    transform: translateY(90%); /* Moves the container up by 10% of its height */
+    margin-left: 5px
+}
+        .archive-item {
+            position: relative;
+            margin-bottom: 10px;
             display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            transition: padding 0.3s ease;
-            height: 3.5rem;
-            overflow: hidden;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        .brand-link .brand-image {
-            width: 2.5rem;
-            height: 2.5rem;
-            transition: width 0.3s ease, height 0.3s ease;
-            margin-right: 0.5rem;
+        .pagination-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            height: 100%;
+            padding: 10px;
         }
-        body.sidebar-collapsed .brand-link .brand-image {
-            width: 2rem;
-            height: 2rem;
-            margin-right: 0; 
+        .table-container {
+    transform: translateY(20%); /* Moves the container up by 10% of its height */
         }
-        .brand-link .brand-text {
-            font-size: 1rem;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
-        }
-        body.sidebar-collapsed .brand-link .brand-text {
-            opacity: 0;
-            overflow: hidden;
-        }
-        /* Additional spacing to move the content lower */
-        .card-body {
-            padding-top: 30px; /* Adjust this value to your preference */
-        }
-
-        /* Adjust the content-container to create more space */
-        .content-container {
-            margin-top: 65px; /* Adjust this value to move the table further down */
-        }
-
-        /* Optional: Add more space if the content is too close to the header */
-        #content {
-            padding-top: 30px; /* Increase or decrease for further spacing */
+        .table-container {
+            margin-top: 20px; /* Adjust the value as needed */
         }
     </style>
+";
 
-<!-- Main Content -->
-<div id='content' class='content py-2'>
-    <div class='container-fluid content-container'>
-        <div class='col-12'>
-            <div class='card card-outline card-primary shadow rounded-0'>
-                <div class='card-body rounded-0'>
-                    <h2>Search Results</h2>
-                    <hr class='bg-navy'>
-                    <div class='list-group'>";
+// Main Content
+echo "
+<div class='table-container'>
+    <div class='card card-outline card-primary shadow'>
+        <div class='card-header bg-white mt-4'>
+            <h3 class='card-title text-center text-dark header-title'><b>Advanced Search</b></h3>
+            <form id='search-form' class='d-flex' action='search_results.php' method='GET'>
+                <a href='advance-search.php' class='btn btn-primary ms-2'><i class='fa fa-arrow-left'></i> Back</a>
+            </form>
+            <hr class='bg-navy'>
+            <div class='list-group'>
+                <div class='table-container'>
+                    <!-- Your table content goes here -->
+                </div>
+";
 
-                   // Retrieve search inputs
+// Retrieve search inputs
 $searchTitle = isset($_GET['title']) ? trim($_GET['title']) : '';
 $searchAuthor = isset($_GET['author']) ? trim($_GET['author']) : '';
 $yearFrom = isset($_GET['year_from']) ? trim($_GET['year_from']) : '';
 $yearTo = isset($_GET['year_to']) ? trim($_GET['year_to']) : '';
 $searchKeyword = isset($_GET['topic_keyword']) ? trim($_GET['topic_keyword']) : '';
 $selectedCourse = isset($_GET['Select_Course']) ? intval($_GET['Select_Course']) : 0;
-
 // Initialize an empty results array
 $results = [];
-
 // Check if a curriculum_id filter has been set for course filtering
 if ($selectedCourse > 0) {
     // Modify the query to include a filter for matching curriculum_id
-    $sql = "SELECT * FROM archive_list 
-            WHERE curriculum_id = ?";
+    $sql = "SELECT * FROM archive_list WHERE curriculum_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $selectedCourse);
     $stmt->execute();
     $result = $stmt->get_result();
-
     // Fetch all matching rows
     while ($row = $result->fetch_assoc()) {
         $results[] = $row;
     }
 }
-
 // Proceed with the rest of your filtering for keywords, title, author, etc.
-
 // Step 1: Search for keywords in lda_topics table if provided
 $paper_ids = [];
 if (!empty($searchKeyword)) {
@@ -291,26 +169,21 @@ if (!empty($searchKeyword)) {
     $query = "SELECT paper_id FROM lda_topics WHERE ";
     $keywordConditions = [];
     $params = [];
-
     foreach ($keywords as $keyword) {
         $keywordConditions[] = "topic_keywords LIKE ?";
         $params[] = "%" . $keyword . "%";
     }
     $query .= implode(" OR ", $keywordConditions);
-
     $stmt = $conn->prepare($query);
     $types = str_repeat("s", count($params));
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $lda_result = $stmt->get_result();
-
     while ($row = $lda_result->fetch_assoc()) {
         $paper_ids[] = $row['paper_id'];
     }
-
     $stmt->close();
 }
-
 // If no keywords matched in lda_topics, show the "No Results Found" modal
 if (!empty($searchKeyword) && empty($paper_ids)) {
     echo "<p>No Results Found</p>";
@@ -324,10 +197,8 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
               LEFT JOIN archive_authors ON archive_list.id = archive_authors.archive_id
               LEFT JOIN lda_topics lt ON archive_list.id = lt.paper_id
               WHERE 1=1";
-
     $params = [];
     $types = "";
-
     // Only add paper_ids filter if there are matches from the keyword search
     if (!empty($paper_ids)) {
         $placeholders = implode(',', array_fill(0, count($paper_ids), '?'));
@@ -335,19 +206,18 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
         $types .= str_repeat("i", count($paper_ids));
         $params = array_merge($params, $paper_ids);
     }
-
     // Apply course filtering
     if ($selectedCourse > 0) {
         $query .= " AND archive_list.curriculum_id = ?";
         $params[] = $selectedCourse;
         $types .= "i";
     }
-
     // Apply other filters (title, author, year)
     if (!empty($searchTitle)) {
         $query .= " AND archive_list.title LIKE ?";
         $params[] = "%" . $searchTitle . "%";
         $types .= "s";
+
     }
     if (!empty($searchAuthor)) {
         $query .= " AND CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) LIKE ?";
@@ -368,15 +238,12 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
         $params[] = $yearTo;
         $types .= "s";
     }
-
     // Group by archive_list.id to consolidate authors for each paper
     $query .= " GROUP BY archive_list.id ORDER BY UNIX_TIMESTAMP(archive_list.date_created) DESC";
-
     // Apply pagination
     if (isset($limit) && isset($offset)) {
         $query .= " LIMIT {$limit} OFFSET {$offset}";
     }
-
     // Prepare and execute the query
     $stmt = $conn->prepare($query);
     if (!empty($params)) {
@@ -384,7 +251,6 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
     }
     $stmt->execute();
     $result = $stmt->get_result();
-
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $title = htmlspecialchars($row['title'] ?? 'No Title Available');
@@ -393,12 +259,10 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $year = htmlspecialchars($row['year'] ?? 'N/A');
             $id = $row['id'];
             $citation_count = $row['citation_count'] ?? 0;
-
             // Track reads (increased view count)
             $stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
             $stmt->bind_param("i", $id);
             $stmt->execute();
-
             // Fetch read count
             $stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
             $stmt->bind_param("i", $id);
@@ -406,7 +270,6 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $read_result = $stmt->get_result();
             $read_data = $read_result->fetch_assoc();
             $read_count = $read_data['read_count'];
-
             // Fetch download count
             $stmt = $conn->prepare("SELECT COUNT(*) AS download_count FROM archive_downloads WHERE archive_id = ?");
             $stmt->bind_param("i", $id);
@@ -416,31 +279,27 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $download_count = $download_data['download_count'];
 
             echo "
-                <a href='{$base_url}view_archive.php?id={$id}' class='archive-item'>
-                    <div class='text-container'>
-                        <h3>{$title}</h3>
-                        <small class='author'>By {$members}</small>
+                <div class='archive-item' data-id='{$id}'>
+                    <a href='{$base_url}view_archive.php?id={$id}' class='list-group-item'>
+                        <h5 class='mb-1 title'><b>{$title}</b></h5>
+                        <div class='authors'>By: " . (!empty($members) ? $members : "N/A") . "</div>
+                        <p class='mb-1 details'>" . strip_tags($abstract) . "</p>
                         <div class='stats'>
-                            <div><i class='fa fa-eye'></i> Reads: {$read_count}</div>
-                            <div><i class='fa fa-download'></i> Downloads: {$download_count}</div>
-                            <div><i class='fa fa-quote-left'></i> Citations: {$citation_count}</div>
+                            <div>Reads: {$read_count}</div>
+                            <div>Downloads: {$download_count}</div>
+                            <div>Citations: {$citation_count}</div>
                         </div>
-                        <p>{$abstract}</p>
-                        <small>Year: {$year}</small>
-                    </div>
-                </a>";
+                    </a>
+                </div>";
         }
     } else {
         echo "
-        <div class='no-results-container' style='display: flex; justify-content: center; align-items: center; height: 70vh; background-color: #f8f9fa;'>
+        <div class='table-container' style='display: flex; justify-content: center; align-items: center; height: 70vh; background-color: #f8f9fa;'>
             <div class='no-results-box' style='text-align: center; background-color: #ffffff; padding: 50px 70px; border-radius: 25px; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2); opacity: 0; animation: fadeInUp 1s ease-out forwards; transform: translateY(50px);'>
-                <i class='fa fa-times-circle' style='font-size: 80px; color: #ff6b6b; margin-bottom: 30px; animation: bounce 1.5s infinite;'></i>
-                <h3 style='color: #2f3542; font-family: Roboto, sans-serif; font-size: 36px; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;'>Sorry, No Results Found</h3>
                 <p style='color: #636e72; font-size: 20px; font-family: Arial, sans-serif; line-height: 1.7; font-weight: 400; max-width: 400px; margin: 0 auto;'>We couldn't find any matches for your search. Please try again.</p>
-                <a href='http://localhost/LitTrack/advance-search.php' style='margin-top: 30px; display: inline-block; padding: 12px 30px; background-color: #ff6b6b; color: white; font-size: 16px; border-radius: 30px; text-decoration: none; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;'>Refine Search</a>
+                <a href='http://localhost/LitTrack/advance-search.php' style='margin-top: 30px; display: inline-block; padding: 12px 30px; background-color: #ff6b6b; color: white; font-size: 16px; border-radius: 30px; text-decoration: none; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease, transform 0.3s ease;'>Refine Search</a>
             </div>
         </div>
-    
         <style>
             @keyframes fadeInUp {
                 0% {
@@ -452,7 +311,6 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
                     transform: translateY(0);
                 }
             }
-    
             @keyframes bounce {
                 0%, 100% {
                     transform: translateY(0);
@@ -461,11 +319,27 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
                     transform: translateY(-20px);
                 }
             }
-    
             .no-results-box a:hover {
                 background-color: #ff4d4d;
+                transform: translateY(-3px);
             }
         </style>
         ";
     }
-}    
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library - Research Projects</title>
+    <link href="styles/main.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+</body>
+</html>

@@ -19,6 +19,20 @@ function redirect($url=''){
 	echo '<script>location.href="'.base_url .$url.'"</script>';
 }
 
+// Check if the current user is logged in and redirect accordingly
+function check_active_session() {
+    if (isset($_SESSION['user_id'])) {
+        redirect('admin/'); // Redirect admin to the admin dashboard
+    } elseif (isset($_SESSION['student_id'])) {
+        redirect('index.php'); // Redirect student to the student dashboard
+    }
+}
+
+// Call `check_active_session()` only on `choices.php`
+if (basename($_SERVER['PHP_SELF']) === 'choices.php') {
+    check_active_session(); // Redirect logged-in users
+}
+
 // Function to check if a user is logged in
 function check_login(){
     if(!isset($_SESSION['user_id']) && !isset($_SESSION['student_id'])){

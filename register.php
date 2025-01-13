@@ -164,293 +164,363 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="form-floating mb-3">
-                            <input type="password" name="password" id="password" placeholder="Password" class="form-control shadow-sm" required>
-                            <label for="password" class="fw-medium text-carbon-grey font-13">Password<span style="color: red;"> *</span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="form-floating mb-3">
-                            <input type="password" id="cpassword" placeholder="Confirm Password" class="form-control shadow-sm" required>
-                            <label for="cpassword" class="fw-medium text-carbon-grey font-13">Confirm Password<span style="color: red;"> *</span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="text-end">
-                        <button class="btn btn-primary py-2 px-4 font-14" id="register-btn" style="background-color: #5875B5; color: white;" disabled>
-    Register
-</button>
-                        </div>
-                    </div>
-                </div>
-                
-            </form>
+                <div class="col-lg-12">
+        <div class="form-floating mb-3">
+            <input 
+                type="password" 
+                name="password" 
+                id="password" 
+                placeholder="Password" 
+                class="form-control shadow-sm" 
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$" 
+                title="Password must contain at least one uppercase letter, one lowercase letter, one special character, and be at least 8 characters long." 
+                required
+            >
+            <label for="password" class="fw-medium text-carbon-grey font-13">
+                Password<span style="color: red;"> *</span>
+            </label>
         </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-floating mb-3">
+            <input type="password" id="cpassword" placeholder="Confirm Password" class="form-control shadow-sm" required>
+            <label for="cpassword" class="fw-medium text-carbon-grey font-13">Confirm Password<span style="color: red;"> *</span></label>
+        </div>
+        <div id="password-match-indicator" class="font-13 mt-1"></div>
     </div>
 </div>
 
-<!-- jQuery -->
-<script src="plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-<!-- Select2 -->
-<script src="<?php echo base_url ?>plugins/select2/js/select2.full.min.js"></script>
 
-<script>
-    var cur_arr = $.parseJSON('<?= json_encode($cur_arr) ?>');
-    $(document).ready(function () {
-        end_loader();
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="text-end">
+                            <button class="btn btn-primary py-2 px-4 font-14" id="register-btn" style="background-color: #5875B5; color: white;" disabled>
+        Register
+    </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
 
-        // Initialize Select2 for dropdowns
-        $('.select2').select2({ width: "100%" });
+    <!-- jQuery -->
+    <script src="plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="dist/js/adminlte.min.js"></script>
+    <!-- Select2 -->
+    <script src="<?php echo base_url ?>plugins/select2/js/select2.full.min.js"></script>
 
-        // Dynamically load curriculum based on selected department
-        $('#department_id').change(function () {
-            var did = $(this).val();
-            $('#curriculum_id').html("");
-            if (cur_arr[did]) {
-                cur_arr[did].forEach(function (curriculum) {
-                    $('#curriculum_id').append(
-                        $("<option>").val(curriculum.id).text(curriculum.name)
-                    );
-                });
-            }
-            $('#curriculum_id').trigger("change");
-        });
+    <script>
+        var cur_arr = $.parseJSON('<?= json_encode($cur_arr) ?>');
+        $(document).ready(function () {
+            end_loader();
 
-        // File validation on file attachment
-        $('#cor').on('change', function () {
-            var corFile = this.files[0]; // Get the file object
+            // Initialize Select2 for dropdowns
+            $('.select2').select2({ width: "100%" });
 
-            if (!corFile) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'No file selected',
-                    text: 'Please upload a Certificate of Registration.',
-                });
-                return;
-            }
+            // Dynamically load curriculum based on selected department
+            $('#department_id').change(function () {
+                var did = $(this).val();
+                $('#curriculum_id').html("");
+                if (cur_arr[did]) {
+                    cur_arr[did].forEach(function (curriculum) {
+                        $('#curriculum_id').append(
+                            $("<option>").val(curriculum.id).text(curriculum.name)
+                        );
+                    });
+                }
+                $('#curriculum_id').trigger("change");
+            });
 
-            var fileExtension = corFile.name.split('.').pop().toLowerCase();
-            var allowedExtensions = ['pdf'];
-            var mimeType = corFile.type;
+            // File validation on file attachment
+            $('#cor').on('change', function () {
+                var corFile = this.files[0]; // Get the file object
 
-            if (!allowedExtensions.includes(fileExtension) || mimeType !== 'application/pdf') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid file format',
-                    text: 'Only PDF files are allowed for the Certificate of Registration.',
-                });
+                if (!corFile) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No file selected',
+                        text: 'Please upload a Certificate of Registration.',
+                    });
+                    return;
+                }
 
-                // Clear the file input
-                $(this).val('');
-                return;
-            }
-        });
+                var fileExtension = corFile.name.split('.').pop().toLowerCase();
+                var allowedExtensions = ['pdf'];
+                var mimeType = corFile.type;
 
-        // Registration Form Validation for Button Enable/Disable
-        const form = document.getElementById("registration-form");
-        const registerButton = document.querySelector(".btn-primary");
+                if (!allowedExtensions.includes(fileExtension) || mimeType !== 'application/pdf') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid file format',
+                        text: 'Only PDF files are allowed for the Certificate of Registration.',
+                    });
 
-        const validateForm = () => {
-            const inputs = form.querySelectorAll("input[required], select[required]");
-            let isValid = true;
-
-            inputs.forEach((input) => {
-                if (!input.checkValidity()) {
-                    isValid = false;
+                    // Clear the file input
+                    $(this).val('');
+                    return;
                 }
             });
 
-            return isValid;
-        };
+            // Registration Form Validation for Button Enable/Disable
+            const form = document.getElementById("registration-form");
+            const registerButton = document.querySelector(".btn-primary");
 
-        const toggleRegisterButton = () => {
-            if (validateForm()) {
-                registerButton.disabled = false;
+            const validateForm = () => {
+                const inputs = form.querySelectorAll("input[required], select[required]");
+                let isValid = true;
+
+                inputs.forEach((input) => {
+                    if (!input.checkValidity()) {
+                        isValid = false;
+                    }
+                });
+
+                return isValid;
+            };
+
+            const toggleRegisterButton = () => {
+                if (validateForm()) {
+                    registerButton.disabled = false;
+                } else {
+                    registerButton.disabled = true;
+                }
+            };
+
+            // Attach input and change event listeners to all required fields
+            form.addEventListener("input", toggleRegisterButton);
+            form.addEventListener("change", toggleRegisterButton);
+
+            // Disable the button initially
+            registerButton.disabled = true;
+
+            const passwordField = document.getElementById("password");
+             const confirmPasswordField = document.getElementById("cpassword");
+             const passwordMatchIndicator = document.getElementById("password-match-indicator");
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/;
+
+            // Real-Time Password Validation
+    passwordField.addEventListener("input", () => {
+        const errorMessage = document.getElementById("password-error");
+        if (!passwordPattern.test(passwordField.value)) {
+            passwordField.classList.add("is-invalid");
+            if (!errorMessage) {
+                const errorElement = document.createElement("div");
+                errorElement.id = "password-error";
+                errorElement.className = "invalid-feedback";
+                errorElement.textContent = "Password must contain at least one uppercase letter, one lowercase letter, one special character, and be at least 8 characters long.";
+                passwordField.parentNode.appendChild(errorElement);
+            }
+        } else {
+            passwordField.classList.remove("is-invalid");
+            if (errorMessage) {
+                errorMessage.remove();
+            }
+        }
+        toggleRegisterButton();
+    });
+
+    // Confirm Password Validation
+    confirmPasswordField.addEventListener("input", () => {
+        if (passwordField.value !== confirmPasswordField.value) {
+            confirmPasswordField.setCustomValidity("Passwords do not match.");
+        } else {
+            confirmPasswordField.setCustomValidity("");
+        }
+        toggleRegisterButton();
+    });
+     // Function to validate passwords and update the indicator
+     const updatePasswordMatchIndicator = () => {
+            const password = passwordField.value;
+            const confirmPassword = confirmPasswordField.value;
+            let message = "";
+            let color = "";
+
+            if (password === "" || confirmPassword === "") {
+                passwordMatchIndicator.textContent = ""; // Clear indicator if fields are empty
+                registerButton.disabled = true;
+                return;
+            }
+
+            if (password === confirmPassword) {
+                if (passwordPattern.test(password)) {
+                    message = "✔ Passwords match.";
+                    color = "green";
+                    registerButton.disabled = false;
+                } else {
+                    message = "✘ Passwords match but the format is invalid.";
+                    color = "orange";
+                    registerButton.disabled = true;
+                }
             } else {
+                message = "✘ Passwords do not match.";
+                color = "red";
                 registerButton.disabled = true;
             }
+
+            passwordMatchIndicator.textContent = message;
+            passwordMatchIndicator.style.color = color;
         };
 
-        // Attach input and change event listeners to all required fields
-        form.addEventListener("input", toggleRegisterButton);
-        form.addEventListener("change", toggleRegisterButton);
+        // Attach event listeners to both password fields
+        passwordField.addEventListener("input", updatePasswordMatchIndicator);
+        confirmPasswordField.addEventListener("input", updatePasswordMatchIndicator);
 
-        // Disable the button initially
-        registerButton.disabled = true;
+            // Real-Time Email Validation
+            const emailField = document.getElementById("email");
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|iskolarngbayan\.pup\.edu\.ph)$/;
 
-        // Additional validation for passwords
-        const passwordField = document.getElementById("password");
-        const confirmPasswordField = document.getElementById("cpassword");
+            emailField.addEventListener("blur", () => {
+                const errorMessage = document.getElementById("email-error");
 
-        confirmPasswordField.addEventListener("input", () => {
-            if (passwordField.value !== confirmPasswordField.value) {
-                confirmPasswordField.setCustomValidity("Passwords do not match.");
-            } else {
-                confirmPasswordField.setCustomValidity("");
-            }
-            toggleRegisterButton();
-        });
-
-        // Real-Time Email Validation
-        const emailField = document.getElementById("email");
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|iskolarngbayan\.pup\.edu\.ph)$/;
-
-        emailField.addEventListener("blur", () => {
-            const errorMessage = document.getElementById("email-error");
-
-            if (!emailPattern.test(emailField.value)) {
-                emailField.classList.add("is-invalid");
-                if (!errorMessage) {
-                    const errorElement = document.createElement("div");
-                    errorElement.id = "email-error";
-                    errorElement.className = "invalid-feedback";
-                    errorElement.textContent = "Invalid email address. Must be @gmail.com or @iskolarngbayan.pup.edu.ph.";
-                    emailField.parentNode.appendChild(errorElement);
+                if (!emailPattern.test(emailField.value)) {
+                    emailField.classList.add("is-invalid");
+                    if (!errorMessage) {
+                        const errorElement = document.createElement("div");
+                        errorElement.id = "email-error";
+                        errorElement.className = "invalid-feedback";
+                        errorElement.textContent = "Invalid email address. Must be @gmail.com or @iskolarngbayan.pup.edu.ph.";
+                        emailField.parentNode.appendChild(errorElement);
+                    }
+                } else {
+                    emailField.classList.remove("is-invalid");
+                    if (errorMessage) {
+                        errorMessage.remove();
+                    }
                 }
-            } else {
-                emailField.classList.remove("is-invalid");
-                if (errorMessage) {
-                    errorMessage.remove();
+                toggleRegisterButton();
+            });
+
+            // Real-Time Student Number Validation
+            const studentNumberField = document.getElementById("student_number");
+            const studentNumberPattern = /^20[0-9]{2}-00[0-9]{3}-SR-0$/;
+
+            studentNumberField.addEventListener("blur", () => {
+                const errorMessage = document.getElementById("student-number-error");
+
+                if (!studentNumberPattern.test(studentNumberField.value)) {
+                    studentNumberField.classList.add("is-invalid");
+                    if (!errorMessage) {
+                        const errorElement = document.createElement("div");
+                        errorElement.id = "student-number-error";
+                        errorElement.className = "invalid-feedback";
+                        errorElement.textContent = "Invalid student number format. Format: 20XX-00XXX-SR-0.";
+                        studentNumberField.parentNode.appendChild(errorElement);
+                    }
+                } else {
+                    studentNumberField.classList.remove("is-invalid");
+                    if (errorMessage) {
+                        errorMessage.remove();
+                    }
                 }
-            }
-            toggleRegisterButton();
-        });
+                toggleRegisterButton();
+            });
 
-        // Real-Time Student Number Validation
-        const studentNumberField = document.getElementById("student_number");
-        const studentNumberPattern = /^20[0-9]{2}-00[0-9]{3}-SR-0$/;
+            // Registration Form Submit
+            $('#registration-form').submit(function (e) {
+                e.preventDefault();
+                var _this = $(this);
+                $('#message-container').removeClass("alert-danger alert-success d-none").text(""); // Clear previous messages
 
-        studentNumberField.addEventListener("blur", () => {
-            const errorMessage = document.getElementById("student-number-error");
+                var corFileInput = $('#cor')[0];
+                var corFile = corFileInput.files[0];
 
-            if (!studentNumberPattern.test(studentNumberField.value)) {
-                studentNumberField.classList.add("is-invalid");
-                if (!errorMessage) {
-                    const errorElement = document.createElement("div");
-                    errorElement.id = "student-number-error";
-                    errorElement.className = "invalid-feedback";
-                    errorElement.textContent = "Invalid student number format. Format: 20XX-00XXX-SR-0.";
-                    studentNumberField.parentNode.appendChild(errorElement);
-                }
-            } else {
-                studentNumberField.classList.remove("is-invalid");
-                if (errorMessage) {
-                    errorMessage.remove();
-                }
-            }
-            toggleRegisterButton();
-        });
-
-        // Registration Form Submit
-        $('#registration-form').submit(function (e) {
-            e.preventDefault();
-            var _this = $(this);
-            $('#message-container').removeClass("alert-danger alert-success d-none").text(""); // Clear previous messages
-
-            var corFileInput = $('#cor')[0];
-            var corFile = corFileInput.files[0];
-
-            if (
-                !$('#firstname').val().trim() ||
-                !$('#lastname').val().trim() ||
-                !$('#student_number').val().trim() ||
-                !$('#password').val().trim() ||
-                !$('#cpassword').val().trim() ||
-                !$('#department_id').val() ||
-                !$('#curriculum_id').val() ||
-                !$('#email').val().trim() ||
-                !$('#cor')[0].files.length
-            ) {
-                $('#message-container')
-                    .addClass("alert alert-danger")
-                    .text("Please fill in all required fields.")
-                    .removeClass("d-none");
-                return false;
-            }
-
-            var studentNumber = $('#student_number').val().trim();
-            if (studentNumber !== "") {
-                var studentNumberRegex = /^20[0-9]{2}-00[0-9]{3}-SR-0$/;
-                if (!studentNumberRegex.test(studentNumber)) {
+                if (
+                    !$('#firstname').val().trim() ||
+                    !$('#lastname').val().trim() ||
+                    !$('#student_number').val().trim() ||
+                    !$('#password').val().trim() ||
+                    !$('#cpassword').val().trim() ||
+                    !$('#department_id').val() ||
+                    !$('#curriculum_id').val() ||
+                    !$('#email').val().trim() ||
+                    !$('#cor')[0].files.length
+                ) {
                     $('#message-container')
                         .addClass("alert alert-danger")
-                        .text("Invalid student number format. Example: 2021-00306-SR-0.")
+                        .text("Please fill in all required fields.")
                         .removeClass("d-none");
                     return false;
                 }
-            }
 
-            if ($("#password").val() !== $("#cpassword").val()) {
-                $('#message-container')
-                    .addClass("alert alert-danger")
-                    .text("Passwords do not match.")
-                    .removeClass("d-none");
-                return false;
-            }
-
-            start_loader();
-
-            var formData = new FormData();
-            formData.append('id', _this.find('input[name="id"]').val());
-            formData.append('student_number', studentNumber);
-            formData.append('firstname', $('#firstname').val());
-            formData.append('lastname', $('#lastname').val());
-            formData.append('gender', $('input[name="gender"]:checked').val());
-            formData.append('email', $('#email').val());
-            formData.append('department_id', $('#department_id').val());
-            formData.append('curriculum_id', $('#curriculum_id').val());
-            formData.append('password', $('#password').val());
-            formData.append('cpassword', $('#cpassword').val());
-            formData.append('cor', corFile);
-
-            $.ajax({
-                url: _base_url_ + "classes/Users.php?f=save_student",
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                error: function (err) {
-                    console.log("AJAX error:", err);
-                    $('#message-container')
-                        .addClass("alert alert-danger")
-                        .text("An error occurred while saving the data.")
-                        .removeClass("d-none");
-                    end_loader();
-                },
-                success: function (resp) {
-                    if (resp.status === 'success') {
-                        $('#message-container')
-                            .addClass("alert alert-success")
-                            .text("Registration successful! Redirecting...")
-                            .removeClass("d-none");
-                        setTimeout(function () {
-                            location.href = "./login.php";
-                        }, 2000);
-                    } else {
+                var studentNumber = $('#student_number').val().trim();
+                if (studentNumber !== "") {
+                    var studentNumberRegex = /^20[0-9]{2}-00[0-9]{3}-SR-0$/;
+                    if (!studentNumberRegex.test(studentNumber)) {
                         $('#message-container')
                             .addClass("alert alert-danger")
-                            .text(resp.msg || "An error occurred while saving the data.")
+                            .text("Invalid student number format. Example: 2021-00306-SR-0.")
                             .removeClass("d-none");
+                        return false;
                     }
-                    end_loader();
-                    $('html, body').animate({ scrollTop: 0 }, 'fast');
                 }
+
+                if ($("#password").val() !== $("#cpassword").val()) {
+                    $('#message-container')
+                        .addClass("alert alert-danger")
+                        .text("Passwords do not match.")
+                        .removeClass("d-none");
+                    return false;
+                }
+
+                start_loader();
+
+                var formData = new FormData();
+                formData.append('id', _this.find('input[name="id"]').val());
+                formData.append('student_number', studentNumber);
+                formData.append('firstname', $('#firstname').val());
+                formData.append('lastname', $('#lastname').val());
+                formData.append('gender', $('input[name="gender"]:checked').val());
+                formData.append('email', $('#email').val());
+                formData.append('department_id', $('#department_id').val());
+                formData.append('curriculum_id', $('#curriculum_id').val());
+                formData.append('password', $('#password').val());
+                formData.append('cpassword', $('#cpassword').val());
+                formData.append('cor', corFile);
+
+                $.ajax({
+                    url: _base_url_ + "classes/Users.php?f=save_student",
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    error: function (err) {
+                        console.log("AJAX error:", err);
+                        $('#message-container')
+                            .addClass("alert alert-danger")
+                            .text("An error occurred while saving the data.")
+                            .removeClass("d-none");
+                        end_loader();
+                    },
+                    success: function (resp) {
+                        if (resp.status === 'success') {
+                            $('#message-container')
+                                .addClass("alert alert-success")
+                                .text("Registration successful! Redirecting...")
+                                .removeClass("d-none");
+                            setTimeout(function () {
+                                location.href = "./login.php";
+                            }, 2000);
+                        } else {
+                            $('#message-container')
+                                .addClass("alert alert-danger")
+                                .text(resp.msg || "An error occurred while saving the data.")
+                                .removeClass("d-none");
+                        }
+                        end_loader();
+                        $('html, body').animate({ scrollTop: 0 }, 'fast');
+                    }
+                });
             });
         });
-    });
-</script>
-</body>
-</html>
+    </script>
+    </body>
+    </html>

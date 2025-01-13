@@ -10,6 +10,7 @@ if(isset($_GET['id'])){
         }
     }
 }
+check_login();
 ?>
 <style>
     #uni_modal .modal-footer{

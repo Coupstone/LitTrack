@@ -1,4 +1,5 @@
 <?php
+check_login();
 if (isset($_GET['id']) && $_GET['id'] > 0) {
     $id = intval($_GET['id']);
     $stmt = $conn->prepare("SELECT * FROM archive_list WHERE id = ?");
@@ -9,10 +10,23 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         $row = $result->fetch_assoc();
         extract($row);
 
+                        // Fetch topic keywords from lda_topics table using paper_id
+                        $lda_stmt = $conn->prepare("SELECT topic_keywords FROM lda_topics WHERE paper_id = ?");
+                        $lda_stmt->bind_param("i", $id);
+                        $lda_stmt->execute();
+                        $lda_result = $lda_stmt->get_result();
+                        $lda_keywords = [];
+                        if ($lda_result->num_rows > 0) {
+                            while ($lda_row = $lda_result->fetch_assoc()) {
+                                $lda_keywords[] = $lda_row['topic_keywords'];
+                            }
+                        }
+                        $lda_keywords_formatted = implode(', ', $lda_keywords);
+
         // Insert a new read record
-        $insert_read_stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
-        $insert_read_stmt->bind_param("i", $id);
-        $insert_read_stmt->execute();
+        // $insert_read_stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
+        // $insert_read_stmt->bind_param("i", $id);
+        // $insert_read_stmt->execute();
 
         // Fetch read count
         $read_stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
@@ -138,160 +152,355 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 ?>
 
 
+<html lang="en" class="" style="height: auto;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="dist/css/adminlte.css" rel="stylesheet">
+    <link rel="icon" href="images/LitTrack.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <style>
+            body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        min-height: 100vh;
+        padding-left: 100px;
 
-body, p, a, span, li, h1, h2, h3, h4, h5, h6 
-    font-weight: 600;
-
-    
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: 'Arial', sans-serif;
-    background-color: #f9f9f9;
-}
-.header {
-    display: none; 
-}
-
-.content {
-    padding: 30px;
-    border-radius: 10px;
-    margin: 20px auto;
-    max-width: 1200px;
-    background-color: #ffffff; 
-    box-shadow: none; 
+        }
+    .main-sidebar .nav-sidebar .nav-link p,
+.main-sidebar .nav-sidebar .nav-header,
+.main-sidebar .nav-sidebar .brand-text {
+    font-weight: 700;
 }
 
 
-.card {
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: #ffffff; 
-    border: none; 
-    box-shadow: none; 
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #f9f9f9;
+    }
+    .header {
+        display: none;
+    }
+
+
+    .content {
+        padding: 30px;
+        border-radius: 10px;
+        margin: 20px auto;
+        max-width: 1200px;
+        background-color: #ffffff;
+        box-shadow: none;
+    }
+
+
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #ffffff;
+        border: none;
+        box-shadow: none;
+    }
+
+
+    .card-header {
+        background-color: #a8001d;
+        color: #ffffff;
+        padding: 20px;
+        border-bottom: 1px solid #8c0000;
+    }
+
+
+    .card-title {
+        font-size: 1.75rem;
+        margin: 0;
+        font-weight: bold;
+    }
+
+
+    .card-body {
+        padding: 20px;
+        background-color: #ffffff;
+    }
+
+
+    .btn-flat {
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+
+    .btn-navy {
+        background-color: #a8001d;
+        color: #ffffff;
+        border: none;
+    }
+
+
+    .btn-navy:hover {
+        background-color: #80001a;
+    }
+
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: #ffffff;
+        border: none;
+    }
+
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+
+    .text-info {
+        color: #17a2b8;
+    }
+
+
+    .text-navy {
+        color: #003366;
+    }
+
+
+    .border {
+        border: 2px solid #a8001d;
+    }
+
+
+    .bg-gradient-dark {
+        background-color: #ffffff;
+    }
+
+
+    .img-fluid {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+
+
+    .fieldset {
+        margin-bottom: 20px;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #ffffff;
+        box-shadow: none;
+    }
+
+
+    .legend {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #a8001d;
+        border-bottom: 2px solid #80001a;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+
+
+    .pl-4 {
+        padding-left: 1.5rem;
+    }
+
+
+    .text-center {
+        text-align: center;
+    }
+
+
+    .container-fluid {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+
+    .doc-controls {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+
+    .doc-controls button, .doc-controls a {
+        background-color: #a8001d;
+        color: #ffffff;
+        margin-right: 5px;
+        padding: 8px 15px;
+        font-size: 0.875rem;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+    .table-shadow {
+        border: 1px solid #e1e1e1;
+    }
+
+
+    iframe#document_field {
+        height: 1000px;
+        background-color: #ffffff;
+        border: none;
+    }
+
+
+    .main-sidebar .os-content {
+        margin-top: 0;
+    }
+    .main-sidebar .nav-sidebar .nav-item:first-child {
+        margin-top: 0.5rem;
+    }
+    .brand-text {
+        margin-left: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .brand-text .littrack-text {
+        font-family: 'Georgia', serif;
+        font-size: 1.2rem;
+        background: linear-gradient(to bottom, #007bff, #4e4e4e, #b81d24);
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: bold;
+        margin-top: -0.4rem;
+        line-height: 1;
+    }
+    .brand-link {
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease-in-out;
+    }
+    .sidebar-mini.sidebar-collapse .brand-link .brand-image {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    .sidebar-mini.sidebar-collapse .brand-link .brand-text {
+        display: none;
+    }
+    .nav-link.active {
+        background-color: #007bff;
+        color: white !important;
+    }
+    .nav-link.active i {
+        color: white !important;
+    }
+    .navbar-nav {
+        position: relative;
+        z-index: 1030;
+        transition: none;
+    }
+    body.sidebar-collapsed .navbar-nav {
+        margin-left: 60px;
+    }
+    body.sidebar-expanded .navbar-nav {
+        margin-left: 250px;
+    }
+    .main-sidebar {
+        width: 250px;
+        transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+    body.sidebar-collapsed .main-sidebar {
+        width: 60px;
+        margin-left: 0;
+    }
+    body.sidebar-expanded .main-sidebar {
+        width: 250px;
+        margin-left: 0;
+    }
+    .main-sidebar .nav-link p {
+        display: inline;
+    }
+    body.sidebar-collapsed .main-sidebar .nav-link p {
+        display: none;
+    }
+    .main-sidebar .nav-link i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    body.sidebar-collapsed .main-sidebar .nav-link i {
+        margin-right: 0;
+        text-align: center;
+        width: 100%;
+    }
+    .brand-link {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        transition: padding 0.3s ease;
+        height: 3.5rem;
+        overflow: hidden;
+    }
+    .brand-link .brand-image {
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: width 0.3s ease, height 0.3s ease;
+        margin-right: 0.5rem;
+    }
+    .brand-link .brand-text {
+        font-size: 1rem;
+        transition: opacity 0.3s ease;
+        white-space: nowrap;
+    }
+    body.sidebar-collapsed .brand-link {
+        padding: 0.5rem;
+    }
+    body.sidebar-collapsed .brand-link .brand-image {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0;
+    }
+    body.sidebar-collapsed .brand-link .brand-text {
+        opacity: 0;
+        overflow: hidden;
+    }
+    body.sidebar-expanded .brand-link .brand-text {
+        opacity: 1;
+    }
+    .stats {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding: 5px 0; /* Reduced padding */
+    font-size: 0.75rem; /* Smaller font size */
+    color: #555;
 }
 
-.card-header {
-    background-color: #a8001d;
-    color: #ffffff;
-    padding: 20px;
-    border-bottom: 1px solid #8c0000;
+
+.stats div {
+    margin-right: 10px; /* Reduced margin */
+    display: flex;
+    align-items: center;
 }
 
-.card-title {
-    font-size: 1.75rem;
-    margin: 0;
-    font-weight: bold;
+
+.stats i {
+    margin-right: 5px; /* Added more spacing between icon and text */
+    font-size: 0.6rem; /* Smaller icons */
+    color: #000 /* Theme color */
 }
 
-.card-body {
-    padding: 20px;
-    background-color: #ffffff; 
-}
 
-.btn-flat {
-    border-radius: 4px;
-    padding: 10px 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.btn-navy {
-    background-color: #a8001d; 
-    color: #ffffff;
-    border: none;
-}
-
-.btn-navy:hover {
-    background-color: #80001a; 
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: #ffffff;
-    border: none;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-}
-
-.text-info {
-    color: #17a2b8;
-}
-
-.text-navy {
-    color: #003366;
-}
-
-.border {
-    border: 2px solid #a8001d;
-}
-
-.bg-gradient-dark {
-    background-color: #ffffff; 
-}
-
-.img-fluid {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
-
-.fieldset {
-    margin-bottom: 20px;
-    border: 1px solid #e1e1e1;
-    border-radius: 8px;
-    padding: 20px;
-    background-color: #ffffff; 
-    box-shadow: none; 
-}
-
-.legend {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #a8001d; 
-    border-bottom: 2px solid #80001a;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-}
-
-.pl-4 {
-    padding-left: 1.5rem;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.container-fluid {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-}
-
-.doc-controls {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.doc-controls button {
-    margin: 0 10px;
-    padding: 10px 20px;
-    font-size: 0.875rem;
-}
-
-.table-shadow {
-    border: 1px solid #e1e1e1;
-}
-
-iframe#document_field {
-    height: 1000px; 
-    background-color: #ffffff; 
-    border: none;
+.stats .stat-value::after {
+    content: " " attr(data-label); /* Adds a space followed by the label */
+    font-weight: normal;
+    color: #000;
+    margin-left: 3px; /* Optional, adjust as needed for more spacing */
 }
 .modal {
     display: none;
@@ -304,8 +513,6 @@ iframe#document_field {
     overflow: hidden; /* Prevents scrolling */
     background-color: rgba(0, 0, 0, 0.4);
 }
-
-
 .modal-content {
     background-color: #fefefe;
     margin: auto; /* Center horizontally */
@@ -321,67 +528,56 @@ iframe#document_field {
     max-height: calc(100vh - 100px); /* Limits height to avoid scrolling */
     position: fixed;
 }
-
-
 .close {
         color: #aaa;
         float: right;
         font-size: 28px;
         font-weight: bold;
     }
-
     .close:hover,
     .close:focus {
         color: black;
         text-decoration: none;
         cursor: pointer;
     }
-
     .citation-style {
         display: flex;
         justify-content: space-between;
         margin: 10px 0;
         font-size: 14px;
     }
-
     .citation-style strong {
         flex-basis: 30%; /* Adjusts the width of the label column */
         text-align: left;
     }
-
     .citation-style span {
         flex-basis: 100%; /* Adjusts the width of the value column */
         text-align: start;
     }
-</style>
+    </style>
 
-<div class="content py-4">
+<div class="card-body rounded-0">
     <div class="container-fluid">
-        <div class="card card-outline card-primary rounded-0">
-            <div class="card-header">
-                <h3 class="card-title">
-                    Archive - <?= $archive_code ?? "" ?>
-                </h3>
-            </div>
-            <div class="card-body rounded-0">
-                <div class="container-fluid">
-                    <h2 class="font-weight-bold"><?= $title ?? "" ?></h2>
-                    <small class="text-muted">Submitted by <b class="text-info"><?= $submitted ?></b> on <?= date("F d, Y h:i A", strtotime($date_created)) ?></small>
-                    <?php if (isset($student_id) && $_settings->userdata('login_type') == "2" && $student_id == $_settings->userdata('id')): ?>
+        <fieldset class="fieldset">
+            <legend class="legend"></legend>
+            <h2 class="font-weight-bold"><?= $title ?? "" ?></h2>
+            <small class="text-muted">Submitted by <b class="text-info"><?= $submitted ?></b> on <?= date("F d, Y h:i A", strtotime($date_created)) ?></small>
+            <?php if (isset($student_id) && $_settings->userdata('login_type') == "2" && $student_id == $_settings->userdata('id')): ?>
                         <div class="form-group mt-3">
                             <a href=".admin/inc/?page=uploadresearch&id=<?= $id ?? "" ?>" class="btn btn-flat btn-navy btn-sm"><i class="fa fa-edit"></i> Edit</a>
                             <button type="button" data-id="<?= $id ?? "" ?>" class="btn btn-flat btn-danger btn-sm delete-data"><i class="fa fa-trash"></i> Delete</button>
                         </div>
                     <?php endif; ?>
-                    <hr>
+                    <!-- <hr> -->
                     <!-- <div class="text-center">
                         <img src="<?= validate_image($banner_path ?? "") ?>" alt="Banner Image" id="banner-img" class="img-fluid border bg-gradient-dark">
                     </div> -->
                     <div class="stats">
-                        <i class="fa fa-eye"></i> <?= $reads_count ?? "0" ?> Reads</i>
-                        <i class="fa fa-quote-left"></i> <?= $citations_count ?? "0" ?> Citations</i>
-                        <i class="fa fa-download"></i> <?= $downloads_count ?? "0" ?> Downloads</i>
-                    </div>
+                            <div><i class="fa fa-eye"></i><span class="stat-value"><?= $reads_count ?? "0" ?></span> Reads</div>
+                            <div><i class="fa fa-quote-left"></i><span class="stat-value"><?= $citations_count ?? "0" ?></span> Citations</div>
+                            <div><i class="fa fa-download"></i><span class="stat-value"><?= $downloads_count ?? "0" ?></span> Downloads</div>
+                        </div>
+                    </fieldset>
                     <fieldset class="fieldset">
                         <legend class="legend">Project Year:</legend>
                         <div class="pl-4"><large><?= $year ?? "----" ?></large></div>
@@ -393,6 +589,10 @@ iframe#document_field {
                     <fieldset class="fieldset">
                         <legend class="legend">Authors:</legend>
                         <div><?= $general_authors_formatted ?></div>
+                    </fieldset>
+                    <fieldset class="fieldset">
+                        <legend class="legend">Topic Keywords:</legend>
+                        <div><?= htmlspecialchars($lda_keywords_formatted) ?></div>
                     </fieldset>
                     <fieldset class="fieldset">
                         <legend class="legend">Project Document:</legend>
@@ -458,15 +658,25 @@ iframe#document_field {
     <div class="modal-content">
         <span class="close" onclick="closeCitationModal()">&times;</span>
         <h2>Cite</h2>
-        <div class="citation-style"><strong>MLA:</strong> <span id="mlaCitation"></span></div>
-        <div class="citation-style"><strong>APA:</strong> <span id="apaCitation"></span></div>
-        <div class="citation-style"><strong>Chicago:</strong> <span id="chicagoCitation"></span></div>
-        <div class="citation-style"><strong>Harvard:</strong> <span id="harvardCitation"></span></div>
-        <div class="citation-style"><strong>Vancouver:</strong> <span id="vancouverCitation"></span></div>
-       
-        <!-- Download Citation Button -->
-        <div style="text-align: center; margin-top: 20px;">
-            <button onclick="downloadCitation()" class="btn btn-flat btn-navy btn-sm">Download Citation</button>
+        <div class="citation-style">
+            <strong>MLA:</strong> <span id="mlaCitation">Sample MLA Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('mlaCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        <div class="citation-style">
+            <strong>APA:</strong> <span id="apaCitation">Sample APA Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('apaCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        <div class="citation-style">
+            <strong>Chicago:</strong> <span id="chicagoCitation">Sample Chicago Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('chicagoCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        <div class="citation-style">
+            <strong>Harvard:</strong> <span id="harvardCitation">Sample Harvard Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('harvardCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
+        </div>
+        <div class="citation-style">
+            <strong>Vancouver:</strong> <span id="vancouverCitation">Sample Vancouver Citation</span>
+            <i class="bi bi-copy" onclick="copyToClipboard('vancouverCitation')" style="cursor: pointer; margin-left: 10px;" title="Copy"></i>
         </div>
     </div>
 </div>
