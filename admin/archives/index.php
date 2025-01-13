@@ -1,111 +1,129 @@
-<style>
-    .card-outline.card-primary {
-        border-color: #800000; 
-        border-radius: 15px;
-    }
-    .card-header {
-        background-color: #800000; 
-        color: white;
-        padding: 15px;
-        border-radius: 15px 15px 0 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .card-title {
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 0;
-    }
-    .table-container {
-        background-color: #ffffff;
-        border-radius: 0 0 15px 15px;
-        padding: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); 
-    }
-    .table {
-        margin-bottom: 0;
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-    }
-    .table thead {
-        color: #343a40;
-    }
-    .table th,
-    .table td {
-        vertical-align: middle;
-        text-align: center;
-        padding: 12px 15px;
-        border: none;
-        border-bottom: 2px solid #dee2e6;
-    }
-    .table th {
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: #f2f2f2;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #e9ecef;
-        cursor: pointer;
-    }
-    .badge-pill {
-        font-size: 0.85em;
-        padding: 0.5em 1em;
-        font-weight: bold;
-    }
-    @media (max-width: 768px) {
-        .table thead {
-            display: none;
-        }
 
-        .table td {
-            display: block;
-            width: 100%;
-            text-align: right;
-            padding-left: 50%;
-            position: relative;
-            border-bottom: 1px solid #dee2e6;
+    <style>
+        body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+            font-weight: var(--bs-body-font-weight);
+            line-height: var(--bs-body-line-height);
+            color: var(--bs-body-color);
+            text-align: var(--bs-body-text-align);
+            background-color: var (--bs-body-bg);
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            min-height: 100vh;
+            padding-left: 100px;
         }
-
-        .table td::before {
-            content: attr(data-label);
-            position: absolute;
-            left: 0;
-            width: 45%;
-            padding-left: 15px;
-            text-align: left;
+        .card-outline.card-primary {
+            border-color: #800000; 
+            border-radius: 15px;
+        }
+        .card-header {
+            background-color: #800000; 
+            color: white;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 0;
+        }
+        .table-container {
+            background-color: #ffffff;
+            border-radius: 0 0 15px 15px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); 
+        }
+        .table {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .table thead {
             color: #343a40;
         }
-
-        .table-container {
-            padding: 15px;
+        .table th,
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 12px 15px;
+            border: none;
+            border-bottom: 2px solid #dee2e6;
         }
-    }
-    .btn, .btn-flat, .btn-default, .btn-sm, .btn-primary, .btn-secondary {
-        border-radius: 25px; 
-    }
-    .dropdown-menu {
-        border-radius: 15px; 
-    }
-    .pagination .page-item .page-link {
-        border-radius: 0; 
-    }
-    .dataTables_length .form-control {
-        border-radius: 25px; 
-    }
-    .dataTables_filter .form-control {
-        border-radius: 25px; 
-    }
-    .table .dropdown-toggle {
-        border-radius: 25px; 
-    }
-</style>
+        .table th {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f2f2f2;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+        .badge-pill {
+            font-size: 0.85em;
+            padding: 0.5em 1em;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            .table thead {
+                display: none;
+            }
 
-<div class="card card-outline">
+            .table td {
+                display: block;
+                width: 100%;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 45%;
+                padding-left: 15px;
+                text-align: left;
+                font-weight: bold;
+                color: #343a40;
+            }
+
+            .table-container {
+                padding: 15px;
+            }
+        }
+        .btn, .btn-flat, .btn-default, .btn-sm, .btn-primary, .btn-secondary {
+            border-radius: 25px; 
+        }
+        .dropdown-menu {
+            border-radius: 15px; 
+        }
+        .pagination .page-item .page-link {
+            border-radius: 0;  
+        }
+        .dataTables_length .form-control {
+            border-radius: 25px; 
+        }
+        .dataTables_filter .form-control {
+            border-radius: 25px; 
+        }
+        .table .dropdown-toggle {
+            border-radius: 25px; 
+        }
+        .card-header h3 {
+            font-size: 1.25em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="card card-outline card-primary">
     <div class="card-header">
         <h3 class="card-title">List of Researches</h3>
     </div>
@@ -131,28 +149,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
+                <?php 
                         $i = 1;
                         $qry = $conn->query("SELECT * from archive_list order by year desc, title desc ");
-                        while($row = $qry->fetch_assoc()):
-                    ?>
+                        while($row = $qry->fetch_assoc()): ?>
                     <tr>
                         <td data-label="#" class="text-center"><?php echo $i++; ?></td>
-                        <td data-label="Date Created"><?php echo date("Y-m-d H:i",strtotime($row['date_created'])) ?></td>
+                        <td data-label="Date Created"><?php echo date("Y-m-d H:i", strtotime($row['date_created'])) ?></td>
                         <td data-label="Archive Code"><?php echo ($row['archive_code']) ?></td>
                         <td data-label="Project Title"><?php echo ucwords($row['title']) ?></td>
                         <td data-label="Status" class="text-center">
                             <?php
                                 switch($row['status']){
                                     case '1':
-                                        echo "<span class='badge badge-success badge-pill'>Published</span>";
+                                        echo "<span class='badge badge-success badge-pill' style='color: green;'>Published</span>";
                                         break;
                                     case '0':
-                                        echo "<span class='badge badge-secondary badge-pill'>Not Published</span>";
+                                        echo "<span class='badge badge-secondary badge-pill' style='color: black;'>Not Published</span>";
                                         break;
-                                        case '2':
-                                            echo "<span class='badge badge-danger badge-pill'>Rejected</span>";
-                                            break;
+                                    case '2':
+                                        echo "<span class='badge badge-danger badge-pill' style='color: red;'>Rejected</span>";
+                                        break;
                                 }
                             ?>
                         </td>
@@ -183,9 +200,6 @@
         <a class="dropdown-item delete_data" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>"><span class="fa fa-trash text-danger"></span> Delete</a>
     </div>
 </td>
-
-
-
                     </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -193,6 +207,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
     $(document).ready(function(){
@@ -211,7 +226,8 @@
         });
     });
 
-    function delete_archive(id){
+// Function to delete archive via AJAX
+function delete_archive(id){
         start_loader();
         $.ajax({
             url: _base_url_+"classes/Master.php?f=delete_archive",
@@ -234,4 +250,7 @@
             }
         });
     }
+
 </script>
+</body>
+</html>

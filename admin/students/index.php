@@ -1,10 +1,46 @@
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
-</head>
 
 <style>
+            body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        min-height: 100vh;
+        padding-left: 100px;
+        
+        }
+        .img-avatar {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .modal-dialog {
+            max-width: 800px;
+            margin: auto; /* Center the modal */
+        }
+        .modal-content {
+            border-radius: 15px;
+        }
+        .modal-header {
+            background-color: #800000;
+            color: white;
+        }
+        .modal-body {
+            background-color: #f8f9fa;
+            padding: 15px;
+        }
+        .btn-link {
+            color: #800000;
+        }
+        .btn-link:hover {
+            color: #6c757d;
+        }
 .img-avatar {
     width: 45px;
     height: 45px;
@@ -26,12 +62,15 @@
     border-radius: 15px 15px 0 0;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: .5px;
 }
 
 .card-title {
-    font-weight: bold; 
-}
+        font-weight: bold;
+        text-transform: uppercase;
+
+        margin-bottom: 0;
+    }
 
 .card-body {
     padding: 20px;
@@ -58,7 +97,7 @@
 .table th {
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: .5px;;
     background-color: #f8f9fa;
 }
 
@@ -189,16 +228,37 @@
     outline: none;
     box-shadow: none;
 }
+/* Center modals vertically and horizontally */
+.modal-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    min-width: 300px; /* Optional: Set a minimum width for modals */
+}
 
+/* Optional: Set a max width for modals */
+.modal-content {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Ensure the modal appears above the table */
+.modal {
+    z-index: 1050 !important;  /* Ensure modal has a high z-index */
+}
+
+.modal-backdrop {
+    z-index: 1040 !important;  /* Ensure backdrop appears below the modal */
+}
     </style>
 </head>
 <body>
-<div class="card card-outline">
+<div class="card card-outline card-primary">
         <div class="card-header">
-            <h3 class="card-title">List of Students</h3>
-            <!-- Button to open the modal -->
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-danger" data-toggle="modal" data-target="#archiveModal">View Archived Students</button>
+            <h3 class="card-title">List of Students<button class="btn btn-danger"style="position: absolute; right: 0; transform: translateY(-15%); padding: 3px 8px; font-size: 15px; width: auto; height: 30px;" data-toggle="modal" data-target="#archiveModal">View Archived Students</button></h3>
+                        <!-- Button to open the modal -->
+                        <div class="d-flex justify-content-end">
             </div>
         </div>
         <div class="card-body">
@@ -236,11 +296,11 @@
                             <td><?php echo $row['student_number'] ?></td> <!-- Display Student Number -->
                             <td class="text-center">
                                 <?php if($row['status'] == 1): ?>
-                                    <span class="badge badge-pill badge-success">Verified</span>
+                                    <span class="badge badge-pill badge-success" style='color: green;'>Verified</span>
                                 <?php elseif($row['status'] == 2): ?>
-                                    <span class="badge badge-pill badge-danger">Rejected</span>
+                                    <span class="badge badge-pill badge-danger" style='color: red;'>Rejected</span>
                                 <?php else: ?>
-                                    <span class="badge badge-pill badge-primary">Not Verified</span>
+                                    <span class="badge badge-pill badge-primary" style='color: blue;'>Not Verified</span>
                                 <?php endif; ?>
                             </td>
                             <td><?php echo $row['date_created'] ? date('Y-m-d H:i:s', strtotime($row['date_created'])) : 'N/A'; ?></td> <!-- Date Created -->
@@ -305,37 +365,48 @@
     </div>
 
 
-    <!-- COR Modal -->
-<div class="modal fade" id="corModal" tabindex="-1" role="dialog" aria-labelledby="corModalLabel" aria-hidden="true">
+ <!-- COR Modal -->
+<div class="modal fade"  id="corModal" tabindex="-1" role="dialog" aria-labelledby="corModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="corModalLabel">Certificate of Registration (COR)</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
+            <!-- COR Modal Header -->
+            <div id="corModalHeader" class="modal-header d-flex justify-content-between">
+        <h5 class="modal-title" id="corModalLabel">Certificate of Registration (COR)</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span> 
+        </button>
+    </div>
+
+            <!-- COR Modal Body -->
+            <div id="corModalBody" class="modal-body">
                 <!-- The COR details will be displayed here dynamically -->
                 <div id="corContent"></div>
             </div>
         </div>
     </div>
 </div>
-    <!-- Rejection Reason Modal -->
-    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="rejectModalLabel">Reject User</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="rejectionReason">Please enter the reason for rejection:</label>
-                    <textarea id="rejectionReason" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+<!-- Rejection Reason Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Rejection Modal Header -->
+            <div id="rejectModalHeader" class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Rejection Modal Body -->
+            <div id="rejectModalBody" class="modal-body">
+                <label for="rejectionReason">Please enter the reason for rejection:</label>
+                <textarea id="rejectionReason" class="form-control" rows="3"></textarea>
+            </div>
+
+            <!-- Rejection Modal Footer -->
+            <div id="rejectModalFooter" class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="submitRejection">Reject</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="submitRejection">Reject</button>
                 </div>
             </div>
@@ -348,7 +419,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="archiveModalLabel">Archived Students</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" 
+                style="position: absolute; right: 0;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -375,13 +447,6 @@
 </div>
 
 
-
-    
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script> -->
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
-    <!-- SweetAlert2 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
     <script>
@@ -623,8 +688,6 @@ $('.view_details').click(function () {
     uni_modal('Student Details', 'students/view_details.php?id=' + studentId, 'mid-large');
 });
 });
-
-
 // Soft delete function using AJAX
 function delete_student($id){
     start_loader();
@@ -698,7 +761,7 @@ function delete_student($id){
             }
         })
     }
-
+    
     $('#archiveModal').on('show.bs.modal', function () {
     // Fetch archived students via AJAX
     $.ajax({
