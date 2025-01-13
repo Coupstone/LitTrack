@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $updateQry = $conn->query("UPDATE archive_list SET status = '$status' WHERE id = '$id'");
 
     if ($updateQry) {
-        // Fetch student email
-        $qry = $conn->query("SELECT student_list.email 
+        // Fetch student email and title of the study
+        $qry = $conn->query("SELECT student_list.email, a.title 
                              FROM student_list 
                              INNER JOIN archive_list a ON student_list.id = a.student_id
                              WHERE a.id = '$id'");
@@ -26,11 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($student) {
             $email = $student['email'];
+            $title = $student['title'];
             $status_text = $status == 1 ? 'approved' : 'rejected';
 
             // Send email notification
             $subject = "Research Status Update";
-            $message = "Dear Student,<br><br>Your research status has been <strong>$status_text</strong>.<br><br>Thank you.";
+            $message = "Dear Student,<br><br>Your research titled <strong>$title</strong> has been <strong>$status_text</strong>.<br><br>Thank you.";
 
             if (sendEmail($email, $subject, $message)) {
                 echo json_encode(["status" => "success", "msg" => "Email sent successfully."]);

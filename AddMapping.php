@@ -487,6 +487,19 @@ margin-top: -10px;
     </div>
 </div>
 
+<!-- <div class="filter-container">
+    <select id="filterDropdown" onchange="applyFilter()">
+        <option value="highest">Sort by Citations: Highest to Lowest</option>
+        <option value="lowest">Sort by Citations: Lowest to Highest</option>
+        <option value="2019">Filter by Year: 2019</option>
+        <option value="2020">Filter by Year: 2020</option>
+        <option value="2021">Filter by Year: 2021</option>
+        <option value="2022">Filter by Year: 2022</option>
+        <option value="2023">Filter by Year: 2023</option>
+        <option value="2024">Filter by Year: 2024</option>
+        <option value="2025">Filter by Year: 2025</option>
+    </select>
+</div> -->
 
 
 
@@ -693,10 +706,12 @@ node.append("circle")
         .attr("dy", ".35em")
         .text(d => `${d.primary_author || "Unknown Primary Author"} (${d.year || d.publication_year || "Unknown Year"})`);
 
-    const simulation = d3.forceSimulation(data.literature)
-        .force("link", d3.forceLink(formattedCitations).id(d => d.id).distance(200))
-        .force("charge", d3.forceManyBody().strength(-500))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        const simulation = d3.forceSimulation(data.literature)
+    .force("link", d3.forceLink(formattedCitations).id(d => d.id).distance(200))
+    .force("charge", d3.forceManyBody().strength(-500))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(d => 8 + Math.min(d.citation_count * 5, 100) + 10)); // Add padding for labels
+
 
     simulation.on("tick", () => {
         link.attr("x1", d => d.source.x)

@@ -1,5 +1,6 @@
 <?php require_once('./config.php');
-check_login(); ?>
+check_login(); 
+?>
 <!DOCTYPE html>
 <html lang="en" class="" style="height: auto;">
 <link href="styles/main.css" rel="stylesheet">

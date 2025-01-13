@@ -40,4 +40,5 @@ if (isset($_GET['id'])) {
     error_log("No Student ID provided in request.");
     echo '<p>No student ID provided.</p>';
 }
+check_login();
 ?>

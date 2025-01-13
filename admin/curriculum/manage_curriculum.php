@@ -1,5 +1,6 @@
 <?php
 require_once('../../config.php');
+check_login();
 if(isset($_GET['id'])){
     $qry = $conn->query("SELECT * FROM `curriculum_list` where id = '{$_GET['id']}'");
     if($qry->num_rows > 0){

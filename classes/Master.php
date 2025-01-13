@@ -196,41 +196,45 @@ Class Master extends DBConnection {
 	}
 	
 	
-	function delete_archive(){
+	public function delete_archive() {
 		extract($_POST);
-		$get = $this->conn->query("SELECT * FROM `archive_list` where id = '{$id}'");
-		$del = $this->conn->query("DELETE FROM `archive_list` where id = '{$id}'");
-		if($del){
+		error_log("Deleting archive with ID: {$id}");
+
+		// Delete related records in archive_reads table
+		$del_reads = $this->conn->query("DELETE FROM `archive_reads` WHERE archive_id = '{$id}'");
+		if (!$del_reads) {
+			$resp['status'] = 'failed';
+			$resp['error'] = $this->conn->error;
+			error_log("Delete response: " . json_encode($resp));
+			header('Content-Type: application/json');
+			echo json_encode($resp);
+			exit;
+		}
+
+		// Delete related records in lda_topics table
+		$del_topics = $this->conn->query("DELETE FROM `lda_topics` WHERE paper_id = '{$id}'");
+		if (!$del_topics) {
+			$resp['status'] = 'failed';
+			$resp['error'] = $this->conn->error;
+			error_log("Delete response: " . json_encode($resp));
+			header('Content-Type: application/json');
+			echo json_encode($resp);
+			exit;
+		}
+
+		// Delete the archive
+		$del = $this->conn->query("DELETE FROM `archive_list` WHERE id = '{$id}'");
+		if ($del) {
 			$resp['status'] = 'success';
-			$this->settings->set_flashdata('success',"archive Records has deleted successfully.");
-			if($get->num_rows > 0){
-				$res = $get->fetch_array();
-				$banner_path = explode("?",$res['banner_path'])[0];
-				$document_path = explode("?",$res['document_path'])[0];
-				if(is_file(base_app.$banner_path))
-					unlink(base_app.$banner_path);
-				if(is_file(base_app.$document_path))
-					unlink(base_app.$document_path);
-			}
-		}else{
+			$this->settings->set_flashdata('success', "Archive has been deleted successfully.");
+		} else {
 			$resp['status'] = 'failed';
 			$resp['error'] = $this->conn->error;
 		}
-		return json_encode($resp);
-	}
-	function update_status(){
-		extract($_POST);
-		$update = $this->conn->query("UPDATE `archive_list` set status  = '{$status}' where id = '{$id}'");
-		if($update){
-			$resp['status'] = 'success';
-			$resp['msg'] = "Archive status has successfully updated.";
-		}else{
-			$resp['status'] = 'failed';
-			$resp['msg'] = "An error occurred. Error: " .$this->conn->error;
-		}
-		if($resp['status'] =='success')
-		$this->settings->set_flashdata('success',$resp['msg']);
-		return json_encode($resp);
+		error_log("Delete response: " . json_encode($resp));
+		header('Content-Type: application/json');
+		echo json_encode($resp);
+		exit;
 	}
 }
 

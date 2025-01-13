@@ -7,6 +7,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
         $$k = $v;
     }
 }
+check_login();
 ?>
 <style>
 	#uni_modal .modal-footer{
