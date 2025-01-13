@@ -24,72 +24,192 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 }
 ?>
-
 <!-- Include SweetAlert Library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<style>
-    .banner-img {
-        object-fit: scale-down;
-        object-position: center center;
-        height: 30vh;
-        width: calc(100%);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="dist/css/adminlte.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        }
+
+            #title-label,
+    #abstract-label,
+    #pdf-label {
+        font-weight: normal; /* Ensures text is not bold */
+    }
+            #abstract {
+        min-height: 150px; /* Set a minimum height for the textarea */
+        width: 100%; /* Ensure it takes up all available width within its container */
+    }
+
+.container {
+    max-width: 2000px; /* Adjust width as necessary */
+    width: 103%; /* Use full width for smaller screens */
+    margin: 10px; /* Reduced margin around the container */
+    padding: 10px; /* Reduced padding inside the container for a compact look */
+    transform: translateY(0%); /* Moves the container up by 10% of its height */
+}
+    .form-control, .form-control:focus {
+        border-color: #ced4da; /* Consistent with the design */
+        box-shadow: none; /* No focus shadow */
+    }
+    .form-floating {
+        margin-bottom: 16px; /* Space between fields */
+    }
+    .card {
+        border-radius: 0; /* Flat design */
+        width: 90%;
+    }
+    .card-header {
+        background-color: #800000; 
+        color: white;
+        padding: 15px;
+        border-radius: 15px 15px 0 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    }
+
+    /* Smaller button styles */
+    .btn {
+        padding: 0.375rem 0.75rem; /* Reduced padding */
+        font-size: 0.875rem; /* Smaller font size */
+        line-height: 1.5; /* Standard line height */
+    }
+    .author-row .form-control {
+        margin-right: 15px; /* Adds space to the right of each input field except the last in the row */
+    }
+    .author-row .form-control:last-child {
+        margin-right: 0; /* Ensures the last input in the row does not have extra space on the right */
     }
     .author-row {
-        margin-top: 10px;
+        display: flex; /* Ensures the input fields are aligned in a row */
+        align-items: center; /* Aligns items vertically */
+        margin-bottom: 15px; /* Adds space below each author row for better separation */
     }
-    .author-row input[type="text"] {
-        width: 45%;
-        margin-right: 15px;
+    #pdf-label {
+        display: block; /* Ensures the label takes up the full width and behaves like a block element */
+        margin-bottom: 8px; /* Adds some space below the label before the input field */
+        font-weight: normal; /* Keeps the label text normal, non-bold */
     }
+    .form-control {
+        display: block;
+        width: 100%; /* Ensures the input takes full width of its container */
+        padding: 0.375rem 0.75rem; /* Standard padding for Bootstrap form controls */
+        font-size: 1rem; /* Standard font size for input text */
+        line-height: 1.5; /* Standard line height for readability */
+        color: #495057; /* Default text color */
+        background-color: #fff; /* White background */
+        background-clip: padding-box; /* Ensures background extends to the borders */
+        border: 1px solid #ced4da; /* Standard border styling */
+        border-radius: 0.25rem; /* Rounded borders for aesthetics */
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Smooth transition for focus effects */
+    }
+    .btn-info {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .form-label {
+        font-weight: normal; /* Ensures the label text is not bold */
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .optional-text {
+        font-size: 0.875rem; /* Slightly smaller than button text */
+        color: #6c757d; /* Muted text color for secondary information */
+        margin-left: 2px; /* Space between button and text */
+        vertical-align: middle; /* Align text vertically with the button */
+    }
+    .card-header h3 {
+    font-size: 1.25em;
+    font-weight: bold;
+}
+
 </style>
 
-<div class="content py-4">
-    <div class="card card-outline card-primary shadow rounded-0">
-        <div class="card-header rounded-0">
-            <h5 class="card-title"><?= isset($id) ? "Update Archive - {$archive_code} Details" : "Upload Research" ?></h5>
+</head>
+<body>
+
+
+<div class="container h-100 d-flex justify-content-center align-items-center mt-5">
+    <div class="card card-outline card-primary shadow">
+        <div class="card-header">
+            <h3 class="card-title">UPLOAD RESEARCH</h3>
         </div>
-        <div class="card-body rounded-0">
-            <div class="container-fluid">
-                <form action="" id="archive-form" enctype="multipart/form-data" method="POST">
-                    <input type="hidden" name="id" value="<?= isset($id) ? $id : "" ?>">
-
-                    <!-- Research Title -->
-                    <div class="form-group">
-                        <label for="title" class="control-label text-navy">Research Title</label>
-                        <input type="text" name="title" id="title" placeholder="Project Title" class="form-control form-control-border" value="<?= isset($title) ? $title : "" ?>" required>
+        <div class="card-body">
+            <form action="" id="archive-form" enctype="multipart/form-data" method="POST" class="needs-validation" novalidate>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
+                    <label for="title" id="title-label">Research Title</label>
+                </div>
+                <div class="form-floating mb-3">
+    <select class="form-control" id="year" name="year" required>
+        <?php for ($i = 0; $i < 51; $i++): ?>
+            <option value="<?= date("Y", strtotime(date("Y")." -{$i} years")) ?>" <?= isset($year) && $year == date("Y", strtotime(date("Y")." -{$i} years")) ? 'selected' : '' ?>>
+                <?= date("Y", strtotime(date("Y")." -{$i} years")) ?>
+            </option>
+        <?php endfor; ?>
+    </select>
+    <label for="year">Year</label>
+</div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" id="abstract" name="abstract" placeholder="Abstract" required rows="5"><?= isset($abstract) ? html_entity_decode($abstract) : '' ?></textarea>
+                    <label for="abstract" id="abstract-label">Abstract</label>
+                </div>
+                <div id="author-container">
+                    <h6><strong>Authors</strong></h6>
+                    <div class="author-row d-flex align-items-center mb-2">
+                        <input type="text" class="form-control" name="author_firstname[]" placeholder="First Name" required>
+                        <input type="text" class="form-control" name="author_lastname[]" placeholder="Last Name" required>
+                        <button type="button" class="btn btn-success btn-sm" onclick="addAuthorRow()">+</button>
                     </div>
-
-                    <!-- Year -->
-                    <div class="form-group">
-                        <label for="year" class="control-label text-navy">Year</label>
-                        <select name="year" id="year" class="form-control form-control-border" required>
-                            <?php for ($i = 0; $i < 51; $i++): ?>
-                            <option <?= isset($year) && $year == date("Y", strtotime(date("Y")." -{$i} years")) ? "selected" : "" ?>>
-                                <?= date("Y", strtotime(date("Y")." -{$i} years")) ?>
-                            </option>
-                            <?php endfor; ?>
-                        </select>
+                </div>
+                    <!-- Project Document -->
+                    <div class="form-group mb-3">
+                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)</label>
+                        <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
                     </div>
-
-                    <!-- Abstract -->
-                    <div class="form-group">
-                        <label for="abstract" class="control-label text-navy">Abstract</label>
-                        <textarea rows="3" name="abstract" id="abstract" placeholder="abstract" class="form-control form-control-border summernote" required><?= isset($abstract) ? html_entity_decode($abstract) : "" ?></textarea>
-                    </div>
-
-                    <!-- Authors -->
-                    <div class="form-group">
-                        <h6 class="bold">Authors</h6>
-                        <div id="author-container">
-                            <div class="author-row d-flex align-items-center mb-2">
-                                <input type="text" name="author_firstname[]" class="form-control" placeholder="First Name" required>
-                                <input type="text" name="author_lastname[]" class="form-control" placeholder="Last Name" required>
-                                <button type="button" class="btn btn-success btn-sm" onclick="addAuthorRow()">+</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Visibility -->
                     <div class="form-group">
                         <label for="visibility" class="control-label text-navy">Visibility</label>
@@ -98,54 +218,57 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
                             <option value="private" <?= isset($visibility) && $visibility == 'private' ? "selected" : "" ?>>Private</option>
                         </select>
                     </div>
-
-                    <!-- Publication Details -->
-                    <div class="mb-3">
-                        <label class="form-label">Publication Details</label><br>
-                        <button type="button" class="btn btn-info" onclick="togglePublicationDetails()">+ Add</button>
-                        <span class="optional-text">(Optional)</span>
-                    </div>
-                    <div id="publication-details" style="display: none;">
-                        <div class="form-group mb-3">
-                            <input type="text" class="form-control" id="journal" name="journal" placeholder="Journal" value="<?= isset($journal) ? $journal : '' ?>">
-                        </div>
-                        <div class="form-group mb-3">
-                            <input type="text" class="form-control" id="volume" name="volume" placeholder="Volume" value="<?= isset($volume) ? $volume : '' ?>">
-                        </div>
-                        <div class="form-group mb-3">
-                            <input type="text" class="form-control" id="pages" name="pages" placeholder="Pages" value="<?= isset($pages) ? $pages : '' ?>">
-                        </div>
-                        <div class="form-group mb-3">
-                            <input type="text" class="form-control" id="doi" name="doi" placeholder="DOI" value="<?= isset($doi) ? $doi : '' ?>">
-                        </div>
-                        <div class="form-group mb-3">
-                            <input type="date" class="form-control" id="publicationDate" name="publicationDate" value="<?= isset($publication_date) ? $publication_date : '' ?>">
-                        </div>
-                    </div>
-
-                    <!-- Project Document -->
-                    <div class="form-group">
-                        <label for="pdf" class="control-label text-muted">Project Document (PDF File Only, maximum of 25MB)</label>
-                        <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
-                    </div>
+<!-- Publication Details -->
+<div class="mb-3">
+    <label class="form-label">Publication Details</label>
+    <button type="button" class="btn btn-info" onclick="togglePublicationDetails()">+ Add</button>
+    <span class="optional-text">(Optional)</span>
+</div>
+                <!-- Publication Details Form (initially hidden) -->
+                <div id="publication-details" style="display: none;">
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="journal" name="journal" placeholder="Journal" value="<?= isset($journal) ? $journal : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="volume" name="volume" placeholder="Volume" value="<?= isset($volume) ? $volume : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="pages" name="pages" placeholder="Pages" value="<?= isset($pages) ? $pages : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="text" class="form-control" id="doi" name="doi" placeholder="DOI" value="<?= isset($doi) ? $doi : '' ?>">
+    </div>
+    <div class="form-group mb-3">
+        <input type="date" class="form-control" id="publicationDate" name="publicationDate" value="<?= isset($publication_date) ? $publication_date : '' ?>">
+    </div>
+</div>
 
                     <!-- Submit Button -->
                     <div class="form-group text-center">
                         <button class="btn btn-default bg-navy btn-flat">Upload</button>
-                        <a href="./?page=profile" class="btn btn-light border btn-flat">Cancel</a>
+                        <a href="./" class="btn btn-light border btn-flat">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<!-- jQuery (Optional for Bootstrap 5) -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<!-- Bootstrap 5 Bundle (includes Popper.js) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
 
 <script>
-     function togglePublicationDetails() {
+        function togglePublicationDetails() {
         const detailsDiv = document.getElementById('publication-details');
         detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
     }
-     document.getElementById('pdf').addEventListener('change', function () {
+
+document.getElementById('pdf').addEventListener('change', function () {
         const file = this.files[0];
         if (file) {
             const fileType = file.type;
@@ -160,6 +283,7 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
             }
         }
     });
+
     function addAuthorRow() {
         const authorContainer = document.getElementById("author-container");
         const authorRows = authorContainer.getElementsByClassName("author-row");

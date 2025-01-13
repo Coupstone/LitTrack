@@ -1,4 +1,18 @@
 <style>
+            body {
+            font-family: var(--bs-body-font-family);
+            font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bs-body-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bs-body-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        min-height: 100vh;
+        padding-left: 100px;
+        
+        }
         .img-avatar {
             width: 45px;
             height: 45px;
@@ -24,8 +38,11 @@
         }
 
         .card-title {
-            font-weight: bold; 
-        }
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 0;
+    }
 
         .card-tools .btn-primary {
             background-color: #800000;
@@ -124,6 +141,25 @@
                 color: #343a40;
             }
         }
+        .card-header h3 {
+    font-size: 1.25em;
+    font-weight: bold;
+}
+/* Center the modal */
+.modal-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0 auto;
+}
+
+/* Optional: Max width for modal content */
+.modal-content {
+    max-width: 600px;
+    width: 100%;
+}
+
     </style>
 </head>
 <body>
@@ -170,10 +206,10 @@
                                 <?php
                                     switch($row['status']){
                                         case '1':
-                                            echo "<span class='badge badge-success badge-pill'>Active</span>";
+                                            echo "<span class='badge badge-success badge-pill'style='color: green;'>Active</span>";
                                             break;
                                         case '0':
-                                            echo "<span class='badge badge-secondary badge-pill'>Inactive</span>";
+                                            echo "<span class='badge badge-secondary badge-pill'style='color: red;'>Inactive</span>";
                                             break;
                                     }
                                 ?>
