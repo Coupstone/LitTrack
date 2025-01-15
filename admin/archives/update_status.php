@@ -1,4 +1,3 @@
-<?php check_login();?>
 
 <div class="container-fluid">
     <form action="" id="update_status_form">

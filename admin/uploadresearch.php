@@ -24,22 +24,33 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
         }
     }
 }
+function generate_uuid() {
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+
+if (isset($_GET['id']) && $_GET['id'] > 0) {
+    $qry = $conn->query("SELECT * FROM `archive_list` WHERE id = '{$_GET['id']}'");
+    if ($qry->num_rows) {
+        foreach ($qry->fetch_array() as $k => $v) {
+            if (!is_numeric($k))
+                $$k = $v;
+        }
+    }
+    if (isset($uploader_id)) { // Replace student_id with uploader_id
+        if ($uploader_id != $_settings->userdata('id')) { // Adjust the check
+            echo "<script> alert('You don\'t have access to this page'); location.replace('./'); </script>";
+        }
+    }
+}
+
 ?>
-
-<!-- Include SweetAlert Library -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link href="dist/css/adminlte.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-
     <style>
         body {
             font-family: var(--bs-body-font-family);
@@ -169,6 +180,8 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 }
 
 </style>
+
+
 </head>
 <body>
 <div class="container h-100 d-flex justify-content-center align-items-center mt-5">
@@ -180,7 +193,7 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
             <form action="" id="archive-form" enctype="multipart/form-data" method="POST" class="needs-validation" novalidate>
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
-                    <label for="title" id="title-label">Research Title</label>
+                    <label for="title" id="title-label">Research Title<span style="color: red;"> *</span></label>
                 </div>
                 <div class="form-floating mb-3">
     <select class="form-control" id="year" name="year" required>
@@ -190,14 +203,14 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
             </option>
         <?php endfor; ?>
     </select>
-    <label for="year">Year</label>
+    <label for="year">Year<span style="color: red;"> *</span></label>
 </div>
                 <div class="form-floating mb-3">
                     <textarea class="form-control" id="abstract" name="abstract" placeholder="Abstract" required rows="5"><?= isset($abstract) ? html_entity_decode($abstract) : '' ?></textarea>
-                    <label for="abstract" id="abstract-label">Abstract</label>
+                    <label for="abstract" id="abstract-label">Abstract<span style="color: red;"> *</span></label>
                 </div>
                 <div id="author-container">
-                    <h6><strong>Authors</strong></h6>
+                    <h6><strong>Authors<span style="color: red;"> *</span></strong></h6>
                     <div class="author-row d-flex align-items-center mb-2">
                         <input type="text" class="form-control" name="author_firstname[]" placeholder="First Name" required>
                         <input type="text" class="form-control" name="author_lastname[]" placeholder="Last Name" required>
@@ -206,21 +219,24 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
                 </div>
                     <!-- Project Document -->
                     <div class="form-group mb-3">
-                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)</label>
+                        <label for="pdf" class="control-label text-muted"><strong>Research Document</strong> (PDF, maximum of 25MB)<span style="color: red;"> *</span></label>
                         <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
                     </div>
+<!-- Visibility Options -->
+<div class="form-group">
+    <label for="visibility" class="control-label text-navy">Visibility<span style="color: red;"> *</span></label>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="visibility" id="public" value="public" <?= isset($visibility) && $visibility == 'public' || !isset($visibility) ? "checked" : "" ?>>
+        <label class="form-check-label" for="public">Public <span class="text-muted">(Default)</span></label>
+    </div>
+    <!-- <div class="form-check">
+        <input class="form-check-input" type="radio" name="visibility" id="private" value="private" <?= isset($visibility) && $visibility == 'private' ? "checked" : "" ?>>
+        <label class="form-check-label" for="private">Private</label>
+    </div> -->
+</div>
 
-                    <!-- Visibility -->
-                    <div class="form-group">
-                        <label for="visibility" class="control-label text-navy">Visibility</label>
-                        <select name="visibility" id="visibility" class="form-control form-control-border" required>
-                            <option value="public" <?= isset($visibility) && $visibility == 'public' ? "selected" : "" ?>>Public</option>
-                            <option value="private" <?= isset($visibility) && $visibility == 'private' ? "selected" : "" ?>>Private</option>
-                        </select>
-                    </div>
-
-                    <!-- Publication Details -->
-<div class="mb-3">
+<!-- Publication Details -->
+<div class="mb-3 mt-4">
     <label class="form-label">Publication Details</label>
     <button type="button" class="btn btn-info" onclick="togglePublicationDetails()">+ Add</button>
     <span class="optional-text">(Optional)</span>
@@ -244,16 +260,10 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     </div>
 </div>
 
-                    <!-- Project Document -->
-                    <div class="form-group">
-                        <label for="pdf" class="control-label text-muted">Project Document (PDF File Only, maximum of 25MB)</label>
-                        <input type="file" id="pdf" name="pdf" class="form-control form-control-border" accept="application/pdf" <?= !isset($id) ? "required" : "" ?>>
-                    </div>
-
                     <!-- Submit Button -->
-                    <div class="form-group text-center">
-                        <button class="btn btn-default bg-navy btn-flat">Upload</button>
-                        <a href="#" class="btn btn-light border btn-flat">Cancel</a>
+                    <div class="form-group text-center mt-2">
+                        <button class="btn btn-default bg-navy btn-flat" type="submit" id="submit-button" disabled>Upload</button>
+                        <a type="button" id="cancel-button" class="btn btn-light border btn-flat">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -262,33 +272,144 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 </div>
 
 <script>
-     function togglePublicationDetails() {
+    function togglePublicationDetails() {
         const detailsDiv = document.getElementById('publication-details');
-        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+        if (detailsDiv) {
+            detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+        }
     }
-     document.getElementById('pdf').addEventListener('change', function () {
-        const file = this.files[0];
-        if (file) {
-            const fileType = file.type;
-            if (fileType !== 'application/pdf') {
-                Swal.fire({
-                    title: 'Invalid File',
-                    text: 'Only PDF files are allowed. Please upload a valid PDF file.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                this.value = ''; // Clear the invalid file
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const requiredFields = [
+            'title',
+            'year',
+            'abstract',
+            'author-container',
+            'pdf',
+            'visibility'
+        ];
+        const submitButton = document.querySelector('button[type="submit"]');
+        const cancelButton = document.getElementById('cancel-button');
+        const visibilityInputs = document.querySelectorAll('input[name="visibility"]');
+        const pdfInput = document.getElementById('pdf');
+        const authorContainer = document.getElementById('author-container');
+        const form = document.getElementById('archive-form'); // Replace with your form's ID
+
+        function checkFormValidity() {
+            let isValid = true;
+
+            requiredFields.forEach((field) => {
+                if (field === 'author-container') {
+                    if (authorContainer) {
+                        const authors = document.querySelectorAll('#author-container .author-row input');
+                        if (authors.length === 0 || [...authors].some(author => !author.value.trim())) {
+                            isValid = false;
+                        }
+                    } else {
+                        console.warn(`Element with ID '${field}' is missing.`);
+                    }
+                } else if (field === 'visibility') {
+                    if (visibilityInputs.length === 0 || ![...visibilityInputs].some(input => input.checked)) {
+                        isValid = false;
+                    }
+                } else if (field === 'pdf') {
+                    if (!pdfInput || !pdfInput.files || pdfInput.files.length === 0) {
+                        isValid = false;
+                    }
+                } else {
+                    const fieldElement = document.getElementById(field);
+                    if (fieldElement) {
+                        if (!fieldElement.value.trim()) {
+                            isValid = false;
+                        }
+                    } else {
+                        console.warn(`Element with ID '${field}' is missing.`);
+                    }
+                }
+            });
+
+            if (submitButton) {
+                submitButton.disabled = !isValid;
+            } else {
+                console.warn("Submit button is missing.");
             }
         }
+
+        function validatePdf() {
+            if (!pdfInput) return;
+
+            const file = pdfInput.files[0];
+            if (file) {
+                const fileType = file.type;
+                if (fileType !== 'application/pdf') {
+                    Swal.fire({
+                        title: 'Invalid File',
+                        text: 'Only PDF files are allowed. Please upload a valid PDF file.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    pdfInput.value = ''; // Clear the invalid file
+                }
+            }
+            checkFormValidity();
+        }
+
+        // Cancel button logic
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function () {
+                if (form) {
+                    // Reset the entire form
+                    form.reset();
+
+                    // Clear the input fields in the author rows, but keep the structure intact
+                    const authorRows = document.querySelectorAll('#author-container .author-row input');
+                    authorRows.forEach((input) => (input.value = ''));
+
+                    // Clear the PDF file input manually (form.reset() doesn't clear files)
+                    if (pdfInput) {
+                        pdfInput.value = '';
+                    }
+
+                    // Re-check form validity
+                    checkFormValidity();
+                }
+            });
+        }
+
+        // Attach event listeners to all fields
+        requiredFields.forEach((field) => {
+            if (field === 'author-container') {
+                if (authorContainer) {
+                    authorContainer.addEventListener('input', checkFormValidity);
+                }
+            } else if (field === 'visibility') {
+                visibilityInputs.forEach(input => input.addEventListener('change', checkFormValidity));
+            } else if (field === 'pdf') {
+                if (pdfInput) {
+                    pdfInput.addEventListener('change', validatePdf);
+                }
+            } else {
+                const fieldElement = document.getElementById(field);
+                if (fieldElement) {
+                    fieldElement.addEventListener('input', checkFormValidity);
+                    fieldElement.addEventListener('change', checkFormValidity);
+                }
+            }
+        });
+
+        // Initial check
+        checkFormValidity();
     });
+
     function addAuthorRow() {
         const authorContainer = document.getElementById("author-container");
-        const authorRows = authorContainer.getElementsByClassName("author-row");
+        if (!authorContainer) return;
 
-        if (authorRows.length >= 6) {
+        const authorRows = authorContainer.getElementsByClassName("author-row");
+        if (authorRows.length >= 10) {
             Swal.fire({
                 title: 'Limit Reached',
-                text: 'You can only add a maximum of 6 authors.',
+                text: 'You can only add a maximum of 10 authors.',
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });
@@ -303,122 +424,157 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
             </div>
         `;
         authorContainer.insertAdjacentHTML("beforeend", authorRow);
+
+        // Disable the submit button after adding a new author
+        const event = new Event('input');
+        authorContainer.dispatchEvent(event);
     }
 
     function removeAuthorRow(button) {
         button.parentElement.remove();
+        // Re-check form validity after removing a row
+        const event = new Event('input');
+        const authorContainer = document.getElementById('author-container');
+        if (authorContainer) {
+            authorContainer.dispatchEvent(event);
+        }
     }
 </script>
-
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize and validate input data
     $id = $_POST['id'] ?? null;
-    $title = $_POST['title'];
-    $year = $_POST['year'];
-    $abstract = htmlentities($_POST['abstract']);
+    $title = filter_var($_POST['title'], FILTER_SANITIZE_STRING);
+    $year = filter_var($_POST['year'], FILTER_SANITIZE_NUMBER_INT);
+    $abstract = htmlentities($_POST['abstract'], ENT_QUOTES, 'UTF-8');
     $curriculum_id = $_settings->userdata('curriculum_id') ?? 0;
-    $author_firstnames = $_POST['author_firstname'];
-    $author_lastnames = $_POST['author_lastname'];
+    $author_firstnames = $_POST['author_firstname'] ?? []; // Initialize as empty array
+    $author_lastnames = $_POST['author_lastname'] ?? []; // Initialize as empty array
+    $student_id = $_settings->userdata('id') ?? null; // Allow student_id to be null
+    $visibility = $conn->real_escape_string($_POST['visibility'] ?? '');
+    $journal = !empty($_POST['journal']) ? $conn->real_escape_string($_POST['journal']) : null;
+    $volume = !empty($_POST['volume']) ? $conn->real_escape_string($_POST['volume']) : null;
+    $pages = !empty($_POST['pages']) ? $conn->real_escape_string($_POST['pages']) : null;
+    $doi = !empty($_POST['doi']) ? $conn->real_escape_string($_POST['doi']) : null;
+    $publication_date = !empty($_POST['publicationDate']) ? $conn->real_escape_string($_POST['publicationDate']) : null;
+    $uuid = generate_uuid();
 
-    try {
-        if (empty($id)) {
-            // Generate archive code
-            $yearCode = date("Y");
-            $increment = 1;
+    // Generate or fetch archive_code
+    if (empty($id)) {
+        $yearCode = date("Y");
+        $increment = 1;
 
-            $existingCodeQuery = $conn->query("SELECT archive_code FROM archive_list WHERE archive_code LIKE '$yearCode%' ORDER BY archive_code DESC LIMIT 1");
-            if ($existingCodeQuery && $existingCodeQuery->num_rows > 0) {
-                $lastCode = $existingCodeQuery->fetch_assoc()['archive_code'];
-                $increment = (int)substr($lastCode, -4) + 1;
-            }
-
-            $archive_code = $yearCode . str_pad($increment, 4, '0', STR_PAD_LEFT);
-            $qry = $conn->prepare("INSERT INTO archive_list (title, year, abstract, archive_code, uploader_id, curriculum_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $qry->bind_param("ssssii", $title, $year, $abstract, $archive_code, $uploader_id, $curriculum_id);
-            $qry->execute();
-            $id = $qry->insert_id;
-        } else {
-            $qry = $conn->prepare("UPDATE archive_list SET title=?, year=?, abstract=?, curriculum_id=? WHERE id=?");
-            $qry->bind_param("ssssi", $title, $year, $abstract, $curriculum_id, $id);
-            $qry->execute();
+        $existingCodeQuery = $conn->query("SELECT archive_code FROM archive_list WHERE archive_code LIKE '$yearCode%' ORDER BY archive_code DESC LIMIT 1");
+        if ($existingCodeQuery && $existingCodeQuery->num_rows > 0) {
+            $lastCode = $existingCodeQuery->fetch_assoc()['archive_code'];
+            $increment = (int)substr($lastCode, -4) + 1;
         }
 
-        // Insert authors
-        if ($id && $author_firstnames && $author_lastnames) {
-            $conn->query("DELETE FROM archive_authors WHERE archive_id='$id'");
-            foreach ($author_firstnames as $key => $first_name) {
-                $last_name = $author_lastnames[$key];
-                $order = $key + 1;
-                $qry = $conn->prepare("INSERT INTO archive_authors (archive_id, first_name, last_name, author_order) VALUES (?, ?, ?, ?)");
-                $qry->bind_param("issi", $id, $first_name, $last_name, $order);
-                $qry->execute();
-            }
-        }
+        $archive_code = $yearCode . str_pad($increment, 4, '0', STR_PAD_LEFT);
 
-        // File upload with PDF validation
-        if (isset($_FILES['pdf']) && $_FILES['pdf']['tmp_name']) {
-            $fileType = mime_content_type($_FILES['pdf']['tmp_name']);
-            $allowedType = "application/pdf";
-        
-            if ($fileType !== $allowedType) {
-                echo "<script>
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Only PDF files are allowed. Please upload a valid PDF file.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                </script>";
-                exit();
-            }
-        
-            // Define the absolute path to the 'uploads/pdf/' folder
-            $base_upload_dir = __DIR__ . '/../uploads/pdf/'; // Moves one directory up from 'admin'
-            $filePath = $base_upload_dir . "archive-$id.pdf";
-        
-            // Ensure the directory exists
-            if (!file_exists($base_upload_dir)) {
-                mkdir($base_upload_dir, 0777, true);
-            }
-        
-            // Move the uploaded file
-            if (move_uploaded_file($_FILES['pdf']['tmp_name'], $filePath)) {
-                // Save the relative path in the database
-                $relativePath = "uploads/pdf/archive-$id.pdf";
-                $updateFilePathQuery = $conn->prepare("UPDATE archive_list SET document_path = ? WHERE id = ?");
-                $updateFilePathQuery->bind_param("si", $relativePath, $id);
-                $updateFilePathQuery->execute();
-            } else {
-                echo "<script>
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Failed to upload the document. Please try again.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                </script>";
-            }
-        }
+// Validate student_id/uploader_id
+if (is_null($student_id)) {
+    echo "<script>alert('Uploader ID is missing. Please log in again.'); location.replace('./login.php');</script>";
+    exit();
+}
 
-        echo "<script>
-            Swal.fire({
-                title: 'Success!',
-                text: 'Research study uploaded successfully!',
-                icon: 'success',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                location.href = './?page=view_archive&id=$id';
-            });
-        </script>";
-    } catch (Exception $e) {
-        echo "<script>
-            Swal.fire({
-                title: 'Error!',
-                text: 'An error occurred: " . $conn->error . "',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        </script>";
+// Insert the new record
+$qry = $conn->query("INSERT INTO archive_list 
+    (title, year, abstract, archive_code, uploader_id, curriculum_id, visibility, journal, volume, pages, doi, publication_date, uuid,status) 
+    VALUES 
+    ('$title', '$year', '$abstract', '$archive_code', '$student_id', 
+    '$curriculum_id', '$visibility', 
+    " . ($journal ? "'$journal'" : "NULL") . ", 
+    " . ($volume ? "'$volume'" : "NULL") . ", 
+    " . ($pages ? "'$pages'" : "NULL") . ", 
+    " . ($doi ? "'$doi'" : "NULL") . ", 
+    " . ($publication_date ? "'$publication_date'" : "NULL") . ", 
+    '$uuid',1)");
+        $id = $conn->insert_id; // Get the inserted ID
+    } else {
+        // Update the existing record
+        $qry = $conn->query("UPDATE archive_list 
+            SET 
+                title='$title', 
+                year='$year', 
+                abstract='$abstract', 
+                curriculum_id='$curriculum_id', 
+                visibility='$visibility', 
+                journal=" . ($journal ? "'$journal'" : "NULL") . ", 
+                volume=" . ($volume ? "'$volume'" : "NULL") . ", 
+                pages=" . ($pages ? "'$pages'" : "NULL") . ", 
+                doi=" . ($doi ? "'$doi'" : "NULL") . ", 
+                publication_date=" . ($publication_date ? "'$publication_date'" : "NULL") . " 
+            WHERE id='$id'");
     }
+
+    // Insert authors
+    if ($id && !empty($author_firstnames) && !empty($author_lastnames)) {
+        $conn->query("DELETE FROM archive_authors WHERE archive_id='$id'");
+        foreach ($author_firstnames as $key => $first_name) {
+            $last_name = $author_lastnames[$key];
+            $order = $key + 1;
+            $qry = $conn->prepare("INSERT INTO archive_authors (archive_id, first_name, last_name, author_order) VALUES (?, ?, ?, ?)");
+            $qry->bind_param("issi", $id, $first_name, $last_name, $order);
+            $qry->execute();
+        }
+    }
+
+    // File upload with PDF validation
+    if (isset($_FILES['pdf']) && $_FILES['pdf']['tmp_name']) {
+        $fileType = mime_content_type($_FILES['pdf']['tmp_name']);
+        $allowedType = "application/pdf";
+
+        if ($fileType !== $allowedType) {
+            echo "<script>
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Only PDF files are allowed. Please upload a valid PDF file.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            </script>";
+            exit();
+        }
+
+        // Define the absolute path to the 'uploads/pdf/' folder
+        $base_upload_dir = __DIR__ . '/../uploads/pdf/';
+        $filePath = $base_upload_dir . "archive-$id.pdf";
+
+        // Ensure the directory exists
+        if (!file_exists($base_upload_dir)) {
+            mkdir($base_upload_dir, 0777, true);
+        }
+
+        // Move the uploaded file
+        if (move_uploaded_file($_FILES['pdf']['tmp_name'], $filePath)) {
+            // Save the relative path in the database
+            $relativePath = "uploads/pdf/archive-$id.pdf";
+            $updateFilePathQuery = $conn->prepare("UPDATE archive_list SET document_path = ? WHERE id = ?");
+            $updateFilePathQuery->bind_param("si", $relativePath, $id);
+            $updateFilePathQuery->execute();
+        } else {
+            echo "<script>
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to upload the document. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            </script>";
+        }
+    }
+
+    // Success message
+    echo "<script>
+        Swal.fire({
+            title: 'Success!',
+            text: 'Research study uploaded successfully!',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            location.href = './?page=archives';
+        });
+    </script>";
 }
 ?>

@@ -404,10 +404,10 @@ body {
         if (!authorContainer) return;
 
         const authorRows = authorContainer.getElementsByClassName("author-row");
-        if (authorRows.length >= 6) {
+        if (authorRows.length >= 10) {
             Swal.fire({
                 title: 'Limit Reached',
-                text: 'You can only add a maximum of 6 authors.',
+                text: 'You can only add a maximum of 10 authors.',
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });

@@ -228,6 +228,7 @@
 }
 
 .modal-backdrop {
+    background-color: transparent !important;
     z-index: 1040 !important;  /* Ensure backdrop appears below the modal */
 }
 .swal2-container {

@@ -179,13 +179,13 @@ Join us in fostering innovation, collaboration, and academic excellence as we sh
                       </tbody>
                     </table>
                 </div>
-                <div class="pagination d-flex justify-content-end mt-3">
+            </div>
+        </div>
+        <div class="pagination d-flex justify-content-end mt-3">
                     <button class="btn btn-outline-dark btn-sm" id="prevPage" onclick="changePage(-1)">Previous</button>
                     <span id="pageInfo" class="mx-3 mt-2"></span>
                     <button class="btn btn-outline-dark btn-sm" id="nextPage" onclick="changePage(1)">Next</button>
-                </div>
-            </div>
-        </div>
+          </div>
     </div>
 </section>
 
