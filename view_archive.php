@@ -108,9 +108,8 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
 
 
         // APA format: Last, F. M.
-        $initials = $middle_name_initial ? "{$first_name_initial}. {$middle_name_initial}." : "{$first_name_initial}.";
-        $apa_authors[] = "{$last_name}, {$initials}";
-
+$initials = $middle_name_initial ? "{$first_name_initial}. {$middle_name_initial}." : "{$first_name_initial}.";
+$apa_authors[] = "{$last_name}, {$initials}";
 
         // General format for other citations
         $general_authors[] = "{$first_name} {$last_name}";
@@ -143,13 +142,15 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
     }
 
 
-    // APA authors formatted string
-    if (count($apa_authors) > 1) {
-        $last_author = array_pop($apa_authors);
-        $apa_authors_formatted = implode(", ", $apa_authors) . ", & " . $last_author;
-    } else {
-        $apa_authors_formatted = $apa_authors[0];
-    }
+    // Ensure authors are in alphabetical order
+sort($apa_authors);
+// APA authors formatted string
+if (count($apa_authors) > 1) {
+    $last_author = array_pop($apa_authors);
+    $apa_authors_formatted = implode(", ", $apa_authors) . ", & " . $last_author;
+} else {
+    $apa_authors_formatted = $apa_authors[0];
+}
 
 
     // MLA format: use "et al." if there are multiple authors
@@ -189,6 +190,18 @@ if (isset($_GET['id']) && $_GET['id'] > 0) {
              $submitted = $student['firstname'] . ' ' . $student['lastname'];
          }
      }
+
+             // Check if the record was submitted by an admin
+             if (!empty($uploader_id)) {
+                $admin_stmt = $conn->prepare("SELECT username FROM users WHERE id = ?");
+                $admin_stmt->bind_param("i", $uploader_id);
+                $admin_stmt->execute();
+                $admin_result = $admin_stmt->get_result();
+                if ($admin_result->num_rows > 0) {
+                    $admin = $admin_result->fetch_assoc();
+                    $submitted = $admin['username'];
+                }
+            }
 
 
 // Check if user_id exists in the session before using it
@@ -836,7 +849,7 @@ if (isset($_SESSION['student_id']) && isset($_GET['id']) && $_GET['id'] > 0) {
 function generateCitations() {
     // Generate and display citation text in the modal
     const mlaAuthors = "<?= $mla_authors_formatted ?>";
-    const apaAuthors = "<?= $apa_authors_formatted ?>";
+    const apaAuthors = "<?= $apa_authors_formatted ?>"; 
     const chicagoAuthors = "<?= $chicago_authors_formatted ?>";
     const harvardAuthors = "<?= $harvard_authors_formatted ?>";
     const vancouverAuthors = "<?= $vancouver_authors_formatted ?>";
@@ -943,23 +956,33 @@ function requestAccess(archiveId) {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
+            // Show SweetAlert loading screen
+            Swal.fire({
+                title: 'Sending request...',
+                text: 'Please wait while we process your request.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Perform AJAX request
             $.ajax({
                 url: 'request_access.php',
                 method: 'POST',
                 data: { archive_id: archiveId },
                 dataType: 'json',
                 success: function(response) {
+                    Swal.close(); // Close the loading screen
                     if (response.success) {
-                        console.log(response.success);
-                        console.log(response.message);
-                        console.log('Hello');
                         Swal.fire('Success', 'Your access request has been sent.', 'success');
+                    } else {
+                        Swal.fire('Error', response.message || 'Failed to send access request.', 'error');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log('Error: ', error);
-                    console.log('Status', status);
-                    console.error('XHR: ', xhr.responseText);
+                    Swal.close(); // Close the loading screen
+                    console.error('XHR:', xhr.responseText);
                     Swal.fire('Error', 'Failed to send access request.', 'error');
                 }
             });
@@ -991,5 +1014,4 @@ window.onclick = function(event) {
 </script>
 
 </script>
-
 

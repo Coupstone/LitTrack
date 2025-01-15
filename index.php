@@ -23,7 +23,7 @@ check_login();
                     <form id="search-form" action="projects.php" method="GET" class="d-flex justify-content-center mt-4">
                         <div class="autocomplete-wrapper" style="position: relative; width: 50%;">
                             <input type="search" id="search-input" class="form-control" name="q" required 
-                                placeholder="Search by title, authors, abstract and project year ">
+                                placeholder=" Search by title, authors, abstract and project year ">
                             <div id="autocomplete-results" style="
                                 position: absolute;
                                 top: 100%;

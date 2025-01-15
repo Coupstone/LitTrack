@@ -1,4 +1,4 @@
-<?php check_login();?>
+
 <style>
         body {
             font-family: var(--bs-body-font-family);
@@ -120,6 +120,21 @@
             font-size: 1.25em;
             font-weight: bold;
         }
+        /* Ensure the modal appears above the table */
+.modal {
+    z-index: 1050 !important;  /* Ensure modal has a high z-index */
+}
+
+.modal-backdrop {
+    background-color: transparent !important;
+    z-index: 1040 !important;  /* Ensure backdrop appears below the modal */
+}
+.swal2-container {
+    z-index: 1060 !important; /* Set the z-index of SweetAlert higher than modals */
+}
+.swal2-backdrop {
+    z-index: 1050 !important; /* Set the backdrop z-index lower than the SweetAlert */
+}
     </style>
 </head>
 <body>
@@ -229,27 +244,23 @@
         });
     });
 
-    function delete_archive(id){
-        start_loader();
-        $.ajax({
-            url: _base_url_+"classes/Master.php?f=delete_archive",
-            method: "POST",
-            data: {id: id},
-            dataType: "json",
-            error: function(err){
-                console.log(err);
-                alert("An error occurred while deleting the archive.");
-                end_loader();
-            },
-            success: function(resp){
-                if(resp.status == 'success'){
-                    alert("Project successfully deleted.");
-                    location.reload();
-                } else {
-                    alert("Failed to delete project. Please try again.");
-                }
-                end_loader();
+    function delete_archive(id) {
+    start_loader();
+    $.ajax({
+        url: _base_url_ + "classes/Master.php?f=delete_archive",
+        method: "POST",
+        data: { id: id },
+        dataType: "json",
+        error: function(err) {
+            console.log(err);
+            end_loader();
+        },
+        success: function(resp) {
+            if (resp.status == 'success') {
+                location.reload();
             }
-        });
-    }
+            end_loader();
+        }
+    });
+}
 </script>

@@ -118,7 +118,7 @@ echo "
     transform: translateY(20%); /* Moves the container up by 10% of its height */
         }
         .table-container {
-            margin-top: 20px; /* Adjust the value as needed */
+            margin-top: 50px; /* Adjust the value as needed */
         }
     </style>
 ";
@@ -127,7 +127,7 @@ echo "
 echo "
 <div class='table-container'>
     <div class='card card-outline card-primary shadow'>
-        <div class='card-header bg-white mt-4'>
+        <div class='card-header bg-white'>
             <h3 class='card-title text-center text-dark header-title'><b>Advanced Search</b></h3>
             <form id='search-form' class='d-flex' action='search_results.php' method='GET'>
                 <a href='advance-search.php' class='btn btn-primary ms-2'><i class='fa fa-arrow-left'></i> Back</a>
@@ -190,13 +190,14 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
 } else {
     // Step 2: Build the query for archive_list using direct filters and, if available, paper_ids
     $query = "SELECT archive_list.id, archive_list.title, archive_list.abstract, 
-              GROUP_CONCAT(CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) SEPARATOR ', ') AS authors, 
-              archive_list.year,
-              (SELECT COUNT(*) FROM archive_citation WHERE archive_id = archive_list.id) AS citation_count
-              FROM archive_list
-              LEFT JOIN archive_authors ON archive_list.id = archive_authors.archive_id
-              LEFT JOIN lda_topics lt ON archive_list.id = lt.paper_id
-              WHERE 1=1";
+    GROUP_CONCAT(DISTINCT CONCAT(archive_authors.first_name, ' ', archive_authors.last_name) SEPARATOR ', ') AS authors, 
+    archive_list.year,
+    (SELECT COUNT(*) FROM archive_citation WHERE archive_id = archive_list.id) AS citation_count
+    FROM archive_list
+    LEFT JOIN archive_authors ON archive_list.id = archive_authors.archive_id
+    LEFT JOIN lda_topics lt ON archive_list.id = lt.paper_id
+    WHERE 1=1";
+
     $params = [];
     $types = "";
     // Only add paper_ids filter if there are matches from the keyword search
@@ -258,11 +259,11 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $members = htmlspecialchars($row['authors'] ?? 'No Authors Available');
             $year = htmlspecialchars($row['year'] ?? 'N/A');
             $id = $row['id'];
-            $citation_count = $row['citation_count'] ?? 0;
+            $citation_count = $row['citations'] ?? 0;
             // Track reads (increased view count)
-            $stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
+            // $stmt = $conn->prepare("INSERT INTO archive_reads (archive_id) VALUES (?)");
+            // $stmt->bind_param("i", $id);
+            // $stmt->execute();
             // Fetch read count
             $stmt = $conn->prepare("SELECT COUNT(*) AS read_count FROM archive_reads WHERE archive_id = ?");
             $stmt->bind_param("i", $id);
@@ -277,6 +278,9 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
             $download_result = $stmt->get_result();
             $download_data = $download_result->fetch_assoc();
             $download_count = $download_data['download_count'];
+            
+
+            
 
             echo "
                 <div class='archive-item' data-id='{$id}'>
@@ -287,7 +291,7 @@ if (!empty($searchKeyword) && empty($paper_ids)) {
                         <div class='stats'>
                             <div>Reads: {$read_count}</div>
                             <div>Downloads: {$download_count}</div>
-                            <div>Citations: {$citation_count}</div>
+                            
                         </div>
                     </a>
                 </div>";

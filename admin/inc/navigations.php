@@ -380,7 +380,7 @@ a {
                     <i class='bx bx-bookmark nav_icon'></i>
                     <span class="nav_name">Curriculum List</span>
                 </a>
-                <a href="<?php echo base_url ?>/admin/?page=uploadresearch" class="nav_link <?php echo ($page == 'uploadresearch') ? 'active' : '';?>">
+                <a href="<?php echo base_url ?>admin/?page=uploadresearch" class="nav_link <?php echo ($page == 'uploadresearch') ? 'active' : '';?>">
                     <i class='bx bx-upload nav_icon'></i>
                     <span class="nav_name">Upload Research</span>
                 </a>
